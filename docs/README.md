@@ -30,7 +30,7 @@ ZKE 是 AI 原生的 Kubernetes 云操作环境：Server + Agent 连接各处集
 
 - [集群接入管理](features/agent-management.md)
 - [容器服务](features/container-service.md)
-- [容器服务资源读取性能优化方案](features/container-service-performance-optimization.md)：统一 Agent Informer 缓存、精简列表、概览聚合与 QUIC 压缩的规划
+- [容器服务资源读取性能优化方案](features/container-service-performance-optimization.md)：统一 Agent Informer 缓存、精简列表、概览聚合与 QUIC 压缩的设计、实现状态与基准结果
 - [Helm 应用](features/helm.md)
 - [自定义应用](features/custom-applications.md)
 - [终端](features/terminal.md)

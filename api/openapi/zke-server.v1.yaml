@@ -2326,6 +2326,8 @@ paths:
           $ref: "#/components/responses/Unauthenticated"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "410":
+          $ref: "#/components/responses/ListPageExpired"
         "429":
           $ref: "#/components/responses/TooManyRequests"
         "502":
@@ -2614,6 +2616,8 @@ paths:
           $ref: "#/components/responses/Unauthenticated"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "410":
+          $ref: "#/components/responses/ListPageExpired"
         "429":
           $ref: "#/components/responses/TooManyRequests"
         "502":
@@ -2835,6 +2839,8 @@ paths:
           $ref: "#/components/responses/Unauthenticated"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "410":
+          $ref: "#/components/responses/ListPageExpired"
         "429":
           $ref: "#/components/responses/TooManyRequests"
         "502":
@@ -3686,6 +3692,8 @@ paths:
           $ref: "#/components/responses/Unauthenticated"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "410":
+          $ref: "#/components/responses/ListPageExpired"
         "429":
           $ref: "#/components/responses/TooManyRequests"
         "502":
@@ -4453,6 +4461,7 @@ paths:
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "409": { $ref: "#/components/responses/Conflict" }
+        "410": { $ref: "#/components/responses/ListPageExpired" }
         "429": { $ref: "#/components/responses/TooManyRequests" }
         "502": { $ref: "#/components/responses/BadGateway" }
         "503": { $ref: "#/components/responses/Unavailable" }
@@ -4682,6 +4691,7 @@ paths:
         "400": { $ref: "#/components/responses/InvalidRequest" }
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "403": { $ref: "#/components/responses/Forbidden" }
+        "410": { $ref: "#/components/responses/ListPageExpired" }
         "429": { $ref: "#/components/responses/TooManyRequests" }
         "502": { $ref: "#/components/responses/BadGateway" }
         "503": { $ref: "#/components/responses/Unavailable" }
@@ -4805,6 +4815,7 @@ paths:
         "400": { $ref: "#/components/responses/InvalidRequest" }
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "403": { $ref: "#/components/responses/Forbidden" }
+        "410": { $ref: "#/components/responses/ListPageExpired" }
         "429": { $ref: "#/components/responses/TooManyRequests" }
         "502": { $ref: "#/components/responses/BadGateway" }
         "503": { $ref: "#/components/responses/Unavailable" }
@@ -4967,6 +4978,7 @@ paths:
         "400": { $ref: "#/components/responses/InvalidRequest" }
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "403": { $ref: "#/components/responses/Forbidden" }
+        "410": { $ref: "#/components/responses/ListPageExpired" }
         "429": { $ref: "#/components/responses/TooManyRequests" }
         "502": { $ref: "#/components/responses/BadGateway" }
         "503": { $ref: "#/components/responses/Unavailable" }
@@ -5385,6 +5397,7 @@ paths:
         "400": { $ref: "#/components/responses/InvalidRequest" }
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "403": { $ref: "#/components/responses/Forbidden" }
+        "410": { $ref: "#/components/responses/ListPageExpired" }
         "429": { $ref: "#/components/responses/TooManyRequests" }
         "502": { $ref: "#/components/responses/BadGateway" }
         "503": { $ref: "#/components/responses/Unavailable" }
@@ -5508,6 +5521,7 @@ paths:
         "400": { $ref: "#/components/responses/InvalidRequest" }
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "403": { $ref: "#/components/responses/Forbidden" }
+        "410": { $ref: "#/components/responses/ListPageExpired" }
         "429": { $ref: "#/components/responses/TooManyRequests" }
         "502": { $ref: "#/components/responses/BadGateway" }
         "503": { $ref: "#/components/responses/Unavailable" }
@@ -10038,6 +10052,15 @@ components:
             $ref: "#/components/schemas/Error"
     UnsupportedMediaType:
       description: 请求正文媒体类型不受支持
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    ListPageExpired:
+      description: |
+        续页令牌指向的分页已经失效——签发它的 Agent 缓存快照不再存在，或令牌已超过有效期。
+        位置本身已经不存在，唯一正确的处理是重新开始列举，而不是返回另一页。语义与 Kubernetes
+        对过期 `continue` 令牌的处理一致。
       content:
         application/json:
           schema:

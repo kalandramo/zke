@@ -78,18 +78,27 @@ PersistentVolume 返回所有卷 `spec.capacity.storage` 之和（不分阶段�
 PersistentVolumeClaim 返回 `spec.resources.requests.storage` 之和，即申请量而非实际制备量，与本页其余
 requests 口径一致。
 
-当前完整对象读取、概览聚合和列表传输的性能边界，以及计划中的统一 Agent Informer 缓存、Summary 查询、请求合并与
-QUIC 压缩方案，见[容器服务资源读取性能优化方案](container-service-performance-optimization.md)。该方案尚未实现，不能视为
-当前行为。
+Agent 维护一份集群资源读模型（ResourceCache）：每个受支持的 GroupVersionResource 在一个 Agent 进程内只有
+一个 Informer，首次 LIST 之后由 WATCH 维持，概览与内置列表共用同一份缓存。概览由该缓存增量聚合，列表按
+紧凑投影分页返回。设计背景、边界与验证方案见
+[容器服务资源读取性能优化方案](container-service-performance-optimization.md)。
+
+详情、YAML、创建、更新、删除、日志、Exec、Terminal、Port Forward 与 Event 仍然直接访问 Kubernetes API
+Server：缓存只服务列表与计数，不是用户即将编辑的对象的事实来源。写操作成功后返回 Kubernetes 的实际响应对象
+与 `resourceVersion`，缓存通过 Watch 自然观察该变更，不会被手工写入。
 
 一份完整快照在 Server 内按 Cluster 缓存 15 秒，窗口内的重复请求直接返回同一份结果，`generated_at` 因此
-可能早于当前时间。这是有意的：概览是每个操作者进入应用时的落地页，而一次概览是对集群的十次完整列举，也是
-本应用最贵的读取。缓存按 Cluster 定键而与调用者无关——本响应描述的是 Cluster 本身，且每个请求都独立校验
+可能早于当前时间。缓存按 Cluster 定键而与调用者无关——本响应描述的是 Cluster 本身，且每个请求都独立校验
 该 Cluster 的 `cluster.read`；返回给调用方的是副本，不是缓存中的同一份对象。含失败部分的结果不进入缓存：
 操作者按刷新正是为了确认那个部分是否仍不可用，用失败本身回答这个问题等于关掉了刷新按钮；只达到条目上限的
 结果会进入缓存，因为重新列举一个数不完的集群只会在同样的代价下得到同样的上限。缓存条目数有上限，超出时
-该 Cluster 不缓存，而不是挤掉别人正要读的快照。窗口内并发到达的首批请求仍会各自列举一次集群——缓存合并的
-是完成之后的读取，不是同时在途的读取。
+该 Cluster 不缓存，而不是挤掉别人正要读的快照。同一 Cluster 同时到达的冷请求只触发一次实际读取，其余调用
+共享同一结果；不同 Cluster 之间不合并。超出新鲜窗口后接口先返回上一次成功的快照并标记 `stale: true`，同时
+在后台刷新一次；Agent 断开或 Kubernetes 暂时不可读时，该快照在有上限的时间内继续应答。连续失败使用有上限的
+指数退避，退避期内直接返回上一次的失败原因，不再读取集群。
+
+Agent 缓存尚未完成首次 LIST 时，概览不会把未知返回成 0：该 Cluster 回落到十次实时列举，直到缓存可用。
+Agent 不支持缓存能力时同样回落，因此 Server 可以先于 Agent 升级。
 
 Console 概览是容器服务的默认落地页，也是左侧导航第一项：操作者进入应用时通常还不知道该打开哪个资源类别。
 页面展示节点、命名空间、Pod 和工作负载的计数与状态分布、五类工作负载的分类计数、PersistentVolume 与

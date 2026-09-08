@@ -1,15 +1,36 @@
 # 容器服务资源读取性能优化方案
 
-> 状态：设计方案，尚未实现。
+> 状态：主体已实现，仍有明确列出的未完成项，见[实现状态](#实现状态)。
 >
-> 本文描述容器服务资源读取、列表展示与集群概览的性能优化方向。当前真实行为仍以
-> [容器服务](container-service.md)和代码实现为准。
+> 本文既是设计说明也是实现记录。凡描述当前行为的段落以代码和测试为准；标注为“计划”或
+> 列在未完成项中的内容尚未实现。接口层面的真实契约以
+> [Server OpenAPI 契约](../../api/openapi/zke-server.v1.yaml)为准。
+
+## 实现状态
+
+已实现：
+
+- QUIC Resource Body 的 gzip 能力协商（请求声明可接受编码，响应声明编码、线上大小与解压后大小）；
+- Server 概览的 per-cluster 请求合并、stale-while-revalidate、last-known-good 与有上限的失败退避；
+- Agent `ResourceCache`：Informer Registry、生命周期、Projector、紧凑 Store、Summary Index、
+  Overview Aggregator、缓存健康状态、查询接口与关闭回收；
+- `overview-snapshot.v1` 与 `resource-summary.v1` 两个 Agent 能力，以及新旧 Server/Agent 的双向回退；
+- 概览由缓存增量聚合，Node、Namespace、Pod、五类工作负载、存储、服务与路由、伸缩与策略列表优先由缓存分页应答；
+- 详情、YAML、写操作、日志、Exec、Terminal、Port Forward 与 Event 全部保持实时；
+- 缓存与压缩的基准测试入口。
+
+未实现，且各有原因：
+
+- EndpointSlice、ReplicaSet 与 ControllerRevision 未进入缓存。它们的数量随 Pod 就绪变化和滚动发布的修订
+  历史增长，缓存它们会让内存与事件速率变成 churn 的函数，而不是页面展示内容的函数；这三类资源的列表继续
+  实时读取 Kubernetes。
+- KWOK 规模验证与低带宽、高 RTT、丢包链路下的端到端测量尚未进行；本文只记录进程内基准的结果。
 
 ## 背景
 
 ZKE 的容器服务遵循 Server + Agent 架构。Server 不直接访问 Kubernetes API Server，而是通过目标集群中的 Agent
-执行资源查询。当前资源列表和集群概览复用通用 Resource Stream：Agent 调用 Kubernetes API，序列化完整对象后通过
-QUIC 返回 Server，再由 Server 转换为面向 Console 的稳定响应。
+执行资源查询。本节描述本次改动之前的实现：资源列表和集群概览复用通用 Resource Stream，Agent 调用 Kubernetes
+API，序列化完整对象后通过 QUIC 返回 Server，再由 Server 转换为面向 Console 的稳定响应。
 
 该实现保持了集群边界和 Kubernetes 原生语义，但在 Pod 或工作负载较多、Agent 与 Server 之间带宽较低、多个用户并发
 打开容器服务时，会重复付出以下成本：
@@ -20,7 +41,7 @@ QUIC 返回 Server，再由 Server 转换为面向 Console 的稳定响应。
 - Server 反序列化完整对象后只保留列表或概览需要的少数字段；
 - 多个缓存未命中的请求可能重复执行相同的集群级查询。
 
-### 已确认的当前行为
+### 改动前的已确认行为
 
 - Agent 的通用资源读取直接调用 dynamic client 的 `List` 或 `Get`，没有为容器服务资源建立共享 Informer；
 - Resource Watch 当前只服务 Kubernetes Event，并非容器服务资源的共享缓存；
@@ -33,9 +54,9 @@ QUIC 返回 Server，再由 Server 转换为面向 Console 的稳定响应。
 
 ## 问题分析
 
-### 概览当前是高成本读取
+### 概览曾是高成本读取
 
-概览最终只返回状态计数和容量汇总，但当前实现需要 Server 经 Agent 获取十类资源的完整列表。Pod 部分还需要遍历所有
+概览最终只返回状态计数和容量汇总，但改动前的实现需要 Server 经 Agent 获取十类资源的完整列表。Pod 部分还需要遍历所有
 非终态 Pod，以 Kubernetes 调度语义计算 CPU 和内存 requests。
 
 一次 List 不一定每次都直接读取 etcd。Kubernetes API Server 可以从 watch cache 服务部分读取，但 API Server 仍需承担
@@ -53,6 +74,47 @@ Kubernetes 控制面的重复读取。
 gzip 能显著降低 Agent 到 Server 的 JSON 传输时间，适合带宽受限的私网、混合云与边缘环境。但 gzip 不会减少 API
 Server List 次数、对象构造成本和 Agent 内存占用，因此应作为通用传输层优化，与资源缓存同时实施。
 
+## 基准测试结果
+
+以下数字来自本仓库的基准测试，在一台 11th Gen Intel Core i5-11300H（8 逻辑核）、Windows、Go 1.26 的开发
+机器上运行得到，仅用于说明量级和趋势，不是产品性能承诺；不同硬件与集群规模下的结果会不同。
+
+复现命令：
+
+```bash
+go test ./pkg/agent/resourcecache/ -run XXX -bench . -benchtime 20x
+go test ./pkg/shared/agentprotocol/ -run XXX -bench "Body" -benchtime 100x
+```
+
+Agent 缓存：
+
+| 指标 | 1000 Pod | 10000 Pod |
+| --- | --- | --- |
+| 首次 LIST 到缓存可用 | 约 40 ms | 约 429 ms |
+| 缓存常驻内存 | 约 947 B/Pod（约 0.9 MB） | 约 927 B/Pod（约 8.8 MB） |
+| 概览读取 | 约 1.20 µs、928 B、13 次分配 | 约 1.27 µs、928 B、13 次分配 |
+| 列表首页（100 条） | 约 0.42 ms | 约 4.16 ms |
+| 列表后续页（100 条） | 约 0.21 ms | 约 0.30 ms |
+| 单条 Watch 事件 | — | 约 36 µs |
+| 并发概览读取（同时有写入） | — | 约 0.61 µs/次 |
+
+概览读取的耗时和分配量在 1000 与 10000 Pod 之间基本不变，这正是把概览从“每次请求十次全量列举”改为
+“复制一份计数快照”的目的。列表首页随对象数量增长，因为它要遍历并排序整个 section；后续页从分页会话读取，
+因此基本持平。
+
+QUIC Resource Body gzip（正文为 Kubernetes 列表形状的 JSON）：
+
+| 正文大小 | 压缩比 | 压缩吞吐 | 解压吞吐 |
+| --- | --- | --- | --- |
+| 27 KiB | 约 14x | 约 227 MB/s | — |
+| 109 KiB | 约 17x | 约 513 MB/s | 约 996 MB/s |
+| 544 KiB | 约 17x | 约 735 MB/s | 约 932 MB/s |
+| 2.7 MiB | 约 17x | 约 885 MB/s | 约 1005 MB/s |
+
+据此把默认压缩阈值定为 64 KiB：这一档正文压缩约需 90 µs、可省下约 60 KiB，即使在 10 Mbit/s 的链路上也
+换回数十毫秒；再往下，压缩省下的传输时间在局域网上已经不足以抵消 Agent 的 CPU。阈值可配置
+（`connection.resource_compression_threshold_bytes`）。
+
 ## 优化目标
 
 - 容器服务的内置资源列表复用 Agent 内同一份资源缓存，不为概览单独维护一套 Informer；
@@ -66,7 +128,7 @@ Server List 次数、对象构造成本和 Agent 内存占用，因此应作为�
 
 ## 总体设计
 
-在 Agent 内新增统一资源读取模型 `ResourceCache`。Informer 负责从 Kubernetes 获取初始快照和增量事件，Projector 将
+Agent 内的统一资源读取模型 `ResourceCache`。Informer 负责从 Kubernetes 获取初始快照和增量事件，Projector 将
 Kubernetes 对象转换为紧凑、稳定、无敏感正文的 Summary，Index 为列表查询提供索引，Aggregator 从相同数据增量维护
 概览。
 
@@ -118,13 +180,21 @@ flowchart LR
 
 ### 第二阶段：常用扩展资源
 
-- Service、Ingress 和 EndpointSlice；
+已接入，以精简对象形式缓存：
+
+- Service 与 Ingress；
 - StorageClass；
 - HorizontalPodAutoscaler；
-- PodDisruptionBudget、NetworkPolicy、ResourceQuota 和 LimitRange；
-- ReplicaSet 和 ControllerRevision，用于工作负载关联与修订历史。
+- PodDisruptionBudget、NetworkPolicy、ResourceQuota、LimitRange 与 PriorityClass。
 
-EndpointSlice 等高频变更资源需要独立监控事件速率和 Agent CPU，必要时只缓存内置页面实际需要的投影。
+未接入：
+
+- EndpointSlice：每次 Pod 就绪状态变化都会改写它，事件速率与 Pod 变更同阶；
+- ReplicaSet 与 ControllerRevision：数量随每次滚动发布保留的修订历史累积。
+
+三者的共同点是数量与变更频率由 churn 决定，而不是由页面展示的内容决定；把它们放进缓存会让缓存失去
+“内存和事件速率可解释”的性质。它们的列表继续实时读取 Kubernetes，并同样享受 Resource Body 压缩。
+若后续要接入，前提是先有独立的事件速率与 Agent CPU 观测，并且只投影页面实际使用的字段。
 
 ### 不进入常驻完整缓存的内容
 
@@ -152,6 +222,20 @@ Secret 列表如需缓存，只允许保存名称、Namespace、类型和时间�
 
 缓存初始化使用独立、低优先级的 Kubernetes Client 配额，避免与资源详情、写操作、终端、日志和 Agent 心跳相关任务争抢
 同一个限流预算。具体 QPS/Burst 默认值由压测确定，并保留配置上限。
+
+### 两种投影
+
+实现中区分了两种投影，因为两类资源的列表契约不同：
+
+- **紧凑 Summary**：Node、Namespace、Pod、五类工作负载、PersistentVolume 与 PersistentVolumeClaim。
+  它们数量大或参与概览聚合，因此投影成命名的稳定结构，只保留页面展示与增量聚合需要的字段。
+- **精简对象**：Service、Ingress、StorageClass、HorizontalPodAutoscaler、PodDisruptionBudget、
+  NetworkPolicy、ResourceQuota、LimitRange 与 PriorityClass。它们的列表契约本身就是对象的 spec，为它们
+  再定义一套同义字段只会多出一份需要同步维护的命名；因此缓存保存去掉 `managedFields` 和 annotations 的对象，
+  由 Server 用它已有的投影函数转换。这些资源数量在数十到数百量级，且 annotations 正是大段渲染配置的聚集处，
+  去掉它们同时解决了体积与内容两个问题。
+
+两种投影都不缓存 Secret 正文、ConfigMap 正文、Event、日志、终端数据和任意 CRD。
 
 ### 紧凑投影
 
@@ -228,8 +312,14 @@ Informer 尚未同步时，不能把“未知”返回成零。协议应返回 `
 无法由缓存安全表达的复杂选择器或尚未缓存的 GVR 回退到现有 Kubernetes List。回退必须进入独立并发额度，并继续使用
 Resource Body 压缩。
 
-分页令牌应为不透明值，至少绑定集群、GVR、查询条件、缓存快照和当前位置。Agent 可以为一次查询保存有 TTL 和数量上限的
-排序 Key 快照，使后续页面在短时间内读取相同缓存版本，避免资源变化导致大范围重复或遗漏。令牌不得包含敏感对象正文。
+分页令牌是不透明值：它由一个随机的会话标识和一个位置组成，只在签发它的 Agent 进程内有意义。会话保存这次查询
+匹配到的排序 Key，并绑定 GVR、Namespace 与选择器；查询条件不同、会话过期、进程重启或换一个集群的 Agent，
+令牌都会被拒绝。会话在数量、存活时间和单个会话可持有的 Key 数量三个方向上都有上限。每一页的对象本身是当页读取的，
+因此翻页期间被删除的对象不会以旧状态出现。
+
+Server 会给自己签发给调用方的续页令牌加上来源标记：从缓存开始的翻页只回到缓存，从 Kubernetes 开始的翻页只回到
+Kubernetes，两者不会混用。缓存页面过期时接口返回 410，语义与 Kubernetes 对过期 continue token 的处理一致——
+调用方重新开始列举，而不是拿到另一页。
 
 ### 详情和 YAML
 
@@ -256,8 +346,11 @@ Resource Body 压缩。
 
 ## 概览快照协议
 
-新增 Agent 能力 `overview_snapshot_v1`。新 Server 在授权完成后请求 Agent 当前缓存快照，Agent 不再为一次概览请求执行十类
-Resource List。
+Agent 能力 `overview-snapshot.v1`，以及列表使用的 `resource-summary.v1`。两者走同一个专用 Stream
+（`STREAM_KIND_RESOURCE_CACHE`）而不是普通的 Resource 请求：概览是十个 GroupVersionResource 之上的聚合，
+用单 GVR 的请求形状去描述它只会让 Agent 的资源边界更难看清。
+
+新 Server 在授权完成后请求 Agent 当前缓存快照，Agent 不再为一次概览请求执行十类 Resource List。
 
 快照至少包含：
 
@@ -274,8 +367,11 @@ Resource List。
 
 - 新 Server + 新 Agent：使用 `OverviewSnapshot`；
 - 新 Server + 旧 Agent：回退现有十类 Resource List；
-- 旧 Server + 新 Agent：新 Agent 保留现有 Resource Stream 行为；
-- 只有 Agent 明确声明能力后，Server 才能发送新请求。
+- 旧 Server + 新 Agent：新 Agent 保留现有 Resource Stream 行为，并且在 Server 未声明该能力时不注册该
+  Stream 处理器；
+- 只有 Agent 明确声明能力后，Server 才能发送新请求；
+- 缓存尚未完成首次 LIST 时，快照把对应 section 标记为 `warming_up`，Server 据此回退到实时列举，而不是把
+  未知当作 0。
 
 ## Server 侧请求合并与缓存
 
@@ -327,39 +423,41 @@ QPS/Burst 的调整放在请求合并、缓存和优先级之后。配置需要�
 
 ## 实施阶段
 
-### 阶段一：传输和 Server 止损
+阶段一到阶段四已经落地，阶段五只完成了其中基于进程内基准可以完成的部分。
 
-- 实现 Resource Body gzip 能力协商；
-- 为概览增加 per-cluster singleflight；
-- 增加 last-known-good、stale-while-revalidate 和失败退避；
-- 保持现有资源读取行为作为兼容基线。
+### 阶段一：传输和 Server 止损（已完成）
 
-### 阶段二：ResourceCache 基础设施
+- Resource Body gzip 能力协商；
+- 概览的 per-cluster 请求合并；
+- last-known-good、stale-while-revalidate 和有上限的失败退避；
+- 现有资源读取行为作为兼容基线保留。
 
-- 新建 Agent ResourceCache、Informer Registry、Projector、Index 和健康状态模型；
-- 实现核心资源的紧凑投影；
-- 实现启动抖动、同步并发、Watch 恢复和关闭流程；
+### 阶段二：ResourceCache 基础设施（已完成）
 
-### 阶段三：概览切换
+- Agent ResourceCache、Informer Registry、Projector、Index 和健康状态模型；
+- 核心资源的紧凑投影；
+- 启动抖动、同步并发、Watch 恢复和关闭流程。
 
-- 实现增量 Aggregator 和不可变 Overview Snapshot；
-- 增加 `overview_snapshot_v1` 能力协商；
-- 新 Server 优先读取 Agent 快照，旧 Agent 自动回退；
-- 验证统计口径与当前实现一致。
+### 阶段三：概览切换（已完成）
 
-### 阶段四：列表切换
+- 增量 Aggregator 和不可变 Overview Snapshot；
+- `overview-snapshot.v1` 能力协商；
+- 新 Server 优先读取 Agent 快照，旧 Agent 与预热中的缓存自动回退；
+- 统计口径与既有实现的一致性由同时运行两条路径并逐字段比较的测试保证。
 
-- Pod、Node、Namespace 和五类工作负载先切换到 Summary Index；
-- 再迁移存储、服务、路由、自动伸缩和策略列表；
+### 阶段四：列表切换（已完成，EndpointSlice、ReplicaSet 与 ControllerRevision 除外）
+
+- Pod、Node、Namespace 和五类工作负载走 Summary Index；
+- 存储、服务、路由、自动伸缩和策略列表走缓存中的精简对象，由 Server 侧既有投影转换；
 - 详情、YAML 和写操作保留实时路径；
-- 为不支持的过滤条件和未同步缓存提供可观察的回退。
+- 不支持的过滤条件、未缓存的资源和未同步的缓存都回退到实时读取，并且是可分辨的返回原因。
 
-### 阶段五：调优和收敛
+### 阶段五：调优和收敛（部分完成）
 
-- 基于压测调整缓存投影、QPS/Burst、同步并发和 gzip 阈值；
-- 评估是否保留旧概览 List 路径及其支持周期；
-- 更新容器服务文档和 Server OpenAPI 契约；
-- 在兼容窗口结束前不删除旧协议字段和旧 Agent 路径。
+- 已基于基准测试确定 gzip 阈值与缓存投影，并为缓存单独配置了受上限约束的 Kubernetes QPS/Burst；
+- 已更新容器服务文档和 Server OpenAPI 契约；
+- 尚未进行 KWOK 规模验证与低带宽链路测量；
+- 旧概览 List 路径与旧协议字段全部保留，兼容窗口未结束。
 
 ## 验证方案
 
@@ -380,6 +478,8 @@ QPS/Burst 的调整放在请求合并、缓存和优先级之后。配置需要�
 
 ### 功能正确性
 
+以下各项都有对应测试，运行 `go test ./pkg/agent/... ./pkg/server/... ./pkg/shared/...` 覆盖：
+
 - Informer 首次同步后的统计与直接 Kubernetes List 结果一致；
 - Added、Updated、Deleted 和 tombstone 后统计正确；
 - Watch 断线、ResourceVersion 过期和 Agent 重启后能够恢复；
@@ -391,13 +491,15 @@ QPS/Burst 的调整放在请求合并、缓存和优先级之后。配置需要�
 
 ### 性能验收
 
-以下为验收原则，具体数值阈值在基准环境建立后确定：
+以下为验收原则。上文[基准测试结果](#基准测试结果)给出了在一台开发机器上实测到的量级；集群级阈值需要在
+KWOK 或等价环境建立基准后确定，目前尚未进行。
 
-- 缓存同步后，连续刷新概览产生零次 Kubernetes 全量 List；
-- 同一集群多个并发概览请求只产生一次 Agent 快照请求；
-- 概览 QUIC 正文大小不随 Pod 数量线性增长；
+- 缓存同步后，连续刷新概览产生零次 Kubernetes 全量 List（已有测试断言）；
+- 同一集群多个并发概览请求只产生一次 Agent 快照请求（已有测试断言）；
+- 概览 QUIC 正文大小不随 Pod 数量线性增长（快照是计数，与对象数量无关）；
 - 列表 QUIC 正文大小只随当前页 Summary 数量增长；
-- Agent 内存按紧凑对象数量线性、可解释地增长，没有完整对象字段意外保留；
+- Agent 内存按紧凑对象数量线性、可解释地增长，没有完整对象字段意外保留（基准显示 1000 与 10000 Pod 下
+  每个 Pod 约 930 B）；
 - 高变更频率下 Watch 事件延迟有界，不阻塞 Agent 心跳和交互式请求；
 - gzip 在低带宽场景显著降低传输时间，且压缩 CPU 不抵消收益；
 - API Server 的 List 次数从“按用户请求重复”降为“Informer 初始化或必要重建时发生”；
