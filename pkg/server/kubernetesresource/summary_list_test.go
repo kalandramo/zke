@@ -323,3 +323,54 @@ func (requester *legacyRequester) RequestResource(
 		BodySize:             uint64(len(body)),
 	}, nil
 }
+
+// The cache path applies the same input rules the Kubernetes path applies. A
+// request one would refuse must not be answered by the other, or a caller would
+// get a different answer depending on which source happened to serve it.
+func TestCachedListsRefuseWhatTheClusterPathRefuses(t *testing.T) {
+	t.Parallel()
+	requester := &cacheRequester{page: cachedPodPage(t, "")}
+	service := NewService(requester)
+	cases := []struct {
+		name  string
+		input ListPodsInput
+	}{
+		{
+			name:  "no limit",
+			input: ListPodsInput{ClusterID: summaryClusterID},
+		},
+		{
+			name:  "limit past the ceiling",
+			input: ListPodsInput{ClusterID: summaryClusterID, Limit: 501},
+		},
+		{
+			name: "invalid Namespace",
+			input: ListPodsInput{
+				ClusterID: summaryClusterID, Namespace: "Not A Namespace", Limit: 50,
+			},
+		},
+		{
+			name: "malformed label selector",
+			input: ListPodsInput{
+				ClusterID: summaryClusterID, Limit: 50, LabelSelector: "app=@@@",
+			},
+		},
+		{
+			name:  "invalid Cluster",
+			input: ListPodsInput{ClusterID: "not-a-uuid", Limit: 50},
+		},
+	}
+	for _, testCase := range cases {
+		t.Run(testCase.name, func(t *testing.T) {
+			if _, err := service.ListPods(context.Background(), testCase.input); !errors.Is(
+				err,
+				ErrInvalidInput,
+			) {
+				t.Fatalf("got %v, want ErrInvalidInput", err)
+			}
+		})
+	}
+	if requester.requests.Load() != 0 {
+		t.Fatalf("%d invalid requests reached the Agent", requester.requests.Load())
+	}
+}

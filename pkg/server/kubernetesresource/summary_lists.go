@@ -49,7 +49,7 @@ func cacheableList(continueToken string) (string, bool) {
 
 // fellBackToKubernetes reports whether this refusal means "read Kubernetes".
 func fellBackToKubernetes(err error) bool {
-	return errors.Is(err, ErrCacheUnavailable)
+	return errors.Is(err, errCacheUnavailable)
 }
 
 // ListPodsFromCache answers one Pod page from the Agent's read model.
@@ -58,7 +58,7 @@ func (service *Service) listPodsFromCache(
 	input ListPodsInput,
 	pageToken string,
 ) (PodPage, bool, error) {
-	page, err := service.listSummaries(ctx, SummaryListInput{
+	page, err := service.listSummaries(ctx, summaryListInput{
 		ClusterID:     input.ClusterID,
 		Resource:      podIdentity,
 		Namespace:     input.Namespace,
@@ -127,7 +127,7 @@ func (service *Service) listNodesFromCache(
 	input ListNodesInput,
 	pageToken string,
 ) (NodePage, bool, error) {
-	page, err := service.listSummaries(ctx, SummaryListInput{
+	page, err := service.listSummaries(ctx, summaryListInput{
 		ClusterID:     input.ClusterID,
 		Resource:      ResourceIdentity{Version: "v1", Resource: "nodes"},
 		Limit:         input.Limit,
@@ -181,7 +181,7 @@ func (service *Service) listNamespacesFromCache(
 	input ListNamespacesInput,
 	pageToken string,
 ) (NamespacePage, bool, error) {
-	page, err := service.listSummaries(ctx, SummaryListInput{
+	page, err := service.listSummaries(ctx, summaryListInput{
 		ClusterID:     input.ClusterID,
 		Resource:      namespaceIdentity,
 		Limit:         input.Limit,
@@ -230,7 +230,7 @@ func (service *Service) listWorkloadsFromCache(
 	if !exists {
 		return WorkloadPage{}, false, ErrInvalidInput
 	}
-	page, err := service.listSummaries(ctx, SummaryListInput{
+	page, err := service.listSummaries(ctx, summaryListInput{
 		ClusterID:     input.ClusterID,
 		Resource:      identity,
 		Namespace:     input.Namespace,

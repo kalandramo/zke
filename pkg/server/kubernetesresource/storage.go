@@ -305,7 +305,7 @@ func (service *Service) ListStorageResources(ctx context.Context, input ListStor
 		return StorageResourcePage{}, ErrInvalidInput
 	}
 	if token, cacheable := cacheableList(input.ContinueToken); cacheable {
-		cached, answered, err := service.listCachedObjects(ctx, SummaryListInput{
+		cached, answered, err := service.listCachedObjects(ctx, summaryListInput{
 			ClusterID: input.ClusterID, Resource: identity, Namespace: input.Namespace,
 			Limit: input.Limit, ContinueToken: token,
 			LabelSelector: input.LabelSelector, FieldSelector: input.FieldSelector,

@@ -21,7 +21,7 @@ type cachedObjects struct {
 
 func (service *Service) listCachedObjects(
 	ctx context.Context,
-	input SummaryListInput,
+	input summaryListInput,
 ) (cachedObjects, bool, error) {
 	page, err := service.listSummaries(ctx, input)
 	if err != nil {

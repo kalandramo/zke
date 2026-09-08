@@ -6,29 +6,29 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 
 	agentv1 "github.com/togettoyou/zke/api/agent/v1"
 	"github.com/togettoyou/zke/pkg/server/agentconn"
 	"github.com/togettoyou/zke/pkg/shared/agentprotocol"
 	"github.com/togettoyou/zke/pkg/shared/resourcesummary"
-	"github.com/togettoyou/zke/pkg/shared/validation"
 )
 
-// ErrCacheUnavailable means this page cannot come from the Agent's cache: the
+// errCacheUnavailable means this page cannot come from the Agent's cache: the
 // Agent has none, does not follow this resource, has not finished its first
 // listing, or cannot express the query exactly.
 //
 // It is not a failure. It is the signal to read Kubernetes, which is what the
 // caller did before the cache existed and still does whenever the cache cannot
 // answer with the same result.
-var ErrCacheUnavailable = errors.New("Agent resource cache cannot answer this list")
+var errCacheUnavailable = errors.New("Agent resource cache cannot answer this list")
 
 // ErrCachePageExpired is a continuation token whose page is gone. The caller
 // starts the listing again rather than returning a page from somewhere else.
 var ErrCachePageExpired = errors.New("Agent resource cache page has expired")
 
-// SummaryRequester is the Agent connection that can answer a cached list.
-type SummaryRequester interface {
+// summaryRequester is the Agent connection that can answer a cached list.
+type summaryRequester interface {
 	RequestResourceSummaries(
 		ctx context.Context,
 		clusterID string,
@@ -37,8 +37,8 @@ type SummaryRequester interface {
 	) (*agentv1.ResourceCacheResponse, error)
 }
 
-// SummaryListInput is one page of one cached resource.
-type SummaryListInput struct {
+// summaryListInput is one page of one cached resource.
+type summaryListInput struct {
 	ClusterID     string
 	Resource      ResourceIdentity
 	Namespace     string
@@ -55,20 +55,31 @@ type SummaryListInput struct {
 // changes where the same rows are read from.
 func (service *Service) listSummaries(
 	ctx context.Context,
-	input SummaryListInput,
+	input summaryListInput,
 ) (resourcesummary.Page, error) {
-	if service == nil || ctx == nil || !validation.IsUUID(input.ClusterID) {
+	if service == nil || ctx == nil {
 		return resourcesummary.Page{}, ErrInvalidInput
 	}
-	requester, ok := service.requester.(SummaryRequester)
+	requester, ok := service.requester.(summaryRequester)
 	if !ok {
-		return resourcesummary.Page{}, ErrCacheUnavailable
+		return resourcesummary.Page{}, errCacheUnavailable
 	}
-	if input.Limit < 0 ||
-		input.Limit > int64(agentprotocol.MaxResourceCacheLimit) ||
-		len(input.LabelSelector) > maxSelectorBytes ||
-		len(input.FieldSelector) > maxSelectorBytes ||
-		len(input.ContinueToken) > maxContinueTokenBytes {
+	// The same rules the Kubernetes listing path applies. A request that the
+	// other path would refuse has to be refused here too, or a caller would get
+	// a different answer depending on which source happened to serve it.
+	if err := validateListResourcesInput(ListResourcesInput{
+		ClusterID:     input.ClusterID,
+		Resource:      input.Resource,
+		Namespace:     input.Namespace,
+		Limit:         input.Limit,
+		LabelSelector: input.LabelSelector,
+		FieldSelector: input.FieldSelector,
+	}); err != nil {
+		return resourcesummary.Page{}, err
+	}
+	if input.Limit > int64(agentprotocol.MaxResourceCacheLimit) ||
+		len(input.ContinueToken) > maxContinueTokenBytes ||
+		strings.TrimSpace(input.ContinueToken) != input.ContinueToken {
 		return resourcesummary.Page{}, ErrInvalidInput
 	}
 	body := service.newResponseBuffer()
@@ -89,7 +100,7 @@ func (service *Service) listSummaries(
 	)
 	if err != nil {
 		if errors.Is(err, agentconn.ErrResourceCacheCapabilityMissing) {
-			return resourcesummary.Page{}, ErrCacheUnavailable
+			return resourcesummary.Page{}, errCacheUnavailable
 		}
 		return resourcesummary.Page{}, requestError(err)
 	}
@@ -123,7 +134,7 @@ func summaryResponseError(response *agentv1.ResourceCacheResponse) error {
 	switch response.GetReason() {
 	case "ResourceNotCached", "QueryNotCacheable", "ResourceCacheWarmingUp",
 		"ResourceCacheUnavailable", "UnsupportedResourceCacheQuery":
-		return ErrCacheUnavailable
+		return errCacheUnavailable
 	case "PageTokenExpired":
 		return ErrCachePageExpired
 	}
