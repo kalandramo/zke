@@ -233,12 +233,13 @@ func ProjectNamespace(namespace *corev1.Namespace) Namespace {
 }
 
 func ProjectDeployment(workload *appsv1.Deployment) Workload {
-	desired := desiredReplicas(workload.Spec.Replicas)
-	summary := Workload{
+	desired := DesiredReplicas(workload.Spec.Replicas)
+	return Workload{
 		ObjectSummary:      objectSummary(workload.ObjectMeta),
 		Resource:           WorkloadDeployments,
 		Generation:         workload.Generation,
 		ObservedGeneration: workload.Status.ObservedGeneration,
+		Status:             DeploymentStatus(workload, desired),
 		Images:             podImages(workload.Spec.Template.Spec),
 		Replicas: &WorkloadReplicas{
 			Desired:     desired,
@@ -249,79 +250,75 @@ func ProjectDeployment(workload *appsv1.Deployment) Workload {
 			Unavailable: workload.Status.UnavailableReplicas,
 		},
 	}
-	summary.Status = DeploymentStatus(workload, desired)
-	return summary
 }
 
+// DeploymentStatus is the reading the workload list and the Cluster overview
+// both publish. It lives here, beside the projection, so the Agent cache and
+// the Server's own listing cannot drift into reporting the same Deployment
+// differently.
 func DeploymentStatus(workload *appsv1.Deployment, desired int32) string {
 	if workload.Spec.Paused {
-		return "paused"
+		return "suspended"
 	}
-	if desired == 0 {
-		return "scaled_down"
+	for _, condition := range workload.Status.Conditions {
+		// Named after the Kubernetes reason it reads rather than reduced to a
+		// health word: what has happened is that this rollout did not finish
+		// inside progressDeadlineSeconds, which is not the same as the workload
+		// having lost capacity — the previous ReplicaSet may still be serving
+		// every request while the new one fails to start at all.
+		if condition.Type == appsv1.DeploymentProgressing &&
+			condition.Status == corev1.ConditionFalse &&
+			condition.Reason == "ProgressDeadlineExceeded" {
+			return "progress_deadline_exceeded"
+		}
 	}
-	if workload.Status.UpdatedReplicas == desired &&
-		workload.Status.ReadyReplicas == desired &&
-		workload.Status.Replicas == desired {
+	if workload.Status.ObservedGeneration >= workload.Generation &&
+		workload.Status.AvailableReplicas >= desired &&
+		workload.Status.UnavailableReplicas == 0 {
 		return "available"
 	}
-	if workload.Status.ReadyReplicas > 0 {
-		return "progressing"
-	}
-	return "unavailable"
+	return "progressing"
 }
 
 func ProjectStatefulSet(workload *appsv1.StatefulSet) Workload {
-	desired := desiredReplicas(workload.Spec.Replicas)
-	status := "unavailable"
-	switch {
-	case desired == 0:
-		status = "scaled_down"
-	case workload.Status.ReadyReplicas == desired &&
-		workload.Status.UpdatedReplicas == desired &&
-		workload.Status.Replicas == desired:
-		status = "available"
-	case workload.Status.ReadyReplicas > 0:
-		status = "progressing"
-	}
+	desired := DesiredReplicas(workload.Spec.Replicas)
 	return Workload{
 		ObjectSummary:      objectSummary(workload.ObjectMeta),
 		Resource:           WorkloadStatefulSets,
 		Generation:         workload.Generation,
 		ObservedGeneration: workload.Status.ObservedGeneration,
-		Status:             status,
+		Status:             StatefulSetStatus(workload, desired),
 		Images:             podImages(workload.Spec.Template.Spec),
 		Replicas: &WorkloadReplicas{
-			Desired:   desired,
-			Current:   workload.Status.Replicas,
-			Updated:   workload.Status.UpdatedReplicas,
-			Ready:     workload.Status.ReadyReplicas,
-			Available: workload.Status.AvailableReplicas,
+			Desired:     desired,
+			Current:     workload.Status.CurrentReplicas,
+			Updated:     workload.Status.UpdatedReplicas,
+			Ready:       workload.Status.ReadyReplicas,
+			Available:   workload.Status.AvailableReplicas,
+			Unavailable: max(0, desired-workload.Status.ReadyReplicas),
 		},
 	}
 }
 
-func ProjectDaemonSet(workload *appsv1.DaemonSet) Workload {
-	desired := workload.Status.DesiredNumberScheduled
-	status := "unavailable"
-	switch {
-	case desired == 0:
-		status = "scaled_down"
-	case workload.Status.NumberReady == desired &&
-		workload.Status.UpdatedNumberScheduled == desired:
-		status = "available"
-	case workload.Status.NumberReady > 0:
-		status = "progressing"
+func StatefulSetStatus(workload *appsv1.StatefulSet, desired int32) string {
+	if workload.Status.ObservedGeneration >= workload.Generation &&
+		workload.Status.ReadyReplicas >= desired &&
+		workload.Status.CurrentRevision == workload.Status.UpdateRevision {
+		return "available"
 	}
+	return "progressing"
+}
+
+func ProjectDaemonSet(workload *appsv1.DaemonSet) Workload {
 	return Workload{
 		ObjectSummary:      objectSummary(workload.ObjectMeta),
 		Resource:           WorkloadDaemonSets,
 		Generation:         workload.Generation,
 		ObservedGeneration: workload.Status.ObservedGeneration,
-		Status:             status,
+		Status:             DaemonSetStatus(workload),
 		Images:             podImages(workload.Spec.Template.Spec),
 		Replicas: &WorkloadReplicas{
-			Desired:     desired,
+			Desired:     workload.Status.DesiredNumberScheduled,
 			Current:     workload.Status.CurrentNumberScheduled,
 			Updated:     workload.Status.UpdatedNumberScheduled,
 			Ready:       workload.Status.NumberReady,
@@ -329,6 +326,15 @@ func ProjectDaemonSet(workload *appsv1.DaemonSet) Workload {
 			Unavailable: workload.Status.NumberUnavailable,
 		},
 	}
+}
+
+func DaemonSetStatus(workload *appsv1.DaemonSet) string {
+	if workload.Status.ObservedGeneration >= workload.Generation &&
+		workload.Status.NumberAvailable >= workload.Status.DesiredNumberScheduled &&
+		workload.Status.NumberUnavailable == 0 {
+		return "available"
+	}
+	return "progressing"
 }
 
 func ProjectJob(workload *batchv1.Job) Workload {
@@ -351,17 +357,18 @@ func ProjectJob(workload *batchv1.Job) Workload {
 }
 
 func JobStatus(workload *batchv1.Job) string {
+	if workload.Spec.Suspend != nil && *workload.Spec.Suspend {
+		return "suspended"
+	}
 	for _, condition := range workload.Status.Conditions {
 		if condition.Status != corev1.ConditionTrue {
 			continue
 		}
 		switch condition.Type {
-		case batchv1.JobComplete:
-			return "complete"
 		case batchv1.JobFailed:
 			return "failed"
-		case batchv1.JobSuspended:
-			return "suspended"
+		case batchv1.JobComplete:
+			return "completed"
 		}
 	}
 	if workload.Status.Active > 0 {
@@ -372,15 +379,11 @@ func JobStatus(workload *batchv1.Job) string {
 
 func ProjectCronJob(workload *batchv1.CronJob) Workload {
 	suspend := workload.Spec.Suspend != nil && *workload.Spec.Suspend
-	status := "active"
-	if suspend {
-		status = "suspended"
-	}
 	return Workload{
 		ObjectSummary: objectSummary(workload.ObjectMeta),
 		Resource:      WorkloadCronJobs,
 		Generation:    workload.Generation,
-		Status:        status,
+		Status:        CronJobStatus(workload),
 		Images:        podImages(workload.Spec.JobTemplate.Spec.Template.Spec),
 		CronJob: &WorkloadCronJob{
 			Schedule:           workload.Spec.Schedule,
@@ -390,6 +393,16 @@ func ProjectCronJob(workload *batchv1.CronJob) Workload {
 			LastSuccessfulTime: timePointer(workload.Status.LastSuccessfulTime),
 		},
 	}
+}
+
+func CronJobStatus(workload *batchv1.CronJob) string {
+	if workload.Spec.Suspend != nil && *workload.Spec.Suspend {
+		return "suspended"
+	}
+	if len(workload.Status.Active) > 0 {
+		return "running"
+	}
+	return "scheduled"
 }
 
 func ProjectPersistentVolume(volume *corev1.PersistentVolume) PersistentVolume {
@@ -451,7 +464,9 @@ func accessModes(modes []corev1.PersistentVolumeAccessMode) []string {
 	return result
 }
 
-func desiredReplicas(value *int32) int32 {
+// DesiredReplicas reads the Kubernetes default: a workload without an explicit
+// replica count wants one.
+func DesiredReplicas(value *int32) int32 {
 	if value == nil {
 		return 1
 	}

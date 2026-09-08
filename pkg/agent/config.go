@@ -20,8 +20,17 @@ const (
 	defaultIdentityNamespace  = "zke-system"
 	defaultIdentitySecretName = "zke-agent-identity"
 	defaultLogLevel           = "info"
-	maxAgentIncomingStreams   = 4096
-	maxResourceBodyBytes      = 1024 * 1024 * 1024
+	// The cache's own Kubernetes rate limit. A LIST per resource at startup and
+	// watches after it is a small, bounded amount of traffic, so these are set
+	// to be comfortable rather than generous; the ceilings below are what keep
+	// a configuration mistake from turning an Agent into a load generator
+	// against its own control plane.
+	defaultCacheKubernetesQPS   float32 = 10
+	defaultCacheKubernetesBurst         = 20
+	maxCacheKubernetesQPS       float32 = 200
+	maxCacheKubernetesBurst             = 400
+	maxAgentIncomingStreams             = 4096
+	maxResourceBodyBytes                = 1024 * 1024 * 1024
 )
 
 type Config struct {
@@ -32,7 +41,21 @@ type Config struct {
 	Registration           RegistrationConfig
 	Connection             ConnectionConfig
 	MetricsIngest          MetricsIngestConfig
+	Cache                  CacheConfig
 	LogLevel               string
+}
+
+// CacheConfig is the Kubernetes rate limit the resource cache draws on.
+//
+// It is deliberately separate from the client that serves requests. Raising a
+// shared limit to make the cache faster would also raise how hard a busy Agent
+// can push a control plane, and the cache is background work: it must not be
+// able to take the budget a user's write or terminal is waiting on. The values
+// stay modest because the cache's whole point is that it stops asking — one
+// listing per resource, then watches.
+type CacheConfig struct {
+	KubernetesQPS   float32
+	KubernetesBurst int
 }
 
 // MetricsIngestConfig configures the collector-facing endpoint and the Stream
@@ -122,6 +145,11 @@ type ConnectionConfig struct {
 	MaxPodAccessPodBytes              uint64
 	MaxResourceWatchStreamTimeout     time.Duration
 	MaxConcurrentResourceWatchStreams int
+	// The resource cache answers from memory, so its Streams are short and its
+	// bodies are small. They get their own allowance so that an overview read
+	// never queues behind a Kubernetes listing.
+	MaxConcurrentResourceCacheStreams int
+	MaxResourceCacheBodyBytes         uint64
 	// Helm gets its own budget rather than borrowing the resource one. An
 	// install that waits for a rollout is minutes of work, not the seconds a
 	// single-object write is, and one release change at a time per Cluster is
@@ -172,9 +200,15 @@ type fileConfig struct {
 		MaxPodAccessPodBytes              *uint64 `yaml:"max_pod_access_pod_bytes"`
 		MaxResourceWatchStreamTimeout     string  `yaml:"max_resource_watch_stream_timeout"`
 		MaxConcurrentResourceWatchStreams *int    `yaml:"max_concurrent_resource_watch_streams"`
+		MaxConcurrentResourceCacheStreams *int    `yaml:"max_concurrent_resource_cache_streams"`
+		MaxResourceCacheBodyBytes         *uint64 `yaml:"max_resource_cache_body_bytes"`
 		MaxHelmStreamTimeout              string  `yaml:"max_helm_stream_timeout"`
 		MaxConcurrentHelmStreams          *int    `yaml:"max_concurrent_helm_streams"`
 	} `yaml:"connection"`
+	Cache struct {
+		KubernetesQPS   *float32 `yaml:"kubernetes_qps"`
+		KubernetesBurst *int     `yaml:"kubernetes_burst"`
+	} `yaml:"cache"`
 	MetricsIngest struct {
 		Address               string  `yaml:"address"`
 		AdvertisedURL         string  `yaml:"advertised_url"`
@@ -230,8 +264,14 @@ func DefaultConfig() Config {
 			MaxPodAccessPodBytes:              1024 * 1024 * 1024,
 			MaxResourceWatchStreamTimeout:     30 * time.Minute,
 			MaxConcurrentResourceWatchStreams: 16,
+			MaxConcurrentResourceCacheStreams: 16,
+			MaxResourceCacheBodyBytes:         agentprotocol.DefaultMaxResourceCacheBodySize,
 			MaxHelmStreamTimeout:              15 * time.Minute,
 			MaxConcurrentHelmStreams:          1,
+		},
+		Cache: CacheConfig{
+			KubernetesQPS:   defaultCacheKubernetesQPS,
+			KubernetesBurst: defaultCacheKubernetesBurst,
 		},
 		MetricsIngest: MetricsIngestConfig{
 			Address:               "0.0.0.0:8429",
@@ -465,6 +505,20 @@ func applyFile(cfg *Config, path string) error {
 	if raw.Connection.MaxConcurrentResourceWatchStreams != nil {
 		cfg.Connection.MaxConcurrentResourceWatchStreams =
 			*raw.Connection.MaxConcurrentResourceWatchStreams
+	}
+	if raw.Connection.MaxConcurrentResourceCacheStreams != nil {
+		cfg.Connection.MaxConcurrentResourceCacheStreams =
+			*raw.Connection.MaxConcurrentResourceCacheStreams
+	}
+	if raw.Connection.MaxResourceCacheBodyBytes != nil {
+		cfg.Connection.MaxResourceCacheBodyBytes =
+			*raw.Connection.MaxResourceCacheBodyBytes
+	}
+	if raw.Cache.KubernetesQPS != nil {
+		cfg.Cache.KubernetesQPS = *raw.Cache.KubernetesQPS
+	}
+	if raw.Cache.KubernetesBurst != nil {
+		cfg.Cache.KubernetesBurst = *raw.Cache.KubernetesBurst
 	}
 	if err := applyAgentDuration(
 		&cfg.Connection.MaxHelmStreamTimeout,
@@ -746,6 +800,34 @@ func (cfg Config) Validate() error {
 			cfg.Connection.MaxIncomingStreams {
 		return errors.New(
 			"maximum concurrent Resource Watch Streams must be positive and fit within maximum incoming streams together with other business Streams",
+		)
+	}
+	if cfg.Connection.MaxConcurrentResourceCacheStreams < 1 ||
+		int64(cfg.Connection.MaxConcurrentResourceStreams)+
+			int64(cfg.Connection.MaxConcurrentPodLogsStreams)+
+			int64(cfg.Connection.MaxConcurrentPodExecStreams)+
+			int64(cfg.Connection.MaxConcurrentPodAccessStreams)+
+			int64(cfg.Connection.MaxConcurrentResourceWatchStreams)+
+			int64(cfg.Connection.MaxConcurrentResourceCacheStreams) >
+			cfg.Connection.MaxIncomingStreams {
+		return errors.New(
+			"maximum concurrent Resource Cache Streams must be positive and fit within maximum incoming streams together with other business Streams",
+		)
+	}
+	if cfg.Connection.MaxResourceCacheBodyBytes < 1 ||
+		cfg.Connection.MaxResourceCacheBodyBytes > maxResourceBodyBytes {
+		return errors.New(
+			"maximum Resource cache body bytes must be between 1 and 1073741824",
+		)
+	}
+	if cfg.Cache.KubernetesQPS <= 0 || cfg.Cache.KubernetesQPS > maxCacheKubernetesQPS {
+		return errors.New(
+			"resource cache Kubernetes QPS must be between 0 and 200",
+		)
+	}
+	if cfg.Cache.KubernetesBurst < 1 || cfg.Cache.KubernetesBurst > maxCacheKubernetesBurst {
+		return errors.New(
+			"resource cache Kubernetes burst must be between 1 and 400",
 		)
 	}
 	if cfg.Connection.MaxConcurrentPodExecStreams < 1 {

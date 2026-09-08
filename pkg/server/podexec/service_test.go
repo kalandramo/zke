@@ -148,10 +148,10 @@ func (requester *fakePodExecRequester) RequestPodExec(
 	requester.clusterID = clusterID
 	requester.request = request
 	return &agentv1.PodExecResponse{
-			Result: agentv1.ResultCode_RESULT_CODE_OK,
-		}, &agentv1.PodExecExit{
-			Result: agentv1.ResultCode_RESULT_CODE_OK, ExitCode: 9, OutputBytes: 42,
-		}, nil
+		Result: agentv1.ResultCode_RESULT_CODE_OK,
+	}, &agentv1.PodExecExit{
+		Result: agentv1.ResultCode_RESULT_CODE_OK, ExitCode: 9, OutputBytes: 42,
+	}, nil
 }
 
 type fakePodExecPeer struct{}

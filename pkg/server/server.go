@@ -301,6 +301,7 @@ func Run(ctx context.Context, cfg Config, logger *slog.Logger) error {
 			ResourceRequestTimeout:       cfg.AgentListener.ResourceRequestTimeout,
 			ConnectionDrainTimeout:       cfg.AgentListener.ConnectionDrainTimeout,
 			MaxResourceBodyBytes:         cfg.AgentListener.MaxResourceBodyBytes,
+			MaxResourceCacheBodyBytes:    cfg.AgentListener.MaxResourceCacheBodyBytes,
 			MaxResourceStreams:           cfg.AgentListener.MaxResourceStreams,
 			MaxResourceRequests:          cfg.AgentListener.MaxResourceRequests,
 			PodLogsRequestTimeout:        cfg.AgentListener.PodLogsRequestTimeout,

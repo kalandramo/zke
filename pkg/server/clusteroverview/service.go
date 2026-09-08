@@ -83,6 +83,10 @@ type Config struct {
 
 type Service struct {
 	resources ResourceReader
+	// snapshots is the Agent's own read model, when the Agent keeps one. It is
+	// tried first and falls back to resources, so a Server upgraded ahead of its
+	// Agents keeps working against every one of them.
+	snapshots SnapshotReader
 	config    Config
 	// Completed snapshots and in-flight loads, keyed by Cluster. Nothing here
 	// is caller-specific: the overview describes a Cluster, and every caller
@@ -273,12 +277,19 @@ func NewService(resources ResourceReader, configs ...Config) *Service {
 	if config.MaxCachedClusters <= 0 {
 		config.MaxCachedClusters = defaultMaxCachedClusters
 	}
-	return &Service{
+	service := &Service{
 		resources: resources,
 		config:    config,
 		cache:     make(map[string]*cacheEntry),
 		clock:     time.Now,
 	}
+	// The same object usually implements both: the Server's Kubernetes resource
+	// service can list a Cluster and can ask its Agent for a snapshot. Taking
+	// the second only when it is offered is what keeps this optional.
+	if snapshots, ok := resources.(SnapshotReader); ok {
+		service.snapshots = snapshots
+	}
+	return service
 }
 
 func (service *Service) now() time.Time {
@@ -488,6 +499,13 @@ func cacheable(overview Overview) bool {
 }
 
 func (service *Service) load(ctx context.Context, clusterID string) (Overview, error) {
+	// The Agent's own read model first. It answers from memory, so a Cluster
+	// whose Agent keeps one costs no Kubernetes listing at all here.
+	if overview, answered, err := service.snapshotOverview(ctx, clusterID); err != nil {
+		return Overview{}, err
+	} else if answered {
+		return overview, nil
+	}
 	tasks := service.tasks(clusterID)
 	results := make([]sectionResult, len(tasks))
 	group, groupContext := errgroup.WithContext(ctx)

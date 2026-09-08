@@ -24,9 +24,13 @@ const (
 type StreamKind int32
 
 const (
-	StreamKind_STREAM_KIND_UNSPECIFIED      StreamKind = 0
-	StreamKind_STREAM_KIND_RESOURCE         StreamKind = 10
-	StreamKind_STREAM_KIND_RESOURCE_WATCH   StreamKind = 11
+	StreamKind_STREAM_KIND_UNSPECIFIED    StreamKind = 0
+	StreamKind_STREAM_KIND_RESOURCE       StreamKind = 10
+	StreamKind_STREAM_KIND_RESOURCE_WATCH StreamKind = 11
+	// Queries against the Agent's own resource cache: the Cluster overview and
+	// compact summary lists. Separate from STREAM_KIND_RESOURCE because it reads
+	// a local read model rather than addressing the Kubernetes API.
+	StreamKind_STREAM_KIND_RESOURCE_CACHE   StreamKind = 12
 	StreamKind_STREAM_KIND_POD_LOGS         StreamKind = 20
 	StreamKind_STREAM_KIND_POD_EXEC         StreamKind = 21
 	StreamKind_STREAM_KIND_POD_PORT_FORWARD StreamKind = 22
@@ -47,6 +51,7 @@ var (
 		0:  "STREAM_KIND_UNSPECIFIED",
 		10: "STREAM_KIND_RESOURCE",
 		11: "STREAM_KIND_RESOURCE_WATCH",
+		12: "STREAM_KIND_RESOURCE_CACHE",
 		20: "STREAM_KIND_POD_LOGS",
 		21: "STREAM_KIND_POD_EXEC",
 		22: "STREAM_KIND_POD_PORT_FORWARD",
@@ -59,6 +64,7 @@ var (
 		"STREAM_KIND_UNSPECIFIED":       0,
 		"STREAM_KIND_RESOURCE":          10,
 		"STREAM_KIND_RESOURCE_WATCH":    11,
+		"STREAM_KIND_RESOURCE_CACHE":    12,
 		"STREAM_KIND_POD_LOGS":          20,
 		"STREAM_KIND_POD_EXEC":          21,
 		"STREAM_KIND_POD_PORT_FORWARD":  22,
@@ -259,13 +265,14 @@ const file_api_agent_v1_stream_proto_rawDesc = "" +
 	"\n" +
 	"request_id\x18\x03 \x01(\tR\trequestId\x12%\n" +
 	"\x0etimeout_millis\x18\x04 \x01(\x04R\rtimeoutMillis\x12'\n" +
-	"\x0fidempotency_key\x18\x05 \x01(\tR\x0eidempotencyKey*\xb4\x02\n" +
+	"\x0fidempotency_key\x18\x05 \x01(\tR\x0eidempotencyKey*\xd4\x02\n" +
 	"\n" +
 	"StreamKind\x12\x1b\n" +
 	"\x17STREAM_KIND_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14STREAM_KIND_RESOURCE\x10\n" +
 	"\x12\x1e\n" +
-	"\x1aSTREAM_KIND_RESOURCE_WATCH\x10\v\x12\x18\n" +
+	"\x1aSTREAM_KIND_RESOURCE_WATCH\x10\v\x12\x1e\n" +
+	"\x1aSTREAM_KIND_RESOURCE_CACHE\x10\f\x12\x18\n" +
 	"\x14STREAM_KIND_POD_LOGS\x10\x14\x12\x18\n" +
 	"\x14STREAM_KIND_POD_EXEC\x10\x15\x12 \n" +
 	"\x1cSTREAM_KIND_POD_PORT_FORWARD\x10\x16\x12 \n" +

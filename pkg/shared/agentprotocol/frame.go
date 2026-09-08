@@ -26,9 +26,17 @@ const (
 	CapabilityTerminalCommandV1          = "terminal-command.v1"
 	CapabilityPodPortForwardV1           = "pod-port-forward.v1"
 	CapabilityResourceWatchV1            = "resource-watch.v1"
-	CapabilityTerminalSessionV1          = "terminal-session.v1"
-	CapabilityMetricsIngestV1            = "metrics-ingest.v1"
-	CapabilityMetricsCollectorV1         = "metrics-collector.v1"
+	// The Agent keeps a read model of the Cluster and can answer the overview
+	// from it without listing Kubernetes again. Advertised separately from the
+	// summary lists below so the two can be rolled out one at a time, and only
+	// once an Agent has said so does a Server send the new request at all — an
+	// Agent that predates it keeps getting the ten Resource lists.
+	CapabilityOverviewSnapshotV1 = "overview-snapshot.v1"
+	// The same cache, answering compact list pages.
+	CapabilityResourceSummaryV1  = "resource-summary.v1"
+	CapabilityTerminalSessionV1  = "terminal-session.v1"
+	CapabilityMetricsIngestV1    = "metrics-ingest.v1"
+	CapabilityMetricsCollectorV1 = "metrics-collector.v1"
 	// Helm release lifecycle. Declared separately from the resource write
 	// capability because an Agent that can write objects still cannot run
 	// Helm: a Server upgraded ahead of its Agents must fail the request

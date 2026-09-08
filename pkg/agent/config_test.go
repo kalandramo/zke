@@ -51,6 +51,8 @@ connection:
   max_pod_access_pod_bytes: 9437184
   max_resource_watch_stream_timeout: 25m
   max_concurrent_resource_watch_streams: 10
+  max_concurrent_resource_cache_streams: 8
+  max_resource_cache_body_bytes: 8388608
 log_level: debug
 `)
 	if err := os.WriteFile(path, content, 0o600); err != nil {
@@ -108,6 +110,10 @@ log_level: debug
 	if cfg.Connection.MaxResourceWatchStreamTimeout != 25*time.Minute ||
 		cfg.Connection.MaxConcurrentResourceWatchStreams != 10 {
 		t.Fatalf("unexpected Agent Resource Watch config: %+v", cfg.Connection)
+	}
+	if cfg.Connection.MaxConcurrentResourceCacheStreams != 8 ||
+		cfg.Connection.MaxResourceCacheBodyBytes != 8*1024*1024 {
+		t.Fatalf("unexpected Agent Resource Cache config: %+v", cfg.Connection)
 	}
 }
 
@@ -346,8 +352,14 @@ func validAgentConfig() Config {
 			MaxPodAccessPodBytes:              1024 * 1024 * 1024,
 			MaxResourceWatchStreamTimeout:     30 * time.Minute,
 			MaxConcurrentResourceWatchStreams: 16,
+			MaxConcurrentResourceCacheStreams: 16,
+			MaxResourceCacheBodyBytes:         16 * 1024 * 1024,
 			MaxHelmStreamTimeout:              15 * time.Minute,
 			MaxConcurrentHelmStreams:          1,
+		},
+		Cache: CacheConfig{
+			KubernetesQPS:   defaultCacheKubernetesQPS,
+			KubernetesBurst: defaultCacheKubernetesBurst,
 		},
 		LogLevel: "info",
 	}

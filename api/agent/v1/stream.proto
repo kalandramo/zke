@@ -16,6 +16,10 @@ enum StreamKind {
   STREAM_KIND_UNSPECIFIED = 0;
   STREAM_KIND_RESOURCE = 10;
   STREAM_KIND_RESOURCE_WATCH = 11;
+  // Queries against the Agent's own resource cache: the Cluster overview and
+  // compact summary lists. Separate from STREAM_KIND_RESOURCE because it reads
+  // a local read model rather than addressing the Kubernetes API.
+  STREAM_KIND_RESOURCE_CACHE = 12;
   STREAM_KIND_POD_LOGS = 20;
   STREAM_KIND_POD_EXEC = 21;
   STREAM_KIND_POD_PORT_FORWARD = 22;

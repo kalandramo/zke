@@ -5,6 +5,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/togettoyou/zke/pkg/shared/resourcesummary"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -295,13 +296,13 @@ func workloadDetail(
 }
 
 func deploymentDetail(workload *appsv1.Deployment) WorkloadDetail {
-	replicas := desiredReplicas(workload.Spec.Replicas)
+	replicas := resourcesummary.DesiredReplicas(workload.Spec.Replicas)
 	summary := workloadSummary(
 		WorkloadDeployments,
 		workload.TypeMeta,
 		workload.ObjectMeta,
 		workload.Status.ObservedGeneration,
-		deploymentStatus(workload, replicas),
+		resourcesummary.DeploymentStatus(workload, replicas),
 		workload.Spec.Template.Spec,
 	)
 	summary.Replicas = &WorkloadReplicaStatus{
@@ -325,13 +326,8 @@ func deploymentDetail(workload *appsv1.Deployment) WorkloadDetail {
 }
 
 func statefulSetDetail(workload *appsv1.StatefulSet) WorkloadDetail {
-	replicas := desiredReplicas(workload.Spec.Replicas)
-	status := "progressing"
-	if workload.Status.ObservedGeneration >= workload.Generation &&
-		workload.Status.ReadyReplicas >= replicas &&
-		workload.Status.CurrentRevision == workload.Status.UpdateRevision {
-		status = "available"
-	}
+	replicas := resourcesummary.DesiredReplicas(workload.Spec.Replicas)
+	status := resourcesummary.StatefulSetStatus(workload, replicas)
 	summary := workloadSummary(
 		WorkloadStatefulSets,
 		workload.TypeMeta,
@@ -363,12 +359,7 @@ func statefulSetDetail(workload *appsv1.StatefulSet) WorkloadDetail {
 }
 
 func daemonSetDetail(workload *appsv1.DaemonSet) WorkloadDetail {
-	status := "progressing"
-	if workload.Status.ObservedGeneration >= workload.Generation &&
-		workload.Status.NumberAvailable >= workload.Status.DesiredNumberScheduled &&
-		workload.Status.NumberUnavailable == 0 {
-		status = "available"
-	}
+	status := resourcesummary.DaemonSetStatus(workload)
 	summary := workloadSummary(
 		WorkloadDaemonSets,
 		workload.TypeMeta,
@@ -398,7 +389,7 @@ func daemonSetDetail(workload *appsv1.DaemonSet) WorkloadDetail {
 }
 
 func jobDetail(workload *batchv1.Job) WorkloadDetail {
-	status := jobWorkloadStatus(workload)
+	status := resourcesummary.JobStatus(workload)
 	summary := workloadSummary(
 		WorkloadJobs,
 		workload.TypeMeta,
@@ -437,12 +428,7 @@ func jobDetail(workload *batchv1.Job) WorkloadDetail {
 }
 
 func cronJobDetail(workload *batchv1.CronJob) WorkloadDetail {
-	status := "scheduled"
-	if workload.Spec.Suspend != nil && *workload.Spec.Suspend {
-		status = "suspended"
-	} else if len(workload.Status.Active) > 0 {
-		status = "running"
-	}
+	status := resourcesummary.CronJobStatus(workload)
 	summary := workloadSummary(
 		WorkloadCronJobs,
 		workload.TypeMeta,
@@ -588,51 +574,6 @@ func podImages(spec corev1.PodSpec) []string {
 	return result
 }
 
-func deploymentStatus(workload *appsv1.Deployment, desired int32) string {
-	if workload.Spec.Paused {
-		return "suspended"
-	}
-	for _, condition := range workload.Status.Conditions {
-		// Named after the Kubernetes reason it reads rather than reduced to a
-		// health word: what has happened is that this rollout did not finish
-		// inside `progressDeadlineSeconds`, which is not the same as the
-		// workload having lost capacity — the previous ReplicaSet may still be
-		// serving every request while the new one fails to start at all.
-		if condition.Type == appsv1.DeploymentProgressing &&
-			condition.Status == corev1.ConditionFalse &&
-			condition.Reason == "ProgressDeadlineExceeded" {
-			return "progress_deadline_exceeded"
-		}
-	}
-	if workload.Status.ObservedGeneration >= workload.Generation &&
-		workload.Status.AvailableReplicas >= desired &&
-		workload.Status.UnavailableReplicas == 0 {
-		return "available"
-	}
-	return "progressing"
-}
-
-func jobWorkloadStatus(workload *batchv1.Job) string {
-	if workload.Spec.Suspend != nil && *workload.Spec.Suspend {
-		return "suspended"
-	}
-	for _, condition := range workload.Status.Conditions {
-		if condition.Status != corev1.ConditionTrue {
-			continue
-		}
-		switch condition.Type {
-		case batchv1.JobFailed:
-			return "failed"
-		case batchv1.JobComplete:
-			return "completed"
-		}
-	}
-	if workload.Status.Active > 0 {
-		return "running"
-	}
-	return "pending"
-}
-
 func deploymentConditions(conditions []appsv1.DeploymentCondition) []WorkloadCondition {
 	result := make([]WorkloadCondition, 0, len(conditions))
 	for _, condition := range conditions {
@@ -687,13 +628,6 @@ func jobConditions(conditions []batchv1.JobCondition) []WorkloadCondition {
 		})
 	}
 	return result
-}
-
-func desiredReplicas(value *int32) int32 {
-	if value == nil {
-		return 1
-	}
-	return *value
 }
 
 func cloneInt32Pointer(value *int32) *int32 {

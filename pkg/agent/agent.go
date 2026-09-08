@@ -14,6 +14,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/togettoyou/zke/pkg/agent/resourcecache"
 	"github.com/togettoyou/zke/pkg/shared/buildinfo"
 	"github.com/togettoyou/zke/pkg/shared/identifier"
 	"k8s.io/client-go/dynamic"
@@ -48,6 +49,21 @@ func Run(ctx context.Context, cfg Config, logger *slog.Logger) error {
 	dynamicClient, err := dynamic.NewForConfig(kubernetesConfig)
 	if err != nil {
 		return errors.New("create Kubernetes dynamic client")
+	}
+	// The resource cache draws on its own client rather than sharing the one
+	// that serves requests. Its work is background work — one listing per
+	// resource at startup, then long-lived watches — and it must never be able
+	// to spend the rate-limit budget that a user's detail read, a write, a
+	// terminal or a log stream is waiting on. A watch is held open for minutes,
+	// so this copy also drops the per-request timeout that would otherwise cut
+	// one short every two minutes.
+	cacheKubernetesConfig := rest.CopyConfig(kubernetesConfig)
+	cacheKubernetesConfig.Timeout = 0
+	cacheKubernetesConfig.QPS = cfg.Cache.KubernetesQPS
+	cacheKubernetesConfig.Burst = cfg.Cache.KubernetesBurst
+	cacheDynamicClient, err := dynamic.NewForConfig(cacheKubernetesConfig)
+	if err != nil {
+		return errors.New("create Kubernetes resource cache client")
 	}
 
 	store := NewIdentityStore(
@@ -106,6 +122,17 @@ func Run(ctx context.Context, cfg Config, logger *slog.Logger) error {
 		slog.Time("certificate_expires_at", identity.CertificateExpiresAt),
 	)
 	go runTerminalSessionJanitor(ctx, kubernetesClient, cfg.IdentityNamespace, logger)
+	// The cache fills itself on its own goroutines and with its own Kubernetes
+	// client, so the connection below — and the heartbeat that rides on it —
+	// never waits behind a Cluster-wide listing.
+	resourceCache := resourcecache.New(
+		cacheDynamicClient,
+		kubernetesClient.Discovery(),
+		resourcecache.Config{},
+		logger,
+	)
+	resourceCache.Start(ctx)
+	defer resourceCache.Close()
 	metricsForwarder, metricsCredentials := startMetricsIngest(
 		ctx, cfg, kubernetesClient, logger,
 	)
@@ -129,10 +156,15 @@ func Run(ctx context.Context, cfg Config, logger *slog.Logger) error {
 				cfg.Connection.ResourceCompressionThresholdBytes,
 				cfg.IdentityNamespace,
 			),
-			podLogsHandler:         newKubernetesPodLogsHandler(kubernetesClient),
-			podExecHandler:         newKubernetesPodExecHandler(kubernetesClient, kubernetesConfig),
-			podPortForwardHandler:  newKubernetesPodPortForwardHandler(kubernetesClient, kubernetesConfig),
-			resourceWatchHandler:   newKubernetesResourceWatchHandler(kubernetesClient),
+			podLogsHandler:        newKubernetesPodLogsHandler(kubernetesClient),
+			podExecHandler:        newKubernetesPodExecHandler(kubernetesClient, kubernetesConfig),
+			podPortForwardHandler: newKubernetesPodPortForwardHandler(kubernetesClient, kubernetesConfig),
+			resourceWatchHandler:  newKubernetesResourceWatchHandler(kubernetesClient),
+			resourceCacheHandler: newKubernetesResourceCacheHandler(
+				resourceCache,
+				cfg.Connection.MaxResourceCacheBodyBytes,
+				cfg.Connection.ResourceCompressionThresholdBytes,
+			),
 			terminalSessionHandler: newKubernetesTerminalSessionHandler(kubernetesClient, cfg.IdentityNamespace),
 			metricsForwarder:       metricsForwarder,
 			metricsCollectorHandler: newKubernetesMetricsCollectorHandler(

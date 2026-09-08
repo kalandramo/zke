@@ -70,9 +70,13 @@ type Config struct {
 	MaxPodPortForwardPodBytes    uint64
 	MaxPodPortForwardStreams     int
 	MaxPodPortForwardRequests    int
-	ResourceWatchRequestTimeout  time.Duration
-	MaxResourceWatchStreams      int
-	MaxResourceWatchRequests     int
+	// The Agent's cache answers from memory, so a snapshot is small. Its own
+	// ceiling keeps a malformed or hostile answer from being sized like a
+	// listing of whole objects.
+	MaxResourceCacheBodyBytes   uint64
+	ResourceWatchRequestTimeout time.Duration
+	MaxResourceWatchStreams     int
+	MaxResourceWatchRequests    int
 	// Helm has budgets of its own because a release change is not shaped like
 	// a resource request: it takes minutes rather than seconds when it waits
 	// for a rollout, and it must not be able to hold the allowance that every
@@ -267,18 +271,21 @@ type certificateIdentity struct {
 }
 
 var (
-	ErrAgentNotConnected                 = errors.New("target Cluster Agent is not connected")
-	ErrResourceCapabilityMissing         = errors.New("target Cluster Agent does not support Resource Streams")
-	ErrResourceRequestExhausted          = errors.New("Resource Stream request capacity is exhausted")
-	ErrResourceVerbUnsupported           = errors.New("Resource Stream verb is not implemented")
-	ErrPodLogsCapabilityMissing          = errors.New("target Cluster Agent does not support Pod Logs Streams")
-	ErrPodLogsRequestExhausted           = errors.New("Pod Logs Stream request capacity is exhausted")
-	ErrPodExecCapabilityMissing          = errors.New("target Cluster Agent does not support Pod Exec Streams")
-	ErrTerminalCommandCapabilityMissing  = errors.New("target Cluster Agent does not support Terminal commands")
-	ErrPodExecRequestExhausted           = errors.New("Pod Exec Stream request capacity is exhausted")
-	ErrPodPortForwardCapabilityMissing   = errors.New("target Cluster Agent does not support Pod Port Forward Streams")
-	ErrPodPortForwardRequestExhausted    = errors.New("Pod Port Forward Stream request capacity is exhausted")
-	ErrResourceWatchCapabilityMissing    = errors.New("target Cluster Agent does not support Resource Watch Streams")
+	ErrAgentNotConnected                = errors.New("target Cluster Agent is not connected")
+	ErrResourceCapabilityMissing        = errors.New("target Cluster Agent does not support Resource Streams")
+	ErrResourceRequestExhausted         = errors.New("Resource Stream request capacity is exhausted")
+	ErrResourceVerbUnsupported          = errors.New("Resource Stream verb is not implemented")
+	ErrPodLogsCapabilityMissing         = errors.New("target Cluster Agent does not support Pod Logs Streams")
+	ErrPodLogsRequestExhausted          = errors.New("Pod Logs Stream request capacity is exhausted")
+	ErrPodExecCapabilityMissing         = errors.New("target Cluster Agent does not support Pod Exec Streams")
+	ErrTerminalCommandCapabilityMissing = errors.New("target Cluster Agent does not support Terminal commands")
+	ErrPodExecRequestExhausted          = errors.New("Pod Exec Stream request capacity is exhausted")
+	ErrPodPortForwardCapabilityMissing  = errors.New("target Cluster Agent does not support Pod Port Forward Streams")
+	ErrPodPortForwardRequestExhausted   = errors.New("Pod Port Forward Stream request capacity is exhausted")
+	ErrResourceWatchCapabilityMissing   = errors.New("target Cluster Agent does not support Resource Watch Streams")
+	// The Agent predates the resource cache, so it has no snapshot to give. The
+	// caller falls back to the Resource lists it has always used.
+	ErrResourceCacheCapabilityMissing    = errors.New("target Cluster Agent does not support Resource cache queries")
 	ErrResourceWatchRequestExhausted     = errors.New("Resource Watch Stream request capacity is exhausted")
 	ErrTerminalSessionCapabilityMissing  = errors.New("target Cluster Agent does not support Terminal Session Streams")
 	ErrMetricsCollectorCapabilityMissing = errors.New("target Cluster Agent does not support metrics collector management")
@@ -770,6 +777,16 @@ func (manager *Manager) handleConnection(parent context.Context, connection *qui
 	if hasCapability(hello.GetCapabilities(), agentprotocol.CapabilityResourceWatchV1) {
 		serverCapabilities = append(serverCapabilities, agentprotocol.CapabilityResourceWatchV1)
 		current.capabilities[agentprotocol.CapabilityResourceWatchV1] = struct{}{}
+	}
+	if hasCapability(
+		hello.GetCapabilities(),
+		agentprotocol.CapabilityOverviewSnapshotV1,
+	) {
+		serverCapabilities = append(
+			serverCapabilities,
+			agentprotocol.CapabilityOverviewSnapshotV1,
+		)
+		current.capabilities[agentprotocol.CapabilityOverviewSnapshotV1] = struct{}{}
 	}
 	if hasCapability(hello.GetCapabilities(), agentprotocol.CapabilityTerminalSessionV1) {
 		serverCapabilities = append(serverCapabilities, agentprotocol.CapabilityTerminalSessionV1)
@@ -1430,6 +1447,79 @@ func (manager *Manager) requestResource(
 		requestBody,
 		responseBody,
 		manager.config.MaxResourceBodyBytes,
+	)
+}
+
+// RequestOverviewSnapshot reads the Cluster overview from the Agent's own
+// resource cache.
+//
+// It is sent only to an Agent that said it keeps one. An Agent that predates
+// the cache never sees this request: the capability check below fails first,
+// and the caller falls back to the ten Resource listings, which is what makes
+// upgrading a Server ahead of its Agents safe.
+func (manager *Manager) RequestOverviewSnapshot(
+	ctx context.Context,
+	clusterID string,
+	responseBody io.Writer,
+) (*agentv1.ResourceCacheResponse, error) {
+	if ctx == nil {
+		return nil, errors.New("Resource cache request Context is required")
+	}
+	if !validation.IsUUID(clusterID) {
+		return nil, errors.New("target Cluster ID is invalid")
+	}
+	manager.mutex.Lock()
+	current := manager.connectionsByCluster[clusterID]
+	manager.mutex.Unlock()
+	if current == nil || current.business == nil {
+		return nil, ErrAgentNotConnected
+	}
+	if !current.beginBusiness() {
+		return nil, ErrAgentNotConnected
+	}
+	defer current.endBusiness()
+	if _, supported := current.capabilities[agentprotocol.CapabilityOverviewSnapshotV1]; !supported {
+		return nil, ErrResourceCacheCapabilityMissing
+	}
+	// A cache query draws on the same per-Agent and instance-wide resource
+	// allowance as any other read, so a Server cannot open more Streams towards
+	// one Agent by asking a cheaper question.
+	if !tryAcquire(manager.resourceAdmissions) {
+		return nil, ErrResourceRequestExhausted
+	}
+	defer release(manager.resourceAdmissions)
+	if !tryAcquire(current.resourceAdmissions) {
+		return nil, ErrResourceRequestExhausted
+	}
+	defer release(current.resourceAdmissions)
+
+	timeout := manager.config.ResourceRequestTimeout
+	if timeout <= 0 {
+		timeout = defaultResourceRequestTimeout
+	}
+	requestContext, cancelRequest := context.WithTimeout(ctx, timeout)
+	defer cancelRequest()
+	deadline, _ := requestContext.Deadline()
+	timeoutMillis := max(int64(1), time.Until(deadline).Milliseconds())
+	requestID, err := streamRequestID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return agentprotocol.DoResourceCache(
+		requestContext,
+		current.business,
+		&agentv1.StreamHeader{
+			ProtocolVersion: agentprotocol.ProtocolVersion,
+			Kind:            agentv1.StreamKind_STREAM_KIND_RESOURCE_CACHE,
+			RequestId:       requestID,
+			TimeoutMillis:   uint64(timeoutMillis),
+		},
+		&agentv1.ResourceCacheRequest{
+			Query:             agentv1.ResourceCacheQuery_RESOURCE_CACHE_QUERY_OVERVIEW_SNAPSHOT,
+			AcceptedEncodings: agentprotocol.AcceptedResourceCacheEncodings(),
+		},
+		responseBody,
+		manager.config.MaxResourceCacheBodyBytes,
 	)
 }
 

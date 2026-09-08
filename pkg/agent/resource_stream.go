@@ -17,6 +17,7 @@ type connectionServices struct {
 	podExecHandler         agentprotocol.PodExecHandler
 	podPortForwardHandler  agentprotocol.PodPortForwardHandler
 	resourceWatchHandler   agentprotocol.ResourceWatchHandler
+	resourceCacheHandler   agentprotocol.ResourceCacheHandler
 	terminalSessionHandler agentprotocol.TerminalSessionHandler
 	// metricsForwarder is not a Stream handler: metrics travel on a Stream
 	// this Agent opens, so it holds the Connection rather than serving one.
@@ -89,6 +90,21 @@ func newBusinessStreamServer(
 				MaxConcurrent: cfg.Connection.MaxConcurrentResourceWatchStreams,
 				MaxTimeout:    cfg.Connection.MaxResourceWatchStreamTimeout,
 				Handle:        agentprotocol.ResourceWatchStreamHandler(services.resourceWatchHandler),
+			}
+	}
+	if services.resourceCacheHandler != nil {
+		handlers[agentv1.StreamKind_STREAM_KIND_RESOURCE_CACHE] =
+			agentprotocol.StreamHandlerConfig{
+				// A cache query is a local read: no Kubernetes request, no
+				// object listing, just a copy of counters or one page of
+				// summaries. It gets its own allowance so that answering an
+				// overview never waits behind a large Kubernetes list.
+				MaxConcurrent: cfg.Connection.MaxConcurrentResourceCacheStreams,
+				MaxTimeout:    cfg.Connection.MaxResourceRequestTimeout,
+				Handle: agentprotocol.ResourceCacheStreamHandler(
+					cfg.Connection.MaxResourceCacheBodyBytes,
+					services.resourceCacheHandler,
+				),
 			}
 	}
 	if services.metricsCollectorHandler != nil {

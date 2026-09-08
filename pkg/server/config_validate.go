@@ -730,6 +730,13 @@ func (cfg Config) validateAgentListener() error {
 			maxResourceBodyBytes,
 		)
 	}
+	if cfg.AgentListener.MaxResourceCacheBodyBytes == 0 ||
+		cfg.AgentListener.MaxResourceCacheBodyBytes >
+			cfg.AgentListener.MaxResourceBodyBytes {
+		return errors.New(
+			"Agent Resource cache body limit must be between 1 and the Resource body limit",
+		)
+	}
 	if cfg.AgentListener.MaxBufferedResourceBytes <
 		cfg.AgentListener.MaxResourceBodyBytes ||
 		cfg.AgentListener.MaxBufferedResourceBytes >

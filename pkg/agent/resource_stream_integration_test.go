@@ -430,6 +430,23 @@ func startResourceStreamEnvironment(
 	limits resourceTestLimits,
 ) resourceStreamEnvironment {
 	t.Helper()
+	return startAgentStreamEnvironment(
+		t,
+		connectionServices{resourceHandler: handler},
+		limits,
+	)
+}
+
+// startAgentStreamEnvironment brings up a real Server listener and a real Agent
+// connection over QUIC, serving whichever handlers the caller wires in. Which
+// handlers are present is also what the Agent advertises, so a test can stand
+// in for an Agent that predates a capability simply by leaving it out.
+func startAgentStreamEnvironment(
+	t *testing.T,
+	services connectionServices,
+	limits resourceTestLimits,
+) resourceStreamEnvironment {
+	t.Helper()
 	now := time.Now().UTC()
 	_, _, clientCAPEM, clientCAKeyPEM :=
 		createConnectionTestCA(t, "Resource Test Agent Client CA", 101, now)
@@ -505,22 +522,23 @@ func startResourceStreamEnvironment(
 	address := reserveUDPAddress(t)
 	manager, err := agentconn.New(
 		agentconn.Config{
-			Address:                 address,
-			TLSCertificateFile:      listenerCertificateFile,
-			TLSPrivateKeyFile:       listenerPrivateKeyFile,
-			ClientCACertificateFile: clientCAFile,
-			HandshakeTimeout:        2 * time.Second,
-			HeartbeatInterval:       time.Second,
-			HeartbeatTimeout:        5 * time.Second,
-			LastSeenWriteInterval:   time.Second,
-			OperationTimeout:        time.Second,
-			WriteTimeout:            time.Second,
-			MaxConcurrentAgents:     4,
-			MaxIncomingStreams:      16,
-			ResourceRequestTimeout:  limits.resourceTimeout,
-			MaxResourceBodyBytes:    limits.maxBodyBytes,
-			MaxResourceStreams:      limits.serverResource,
-			MaxResourceRequests:     limits.serverTotal,
+			Address:                   address,
+			TLSCertificateFile:        listenerCertificateFile,
+			TLSPrivateKeyFile:         listenerPrivateKeyFile,
+			ClientCACertificateFile:   clientCAFile,
+			HandshakeTimeout:          2 * time.Second,
+			HeartbeatInterval:         time.Second,
+			HeartbeatTimeout:          5 * time.Second,
+			LastSeenWriteInterval:     time.Second,
+			OperationTimeout:          time.Second,
+			WriteTimeout:              time.Second,
+			MaxConcurrentAgents:       4,
+			MaxIncomingStreams:        16,
+			ResourceRequestTimeout:    limits.resourceTimeout,
+			MaxResourceBodyBytes:      limits.maxBodyBytes,
+			MaxResourceStreams:        limits.serverResource,
+			MaxResourceRequests:       limits.serverTotal,
+			MaxResourceCacheBodyBytes: limits.maxBodyBytes,
 		},
 		logger,
 		connectionStore,
@@ -541,18 +559,20 @@ func startResourceStreamEnvironment(
 			Config{
 				CertificateRenewBefore: time.Hour,
 				Connection: ConnectionConfig{
-					ServerAddress:                address,
-					CACertificateFile:            listenerCAFile,
-					ConnectTimeout:               time.Second,
-					RetryInitialInterval:         10 * time.Millisecond,
-					RetryMaxInterval:             50 * time.Millisecond,
-					IdleTimeout:                  time.Minute,
-					KeepAliveInterval:            time.Second,
-					MaxIncomingStreams:           limits.agentIncoming,
-					StreamHeaderTimeout:          time.Second,
-					MaxResourceRequestTimeout:    limits.resourceTimeout,
-					MaxConcurrentResourceStreams: limits.agentResource,
-					MaxResourceBodyBytes:         limits.maxBodyBytes,
+					ServerAddress:                     address,
+					CACertificateFile:                 listenerCAFile,
+					ConnectTimeout:                    time.Second,
+					RetryInitialInterval:              10 * time.Millisecond,
+					RetryMaxInterval:                  50 * time.Millisecond,
+					IdleTimeout:                       time.Minute,
+					KeepAliveInterval:                 time.Second,
+					MaxIncomingStreams:                limits.agentIncoming,
+					StreamHeaderTimeout:               time.Second,
+					MaxResourceRequestTimeout:         limits.resourceTimeout,
+					MaxConcurrentResourceStreams:      limits.agentResource,
+					MaxResourceBodyBytes:              limits.maxBodyBytes,
+					MaxConcurrentResourceCacheStreams: limits.agentResource,
+					MaxResourceCacheBodyBytes:         limits.maxBodyBytes,
 				},
 			},
 			nil,
@@ -560,7 +580,7 @@ func startResourceStreamEnvironment(
 			"resource-test",
 			"00000000-0000-4000-8000-000000000099",
 			logger,
-			connectionServices{resourceHandler: handler},
+			services,
 		)
 	}()
 

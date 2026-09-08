@@ -187,6 +187,9 @@ func runConnection(
 	if services.resourceWatchHandler != nil {
 		capabilities = append(capabilities, agentprotocol.CapabilityResourceWatchV1)
 	}
+	if services.resourceCacheHandler != nil {
+		capabilities = append(capabilities, agentprotocol.CapabilityOverviewSnapshotV1)
+	}
 	if services.terminalSessionHandler != nil {
 		capabilities = append(capabilities, agentprotocol.CapabilityTerminalSessionV1)
 		if services.podExecHandler != nil {
@@ -269,6 +272,14 @@ func runConnection(
 		serverSupportsCapability(serverHello, agentprotocol.CapabilityResourceWatchV1)
 	if !resourceWatchSupported {
 		services.resourceWatchHandler = nil
+	}
+	// A Server that has not learned about the cache never opens the Stream, so
+	// the handler is detached rather than left listening for a request that
+	// cannot arrive. The Agent keeps serving that Server exactly as before.
+	resourceCacheSupported := services.resourceCacheHandler != nil &&
+		serverSupportsCapability(serverHello, agentprotocol.CapabilityOverviewSnapshotV1)
+	if !resourceCacheSupported {
+		services.resourceCacheHandler = nil
 	}
 	terminalSessionSupported := services.terminalSessionHandler != nil &&
 		serverSupportsCapability(serverHello, agentprotocol.CapabilityTerminalSessionV1)

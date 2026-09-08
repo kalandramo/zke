@@ -131,30 +131,54 @@ func ResourceBodyDecodedSize(response *agentv1.ResourceResponse) uint64 {
 	return response.GetDecodedBodySize()
 }
 
-// readResourceBody copies one declared body from the Stream into the caller's
+// bodyEncoding is what a response says about the bytes that follow it: how many
+// are on the wire, in what encoding, and how many they decode to.
+type bodyEncoding struct {
+	size        uint64
+	encoding    agentv1.ContentEncoding
+	decodedSize uint64
+}
+
+func readResourceBody(
+	stream io.Reader,
+	response *agentv1.ResourceResponse,
+	responseBody io.Writer,
+) error {
+	return readEncodedBody(
+		stream,
+		bodyEncoding{
+			size:        response.GetBodySize(),
+			encoding:    response.GetContentEncoding(),
+			decodedSize: response.GetDecodedBodySize(),
+		},
+		responseBody,
+	)
+}
+
+// readEncodedBody copies one declared body from the Stream into the caller's
 // writer, inflating it when it arrives compressed.
 //
 // Every failure here is confined to this Stream: the body is read through a
 // limit that the declared wire size sets, the decoded output stops at the
 // declared decoded size, and a body that does not end exactly where it said it
 // would is refused rather than trusted.
-func readResourceBody(
+func readEncodedBody(
 	stream io.Reader,
-	response *agentv1.ResourceResponse,
+	declared bodyEncoding,
 	responseBody io.Writer,
 ) error {
-	if response.GetContentEncoding() ==
+	if declared.encoding ==
 		agentv1.ContentEncoding_CONTENT_ENCODING_UNSPECIFIED {
 		if _, err := io.CopyN(
 			responseBody,
 			stream,
-			int64(response.GetBodySize()),
+			int64(declared.size),
 		); err != nil {
 			return fmt.Errorf("read Resource response body: %w", err)
 		}
 		return nil
 	}
-	wire := &io.LimitedReader{R: stream, N: int64(response.GetBodySize())}
+	wire := &io.LimitedReader{R: stream, N: int64(declared.size)}
 	reader, err := gzip.NewReader(wire)
 	if err != nil {
 		return fmt.Errorf(
@@ -167,7 +191,7 @@ func readResourceBody(
 	if _, err := io.CopyN(
 		responseBody,
 		reader,
-		int64(response.GetDecodedBodySize()),
+		int64(declared.decodedSize),
 	); err != nil {
 		return fmt.Errorf(
 			"%w: inflate Resource body: %w",
@@ -202,7 +226,10 @@ func readResourceBody(
 }
 
 func validateAcceptedEncodings(request *agentv1.ResourceRequest) error {
-	accepted := request.GetAcceptedEncodings()
+	return validateEncodings(request.GetAcceptedEncodings())
+}
+
+func validateEncodings(accepted []agentv1.ContentEncoding) error {
 	if len(accepted) > MaxAcceptedResourceEncodings {
 		return ErrStreamProtocol
 	}
@@ -223,25 +250,49 @@ func validateResourceBodyEncoding(
 	response *agentv1.ResourceResponse,
 	maxBodySize uint64,
 ) error {
-	switch response.GetContentEncoding() {
+	return validateBodyEncoding(
+		bodyEncoding{
+			size:        response.GetBodySize(),
+			encoding:    response.GetContentEncoding(),
+			decodedSize: response.GetDecodedBodySize(),
+		},
+		maxBodySize,
+	)
+}
+
+func validateBodyEncoding(declared bodyEncoding, maxBodySize uint64) error {
+	switch declared.encoding {
 	case agentv1.ContentEncoding_CONTENT_ENCODING_UNSPECIFIED:
-		if response.GetDecodedBodySize() != 0 {
+		if declared.decodedSize != 0 {
 			return ErrStreamProtocol
 		}
 		return nil
 	case agentv1.ContentEncoding_CONTENT_ENCODING_GZIP:
-		if response.GetBodySize() == 0 || response.GetDecodedBodySize() == 0 {
+		if declared.size == 0 || declared.decodedSize == 0 {
 			return ErrStreamProtocol
 		}
-		if response.GetDecodedBodySize() > maxBodySize {
+		if declared.decodedSize > maxBodySize {
 			return ErrStreamBodyTooLarge
 		}
-		if response.GetDecodedBodySize() >
-			MaxResourceCompressionRatio*response.GetBodySize() {
+		if declared.decodedSize > MaxResourceCompressionRatio*declared.size {
 			return ErrStreamBodyTooLarge
 		}
 		return nil
 	default:
 		return ErrStreamProtocol
 	}
+}
+
+// EncodeBody is EncodeResourceBody for a caller that carries its accepted
+// encodings itself rather than inside a ResourceRequest.
+func EncodeBody(
+	accepted []agentv1.ContentEncoding,
+	body []byte,
+	threshold uint64,
+) EncodedResourceBody {
+	return EncodeResourceBody(
+		&agentv1.ResourceRequest{AcceptedEncodings: accepted},
+		body,
+		threshold,
+	)
 }

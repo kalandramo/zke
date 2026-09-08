@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package zke.agent.v1;
+
+import "api/agent/v1/resource.proto";
+import "api/agent/v1/stream.proto";
+
+option go_package = "github.com/togettoyou/zke/api/agent/v1;agentv1";
+
+// Queries against the Agent's resource cache.
+//
+// This is deliberately its own Stream kind rather than another Resource verb.
+// An overview snapshot is an aggregate across ten GroupVersionResources, which
+// no single-GVR request describes, and dressing it up as one would make the
+// Agent's resource boundary — what may be read, at what scope — harder to see
+// than it is here.
+enum ResourceCacheQuery {
+  RESOURCE_CACHE_QUERY_UNSPECIFIED = 0;
+  // The Cluster overview, aggregated from the cache. Carries no resource.
+  RESOURCE_CACHE_QUERY_OVERVIEW_SNAPSHOT = 1;
+  // One page of compact summaries for one cached resource.
+  RESOURCE_CACHE_QUERY_SUMMARY_LIST = 2;
+}
+
+message ResourceCacheRequest {
+  ResourceCacheQuery query = 1;
+  // Set for a summary list, and refused for an overview snapshot.
+  GroupVersionResource resource = 2;
+  string namespace = 3;
+  string label_selector = 4;
+  string field_selector = 5;
+  uint32 limit = 6;
+  // An opaque token from a previous page of the same query. It is bound to the
+  // Cluster, the resource, the query and the cache snapshot it was issued
+  // against, and is refused if any of those no longer match.
+  string page_token = 7;
+  repeated ContentEncoding accepted_encodings = 8;
+}
+
+message ResourceCacheResponse {
+  ResultCode result = 1;
+  // A short, stable reason. Never an API Server message, which can quote the
+  // contents of an object.
+  string reason = 2;
+  string message = 3;
+  string content_type = 4;
+  uint64 body_size = 5;
+  ContentEncoding content_encoding = 6;
+  uint64 decoded_body_size = 7;
+}
