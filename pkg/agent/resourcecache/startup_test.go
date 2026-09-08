@@ -2,8 +2,15 @@ package resourcecache
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
+
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	dynamicfake "k8s.io/client-go/dynamic/fake"
+	k8stesting "k8s.io/client-go/testing"
 )
 
 // The first listing of a resource is a listing of a whole Cluster. Doing all of
@@ -51,6 +58,47 @@ func TestInitialSyncConcurrencyIsBounded(t *testing.T) {
 		t.Fatalf("%d of %d resources listed, peak concurrency %d",
 			finalStarted, len(kinds), finalPeak)
 	}
+}
+
+// A resource that repeatedly fails its first LIST must not hold one of the
+// startup slots forever. Other resources can still warm and serve their pages.
+func TestFailedInitialListsDoNotStarveOtherResources(t *testing.T) {
+	t.Parallel()
+	kinds := CoreResources()[:3]
+	client := dynamicfake.NewSimpleDynamicClientWithCustomListKinds(
+		runtime.NewScheme(),
+		map[schema.GroupVersionResource]string{
+			kinds[0].gvr: "NodeList",
+			kinds[1].gvr: "NamespaceList",
+			kinds[2].gvr: "PodList",
+		},
+	)
+	for _, resource := range []string{"nodes", "namespaces"} {
+		resource := resource
+		client.PrependReactor("list", resource, func(
+			k8stesting.Action,
+		) (bool, runtime.Object, error) {
+			return true, nil, apierrors.NewForbidden(
+				schema.GroupResource{Resource: resource},
+				"",
+				errors.New("denied"),
+			)
+		})
+	}
+	instance := New(client, nil, Config{
+		Resources:       kinds,
+		SyncConcurrency: 2,
+		StartupJitter:   time.Nanosecond,
+	}, nil)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	instance.Start(ctx)
+	defer instance.Close()
+
+	waitFor(t, func() bool {
+		_, synced := instance.stores[podGVR].state()
+		return synced
+	})
 }
 
 // The wait before the first listing is random, so a Server restart that

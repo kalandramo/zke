@@ -78,9 +78,12 @@ agent_listener:
   resource_request_timeout: 90s
   connection_drain_timeout: 12s
   max_resource_body_bytes: 16777216
+  max_resource_cache_body_bytes: 6291456
   max_buffered_resource_response_bytes: 134217728
   max_resource_streams_per_agent: 32
   max_concurrent_resource_requests: 2048
+  max_resource_cache_streams_per_agent: 7
+  max_concurrent_resource_cache_requests: 320
   pod_logs_request_timeout: 20m
   max_pod_log_bytes: 8388608
   max_pod_logs_streams_per_agent: 12
@@ -187,9 +190,12 @@ log_level: warn
 		cfg.AgentListener.ResourceRequestTimeout != 90*time.Second ||
 		cfg.AgentListener.ConnectionDrainTimeout != 12*time.Second ||
 		cfg.AgentListener.MaxResourceBodyBytes != 16*1024*1024 ||
+		cfg.AgentListener.MaxResourceCacheBodyBytes != 6*1024*1024 ||
 		cfg.AgentListener.MaxBufferedResourceBytes != 128*1024*1024 ||
 		cfg.AgentListener.MaxResourceStreams != 32 ||
 		cfg.AgentListener.MaxResourceRequests != 2048 ||
+		cfg.AgentListener.MaxResourceCacheStreams != 7 ||
+		cfg.AgentListener.MaxResourceCacheRequests != 320 ||
 		cfg.AgentListener.PodLogsRequestTimeout != 20*time.Minute ||
 		cfg.AgentListener.MaxPodLogBytes != 8*1024*1024 ||
 		cfg.AgentListener.MaxPodLogsStreams != 12 ||

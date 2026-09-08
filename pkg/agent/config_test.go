@@ -9,6 +9,8 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/togettoyou/zke/pkg/shared/agentprotocol"
 )
 
 func TestLoadConfigYAML(t *testing.T) {
@@ -38,6 +40,7 @@ connection:
   max_resource_request_timeout: 90s
   max_concurrent_resource_streams: 48
   max_resource_body_bytes: 16777216
+  resource_compression_threshold_bytes: 32768
   max_pod_logs_stream_timeout: 20m
   max_concurrent_pod_logs_streams: 12
   max_pod_log_bytes: 8388608
@@ -53,6 +56,9 @@ connection:
   max_concurrent_resource_watch_streams: 10
   max_concurrent_resource_cache_streams: 8
   max_resource_cache_body_bytes: 8388608
+cache:
+  kubernetes_qps: 12.5
+  kubernetes_burst: 25
 log_level: debug
 `)
 	if err := os.WriteFile(path, content, 0o600); err != nil {
@@ -112,8 +118,12 @@ log_level: debug
 		t.Fatalf("unexpected Agent Resource Watch config: %+v", cfg.Connection)
 	}
 	if cfg.Connection.MaxConcurrentResourceCacheStreams != 8 ||
-		cfg.Connection.MaxResourceCacheBodyBytes != 8*1024*1024 {
+		cfg.Connection.MaxResourceCacheBodyBytes != 8*1024*1024 ||
+		cfg.Connection.ResourceCompressionThresholdBytes != 32*1024 {
 		t.Fatalf("unexpected Agent Resource Cache config: %+v", cfg.Connection)
+	}
+	if cfg.Cache.KubernetesQPS != 12.5 || cfg.Cache.KubernetesBurst != 25 {
+		t.Fatalf("unexpected Agent cache Kubernetes config: %+v", cfg.Cache)
 	}
 }
 
@@ -191,6 +201,16 @@ func TestConfigRejectsResourceHeaderTimeoutAboveRequestTimeout(t *testing.T) {
 	cfg.Connection.MaxResourceRequestTimeout = 5 * time.Second
 	if err := cfg.Validate(); err == nil {
 		t.Fatal("Validate() accepted a header timeout above the Resource timeout")
+	}
+}
+
+func TestConfigRejectsZeroResourceCompressionThreshold(t *testing.T) {
+	t.Parallel()
+
+	cfg := validAgentConfig()
+	cfg.Connection.ResourceCompressionThresholdBytes = 0
+	if err := cfg.Validate(); err == nil {
+		t.Fatal("Validate() accepted a zero Resource compression threshold")
 	}
 }
 
@@ -334,11 +354,12 @@ func validAgentConfig() Config {
 			RetryMaxInterval:                  30 * time.Second,
 			IdleTimeout:                       15 * time.Minute,
 			KeepAliveInterval:                 10 * time.Second,
-			MaxIncomingStreams:                128,
+			MaxIncomingStreams:                256,
 			StreamHeaderTimeout:               5 * time.Second,
 			MaxResourceRequestTimeout:         2 * time.Minute,
 			MaxConcurrentResourceStreams:      64,
 			MaxResourceBodyBytes:              32 * 1024 * 1024,
+			ResourceCompressionThresholdBytes: agentprotocol.DefaultResourceCompressionThreshold,
 			MaxPodLogsStreamTimeout:           30 * time.Minute,
 			MaxConcurrentPodLogsStreams:       8,
 			MaxPodLogBytes:                    16 * 1024 * 1024,

@@ -36,6 +36,12 @@ const (
 // rather than being given an answer that is nearly right.
 var ErrQueryUnsupported = errors.New("resource cache cannot answer this query")
 
+// ErrUnavailable means the resource synchronized before, but its LIST/WATCH
+// is currently failing. A list response has no stale marker, so serving the
+// remembered rows would silently present them as current; the Server must use
+// the live Kubernetes path instead.
+var ErrUnavailable = errors.New("resource cache is temporarily unavailable")
+
 // ErrPageToken is a continuation that does not belong to this cache, this
 // query, or this moment.
 var ErrPageToken = errors.New("resource cache page token is not valid")
@@ -90,6 +96,9 @@ func (instance *Cache) Summaries(query Query) (resourcesummary.Page, error) {
 	target, exists := instance.stores[query.Resource]
 	if !exists || instance.unavailable(query.Resource) {
 		return resourcesummary.Page{}, ErrResourceNotCached
+	}
+	if !target.healthy() {
+		return resourcesummary.Page{}, ErrUnavailable
 	}
 	if query.Namespace != "" && !target.kind.namespaced {
 		return resourcesummary.Page{}, ErrQueryUnsupported
@@ -254,6 +263,12 @@ func (target *store) state() (string, bool) {
 	target.mutex.RLock()
 	defer target.mutex.RUnlock()
 	return target.resourceVersion, target.synced
+}
+
+func (target *store) healthy() bool {
+	target.mutex.RLock()
+	defer target.mutex.RUnlock()
+	return target.failureCode == ""
 }
 
 func (target *store) summary(key objectKey) (any, bool) {

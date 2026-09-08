@@ -17,9 +17,11 @@ import (
 	"github.com/togettoyou/zke/pkg/agent/resourcecache"
 	"github.com/togettoyou/zke/pkg/shared/buildinfo"
 	"github.com/togettoyou/zke/pkg/shared/identifier"
+	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/util/flowcontrol"
 )
 
 func Run(ctx context.Context, cfg Config, logger *slog.Logger) error {
@@ -61,9 +63,26 @@ func Run(ctx context.Context, cfg Config, logger *slog.Logger) error {
 	cacheKubernetesConfig.Timeout = 0
 	cacheKubernetesConfig.QPS = cfg.Cache.KubernetesQPS
 	cacheKubernetesConfig.Burst = cfg.Cache.KubernetesBurst
+	// Both clients are one background workload and therefore share one token
+	// bucket. Constructing them independently from QPS/Burst would quietly give
+	// discovery and LIST/WATCH separate buckets, doubling the configured burst.
+	cacheKubernetesConfig.RateLimiter = flowcontrol.NewTokenBucketRateLimiter(
+		cfg.Cache.KubernetesQPS,
+		cfg.Cache.KubernetesBurst,
+	)
 	cacheDynamicClient, err := dynamic.NewForConfig(cacheKubernetesConfig)
 	if err != nil {
 		return errors.New("create Kubernetes resource cache client")
+	}
+	cacheDiscoveryConfig := rest.CopyConfig(cacheKubernetesConfig)
+	// Discovery has no Context-aware interface. Keep it bounded even though the
+	// long-lived WATCH client above intentionally has no request timeout.
+	cacheDiscoveryConfig.Timeout = cfg.Connection.MaxResourceRequestTimeout
+	cacheDiscoveryClient, err := discovery.NewDiscoveryClientForConfig(
+		cacheDiscoveryConfig,
+	)
+	if err != nil {
+		return errors.New("create Kubernetes resource cache discovery client")
 	}
 
 	store := NewIdentityStore(
@@ -127,7 +146,7 @@ func Run(ctx context.Context, cfg Config, logger *slog.Logger) error {
 	// never waits behind a Cluster-wide listing.
 	resourceCache := resourcecache.New(
 		cacheDynamicClient,
-		kubernetesClient.Discovery(),
+		cacheDiscoveryClient,
 		resourcecache.Config{},
 		logger,
 	)

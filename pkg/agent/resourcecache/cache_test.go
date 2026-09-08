@@ -500,6 +500,29 @@ func TestUnsyncedSectionIsNotReportedAsZero(t *testing.T) {
 	}
 }
 
+// A list-only cache may still be warming or temporarily unavailable while all
+// overview counters are ready. Since the overview does not read that resource,
+// its state must not turn a complete overview into a partial one.
+func TestListOnlyResourceDoesNotAffectOverviewReadiness(t *testing.T) {
+	t.Parallel()
+	listOnly := ExtendedResources()[0]
+	instance := New(nil, nil, Config{
+		Resources: []resourceKind{podKind(), listOnly},
+	}, nil)
+	if err := instance.stores[podGVR].Replace([]any{}, "100"); err != nil {
+		t.Fatal(err)
+	}
+	instance.stores[listOnly.gvr].recordFailure("cluster_api_unavailable")
+
+	snapshot := instance.OverviewSnapshot()
+	if !snapshot.CacheSynced || snapshot.Stale {
+		t.Fatalf("a list-only resource affected overview readiness: %+v", snapshot)
+	}
+	if len(snapshot.Sections) != 1 || snapshot.Sections[0].Section != SectionPods {
+		t.Fatalf("overview sections include a list-only resource: %+v", snapshot.Sections)
+	}
+}
+
 // A section that fails after having synchronized keeps answering with the last
 // numbers it observed, and says that is what it is doing.
 func TestFailingSectionKeepsItsLastNumbers(t *testing.T) {

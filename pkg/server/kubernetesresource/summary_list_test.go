@@ -283,6 +283,28 @@ func TestExpiredCachePageIsRefused(t *testing.T) {
 	}
 }
 
+func TestCacheRefusalCannotMoveAContinuationToKubernetes(t *testing.T) {
+	t.Parallel()
+	requester := &cacheRequester{
+		refusal: &agentv1.ResourceCacheResponse{
+			Result: agentv1.ResultCode_RESULT_CODE_UNAVAILABLE,
+			Reason: "ResourceCacheUnavailable",
+		},
+	}
+	service := NewService(requester)
+	_, err := service.ListPods(context.Background(), ListPodsInput{
+		ClusterID:     summaryClusterID,
+		Limit:         50,
+		ContinueToken: "zc1.cache-token",
+	})
+	if !errors.Is(err, ErrCachePageExpired) {
+		t.Fatalf("got %v", err)
+	}
+	if requester.listings.Load() != 0 {
+		t.Fatal("a refused cache continuation reached Kubernetes")
+	}
+}
+
 // An Agent that predates the cache is listed the way it always was.
 func TestListsFallBackForAnAgentWithoutTheCapability(t *testing.T) {
 	t.Parallel()

@@ -399,6 +399,18 @@ func TestSummariesRefuseAnUnsyncedSection(t *testing.T) {
 	}
 }
 
+func TestSummariesRefuseASectionWhoseWatchIsFailing(t *testing.T) {
+	t.Parallel()
+	instance := loadedPodCache(t)
+	instance.stores[podGVR].recordFailure("cluster_api_unavailable")
+	if _, err := instance.Summaries(Query{Resource: podGVR}); !errors.Is(
+		err,
+		ErrUnavailable,
+	) {
+		t.Fatalf("got %v", err)
+	}
+}
+
 func TestSummariesRefuseAnUncachedResource(t *testing.T) {
 	t.Parallel()
 	instance := loadedPodCache(t)

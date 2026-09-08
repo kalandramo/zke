@@ -413,10 +413,12 @@ func (service *Service) run(ctx context.Context, clusterID string, call *loadCal
 	now := service.now()
 	service.mutex.Lock()
 	entry := service.cache[clusterID]
-	if entry != nil {
-		if entry.call == call {
-			entry.call = nil
-		}
+	// A detached load is not registered in the cache. If capacity becomes
+	// available while it runs, a later caller may create a new entry and a new
+	// load for the same Cluster. Only the call owned by that entry may update it;
+	// otherwise the older detached result can overwrite the newer load's state.
+	if entry != nil && entry.call == call {
+		entry.call = nil
 		switch {
 		case err != nil:
 			entry.failures++

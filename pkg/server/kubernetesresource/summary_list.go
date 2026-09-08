@@ -100,11 +100,20 @@ func (service *Service) listSummaries(
 	)
 	if err != nil {
 		if errors.Is(err, agentconn.ErrResourceCacheCapabilityMissing) {
+			if input.ContinueToken != "" {
+				return resourcesummary.Page{}, ErrCachePageExpired
+			}
 			return resourcesummary.Page{}, errCacheUnavailable
 		}
 		return resourcesummary.Page{}, requestError(err)
 	}
 	if err := summaryResponseError(response); err != nil {
+		// A listing that started in the cache cannot continue in Kubernetes:
+		// its token has no meaning there and switching sources would skip or
+		// repeat rows. Any cache refusal after page one expires that listing.
+		if input.ContinueToken != "" && errors.Is(err, errCacheUnavailable) {
+			return resourcesummary.Page{}, ErrCachePageExpired
+		}
 		return resourcesummary.Page{}, err
 	}
 	var page resourcesummary.Page

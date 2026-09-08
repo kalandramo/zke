@@ -125,6 +125,12 @@ func summaryQueryRefusal(err error) *agentv1.ResourceCacheResponse {
 			"ResourceCacheWarmingUp",
 			"Agent resource cache has not finished its first listing",
 		)
+	case errors.Is(err, resourcecache.ErrUnavailable):
+		return resourceCacheErrorResponse(
+			agentv1.ResultCode_RESULT_CODE_UNAVAILABLE,
+			"ResourceCacheUnavailable",
+			"Agent resource cache is temporarily unavailable",
+		)
 	default:
 		return resourceCacheErrorResponse(
 			agentv1.ResultCode_RESULT_CODE_INTERNAL,

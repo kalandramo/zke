@@ -389,6 +389,8 @@ type AgentListenerConfig struct {
 	MaxBufferedResourceBytes    uint64        `yaml:"max_buffered_resource_response_bytes"`
 	MaxResourceStreams          int           `yaml:"max_resource_streams_per_agent"`
 	MaxResourceRequests         int           `yaml:"max_concurrent_resource_requests"`
+	MaxResourceCacheStreams     int           `yaml:"max_resource_cache_streams_per_agent"`
+	MaxResourceCacheRequests    int           `yaml:"max_concurrent_resource_cache_requests"`
 	PodLogsRequestTimeout       time.Duration `yaml:"pod_logs_request_timeout"`
 	MaxPodLogBytes              uint64        `yaml:"max_pod_log_bytes"`
 	MaxPodLogsStreams           int           `yaml:"max_pod_logs_streams_per_agent"`
@@ -516,6 +518,8 @@ func DefaultConfig() Config {
 			MaxBufferedResourceBytes:    256 * 1024 * 1024,
 			MaxResourceStreams:          64,
 			MaxResourceRequests:         4096,
+			MaxResourceCacheStreams:     16,
+			MaxResourceCacheRequests:    512,
 			PodLogsRequestTimeout:       30 * time.Minute,
 			MaxPodLogBytes:              16 * 1024 * 1024,
 			MaxPodLogsStreams:           8,

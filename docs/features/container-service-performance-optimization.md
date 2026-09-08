@@ -154,8 +154,7 @@ flowchart LR
 - 集群概览；
 - Node、Namespace、Pod 和工作负载列表；
 - 存储、服务、路由、自动伸缩与策略列表；
-- 需要对象关联关系的 Describe 和诊断能力；
-- AIOps 的只读资源检索，但每次工具调用仍需经过 Server 权限检查和目标集群定域。
+- AIOps 复用上述列表 API 的只读调用；每次工具调用仍需经过 Server 权限检查和目标集群定域。
 
 概览不拥有独立对象副本，只消费统一缓存维护的聚合快照。
 
@@ -212,16 +211,16 @@ Secret 列表如需缓存，只允许保存名称、Namespace、类型和时间�
 
 ### Informer 生命周期
 
-- 核心资源在 Agent 建立连接后以随机抖动启动，避免大量 Agent 同时重连造成 LIST 风暴；
-- 扩展资源可以根据 Discovery 结果和功能使用情况按需启动；
+- 核心资源在 Agent 身份就绪后以随机抖动启动，避免大量 Agent 同时启动造成 LIST 风暴；
+- 扩展资源根据 Discovery 结果启动；
 - 同一 GVR 只允许一个共享 Informer；
 - 不配置周期性全量 relist；Watch 中断时从最后 ResourceVersion 恢复；
-- ResourceVersion 过期或 watch cache 无法续接时允许重新 LIST，并记录原因和耗时；
-- 初始同步并发受限，避免十类资源同时进行大 List；
+- ResourceVersion 过期或 watch cache 无法续接时允许重新 LIST，并记录原因；
+- 初始同步和必要的重新 LIST 都受并发限制，避免多类资源同时进行大 List；
 - Agent 关闭时统一停止 Informer，确保 goroutine、Watch 和本地索引可回收。
 
 缓存初始化使用独立、低优先级的 Kubernetes Client 配额，避免与资源详情、写操作、终端、日志和 Agent 心跳相关任务争抢
-同一个限流预算。具体 QPS/Burst 默认值由压测确定，并保留配置上限。
+同一个限流预算。当前使用保守默认值 QPS 10、Burst 20，并保留配置上限；最终调优仍需结合 KWOK 和真实集群压测。
 
 ### 两种投影
 
@@ -392,7 +391,7 @@ Agent 有 ResourceCache 后，Server 仍保留小型概览缓存，以吸收 Con
 
 ResourceCache 不替代通用传输压缩。详情、YAML、CRD、缓存回退和暂未迁移的列表仍可能返回大型 JSON。
 
-计划为 Resource 协议增加：
+Resource 协议已增加：
 
 - Request：调用方接受的内容编码；
 - Response：实际内容编码、线传输大小和解压后大小；

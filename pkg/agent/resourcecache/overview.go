@@ -40,6 +40,12 @@ func (instance *Cache) OverviewSnapshot() resourcesummary.OverviewSnapshot {
 	}
 	for _, gvr := range instance.order {
 		target := instance.stores[gvr]
+		// Extended list-only resources deliberately have no overview section.
+		// Their readiness and failures must not keep the overview warming or
+		// make it partial: no overview counter depends on them.
+		if target.kind.section == "" {
+			continue
+		}
 		totals, health := target.snapshotTotals()
 		state := resourcesummary.SectionState{
 			Section:         target.kind.section,

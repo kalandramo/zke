@@ -44,11 +44,14 @@ connection:
   keep_alive_interval: 10s
   # Total bidirectional Streams a Server may open towards this Agent. The
   # Agent-created Control Stream is counted by the Server, not here.
-  max_incoming_streams: 128
+  max_incoming_streams: 256
   stream_header_timeout: 5s
   max_resource_request_timeout: 2m
   max_concurrent_resource_streams: 64
   max_resource_body_bytes: 33554432
+  # Compress JSON Resource and Resource Cache bodies at or above 64 KiB when
+  # the Server advertises gzip support. Smaller bodies stay uncompressed.
+  resource_compression_threshold_bytes: 65536
   # Pod logs use a dedicated Stream type and do not weaken the generic
   # Resource protocol's Subresource deny rule.
   max_pod_logs_stream_timeout: 30m
@@ -70,11 +73,21 @@ connection:
   # timeout budgets are independent from Pod logs.
   max_resource_watch_stream_timeout: 30m
   max_concurrent_resource_watch_streams: 16
+  # Cached summaries use a dedicated Stream budget and a lower decoded-body
+  # limit than generic Kubernetes Resource responses.
+  max_concurrent_resource_cache_streams: 16
+  max_resource_cache_body_bytes: 16777216
   # Helm runs inside this Agent, and one Release change at a time is deliberate:
   # two concurrent operations on the same Release race over Helm's own storage,
   # which has no lock to stop them. The timeout bounds a wait for a rollout.
   max_helm_stream_timeout: 15m
   max_concurrent_helm_streams: 1
+
+# The informer-style Resource cache has its own client-go rate limiter, so its
+# initial LISTs and long-lived WATCHes cannot consume interactive request quota.
+cache:
+  kubernetes_qps: 10
+  kubernetes_burst: 20
 
 # Collector-facing endpoint for metrics.
 #

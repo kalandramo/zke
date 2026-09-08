@@ -335,6 +335,29 @@ func TestBackoffGrowsAndIsBounded(t *testing.T) {
 	}
 }
 
+// A load started while the cache was full is detached. If a later request
+// manages to admit the same Cluster, the older load must not replace or clear
+// the newer in-flight entry when it finishes.
+func TestDetachedLoadCannotOverwriteANewerEntry(t *testing.T) {
+	t.Parallel()
+	service := NewService(&fakeResourceReader{}, Config{CacheTTL: time.Minute})
+	newer := &loadCall{done: make(chan struct{})}
+	service.cache[overviewClusterID] = &cacheEntry{
+		call:      newer,
+		failures:  3,
+		lastError: kubernetesresource.ErrAgentNotConnected,
+	}
+	older := &loadCall{done: make(chan struct{})}
+
+	service.run(context.Background(), overviewClusterID, older)
+
+	entry := service.cache[overviewClusterID]
+	if entry.call != newer || entry.hasSnapshot || entry.failures != 3 ||
+		!errors.Is(entry.lastError, kubernetesresource.ErrAgentNotConnected) {
+		t.Fatalf("detached load changed a newer cache entry: %+v", entry)
+	}
+}
+
 func waitFor(t *testing.T, condition func() bool) {
 	t.Helper()
 	deadline := time.Now().Add(3 * time.Second)

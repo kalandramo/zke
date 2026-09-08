@@ -51,8 +51,8 @@ var ErrNotSynced = errors.New("resource cache has not synchronized")
 var ErrResourceNotCached = errors.New("resource is not cached")
 
 type Config struct {
-	// SyncConcurrency bounds how many resources may be doing their initial LIST
-	// at the same time.
+	// SyncConcurrency bounds how many resources may be doing a full LIST at the
+	// same time, both during initial synchronization and a necessary relist.
 	SyncConcurrency int
 	// StartupJitter is the largest random delay before the first LIST.
 	StartupJitter   time.Duration
@@ -200,8 +200,10 @@ func (instance *Cache) run(runContext context.Context, parent context.Context) {
 	}
 	instance.resolveAvailability(runContext)
 
-	// A counting semaphore rather than a worker pool: each resource holds a
-	// slot only until its first LIST lands, then keeps watching without one.
+	// A counting semaphore rather than a worker pool: every full LIST uses a
+	// slot, while the long-lived WATCH that follows it does not. Putting the
+	// bound around LIST itself also means a resource whose first attempt fails
+	// releases capacity for the other resources instead of starving them.
 	slots := make(chan struct{}, instance.config.SyncConcurrency)
 	for _, gvr := range instance.order {
 		target := instance.stores[gvr]
@@ -304,31 +306,8 @@ func (instance *Cache) unavailable(gvr schema.GroupVersionResource) bool {
 // here only when the watch cannot be resumed — an expired ResourceVersion, a
 // revoked permission — and that is where a fresh LIST is allowed.
 func (instance *Cache) follow(ctx context.Context, target *store, slots chan struct{}) {
-	select {
-	case slots <- struct{}{}:
-	case <-ctx.Done():
-		return
-	}
-	released := false
-	release := func() {
-		if !released {
-			released = true
-			<-slots
-		}
-	}
-	defer release()
-	instance.running.Add(1)
-	go func() {
-		defer instance.running.Done()
-		select {
-		case <-target.waitForSync():
-		case <-ctx.Done():
-		}
-		release()
-	}()
-
 	reflector := cache.NewReflectorWithOptions(
-		instance.listerWatcher(target.kind),
+		instance.listerWatcher(target.kind, slots),
 		&unstructured.Unstructured{},
 		target,
 		cache.ReflectorOptions{
@@ -389,7 +368,10 @@ type listerWatcher struct {
 
 func (listerWatcher) IsWatchListSemanticsUnSupported() bool { return true }
 
-func (instance *Cache) listerWatcher(kind resourceKind) cache.ListerWatcher {
+func (instance *Cache) listerWatcher(
+	kind resourceKind,
+	slots chan struct{},
+) cache.ListerWatcher {
 	resourceClient := func() dynamic.ResourceInterface {
 		return instance.client.Resource(kind.gvr)
 	}
@@ -398,6 +380,12 @@ func (instance *Cache) listerWatcher(kind resourceKind) cache.ListerWatcher {
 			ctx context.Context,
 			options metav1.ListOptions,
 		) (runtime.Object, error) {
+			select {
+			case slots <- struct{}{}:
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			}
+			defer func() { <-slots }()
 			return resourceClient().List(ctx, options)
 		},
 		WatchFuncWithContext: func(

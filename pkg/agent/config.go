@@ -29,8 +29,11 @@ const (
 	defaultCacheKubernetesBurst         = 20
 	maxCacheKubernetesQPS       float32 = 200
 	maxCacheKubernetesBurst             = 400
-	maxAgentIncomingStreams             = 4096
-	maxResourceBodyBytes                = 1024 * 1024 * 1024
+	// Metrics collector management and terminal session setup are fixed at one
+	// and four concurrent Streams in newBusinessStreamServer.
+	fixedBusinessStreams    int64 = 5
+	maxAgentIncomingStreams       = 4096
+	maxResourceBodyBytes          = 1024 * 1024 * 1024
 )
 
 type Config struct {
@@ -245,7 +248,7 @@ func DefaultConfig() Config {
 			RetryMaxInterval:                  30 * time.Second,
 			IdleTimeout:                       15 * time.Minute,
 			KeepAliveInterval:                 10 * time.Second,
-			MaxIncomingStreams:                128,
+			MaxIncomingStreams:                256,
 			StreamHeaderTimeout:               5 * time.Second,
 			MaxResourceRequestTimeout:         2 * time.Minute,
 			MaxConcurrentResourceStreams:      64,
@@ -777,6 +780,12 @@ func (cfg Config) Validate() error {
 			"maximum Resource body bytes must be between 1 and 1073741824",
 		)
 	}
+	if cfg.Connection.ResourceCompressionThresholdBytes < 1 ||
+		cfg.Connection.ResourceCompressionThresholdBytes > maxResourceBodyBytes {
+		return errors.New(
+			"Resource compression threshold bytes must be between 1 and 1073741824",
+		)
+	}
 	if cfg.Connection.MaxConcurrentPodLogsStreams < 1 ||
 		int64(cfg.Connection.MaxConcurrentResourceStreams)+
 			int64(cfg.Connection.MaxConcurrentPodLogsStreams) >
@@ -808,7 +817,9 @@ func (cfg Config) Validate() error {
 			int64(cfg.Connection.MaxConcurrentPodExecStreams)+
 			int64(cfg.Connection.MaxConcurrentPodAccessStreams)+
 			int64(cfg.Connection.MaxConcurrentResourceWatchStreams)+
-			int64(cfg.Connection.MaxConcurrentResourceCacheStreams) >
+			int64(cfg.Connection.MaxConcurrentResourceCacheStreams)+
+			int64(cfg.Connection.MaxConcurrentHelmStreams)+
+			fixedBusinessStreams >
 			cfg.Connection.MaxIncomingStreams {
 		return errors.New(
 			"maximum concurrent Resource Cache Streams must be positive and fit within maximum incoming streams together with other business Streams",
@@ -822,7 +833,7 @@ func (cfg Config) Validate() error {
 	}
 	if cfg.Cache.KubernetesQPS <= 0 || cfg.Cache.KubernetesQPS > maxCacheKubernetesQPS {
 		return errors.New(
-			"resource cache Kubernetes QPS must be between 0 and 200",
+			"resource cache Kubernetes QPS must be greater than 0 and at most 200",
 		)
 	}
 	if cfg.Cache.KubernetesBurst < 1 || cfg.Cache.KubernetesBurst > maxCacheKubernetesBurst {

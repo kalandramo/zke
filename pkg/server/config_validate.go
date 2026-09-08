@@ -761,6 +761,21 @@ func (cfg Config) validateAgentListener() error {
 			maxResourceRequests,
 		)
 	}
+	if cfg.AgentListener.MaxResourceCacheStreams <= 0 ||
+		cfg.AgentListener.MaxResourceCacheStreams > maxResourceStreams {
+		return fmt.Errorf(
+			"Agent per-connection Resource cache Stream limit must be between 1 and %d",
+			maxResourceStreams,
+		)
+	}
+	if cfg.AgentListener.MaxResourceCacheRequests <
+		cfg.AgentListener.MaxResourceCacheStreams ||
+		cfg.AgentListener.MaxResourceCacheRequests > maxResourceRequests {
+		return fmt.Errorf(
+			"Server Resource cache request limit must be between the per-connection limit and %d",
+			maxResourceRequests,
+		)
+	}
 	if cfg.AgentListener.MaxPodLogBytes == 0 ||
 		cfg.AgentListener.MaxPodLogBytes > maxResourceBodyBytes {
 		return fmt.Errorf(

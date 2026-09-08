@@ -194,11 +194,17 @@ agent_listener:
   resource_request_timeout: 2m
   connection_drain_timeout: 10s
   max_resource_body_bytes: 33554432
+  # Decoded limit for compact Resource Cache snapshots and summary pages.
+  max_resource_cache_body_bytes: 16777216
   # Instance-wide raw response bytes buffered while decoding Kubernetes
   # resources. This must be at least max_resource_body_bytes.
   max_buffered_resource_response_bytes: 268435456
   max_resource_streams_per_agent: 64
   max_concurrent_resource_requests: 4096
+  # Cache reads are memory-only and keep a dedicated admission reserve so a
+  # slow live Resource listing cannot block overview and summary pages.
+  max_resource_cache_streams_per_agent: 16
+  max_concurrent_resource_cache_requests: 512
   # Pod logs use independent long-lived Streams and admission limits.
   pod_logs_request_timeout: 30m
   max_pod_log_bytes: 16777216

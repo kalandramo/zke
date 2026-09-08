@@ -38,24 +38,29 @@ type ConnectionStore interface {
 }
 
 type Config struct {
-	Address                      string
-	TLSCertificateFile           string
-	TLSPrivateKeyFile            string
-	TLSCertificateReloader       *TLSCertificateReloader
-	ClientCACertificateFile      string
-	HandshakeTimeout             time.Duration
-	HeartbeatInterval            time.Duration
-	HeartbeatTimeout             time.Duration
-	LastSeenWriteInterval        time.Duration
-	OperationTimeout             time.Duration
-	MaxConcurrentAgents          int
-	MaxIncomingStreams           int64
-	WriteTimeout                 time.Duration
-	ResourceRequestTimeout       time.Duration
-	ConnectionDrainTimeout       time.Duration
-	MaxResourceBodyBytes         uint64
-	MaxResourceStreams           int
-	MaxResourceRequests          int
+	Address                 string
+	TLSCertificateFile      string
+	TLSPrivateKeyFile       string
+	TLSCertificateReloader  *TLSCertificateReloader
+	ClientCACertificateFile string
+	HandshakeTimeout        time.Duration
+	HeartbeatInterval       time.Duration
+	HeartbeatTimeout        time.Duration
+	LastSeenWriteInterval   time.Duration
+	OperationTimeout        time.Duration
+	MaxConcurrentAgents     int
+	MaxIncomingStreams      int64
+	WriteTimeout            time.Duration
+	ResourceRequestTimeout  time.Duration
+	ConnectionDrainTimeout  time.Duration
+	MaxResourceBodyBytes    uint64
+	MaxResourceStreams      int
+	MaxResourceRequests     int
+	// Resource cache reads are small, memory-only answers. Dedicated admission
+	// keeps an overview or summary page available when slow live Resource
+	// requests have consumed their own allowance.
+	MaxResourceCacheStreams      int
+	MaxResourceCacheRequests     int
 	PodLogsRequestTimeout        time.Duration
 	MaxPodLogBytes               uint64
 	MaxPodLogsStreams            int
@@ -119,6 +124,7 @@ type Manager struct {
 	// resourceAdmissions is an instance-wide bound. Per-Agent bounds live on
 	// each session, so one busy Cluster cannot consume the whole allowance.
 	resourceAdmissions       chan struct{}
+	resourceCacheAdmissions  chan struct{}
 	podLogsAdmissions        chan struct{}
 	podExecAdmissions        chan struct{}
 	podPortForwardAdmissions chan struct{}
@@ -187,6 +193,7 @@ type session struct {
 	disconnectReason         string
 	capabilities             map[string]struct{}
 	resourceAdmissions       chan struct{}
+	resourceCacheAdmissions  chan struct{}
 	podLogsAdmissions        chan struct{}
 	podExecAdmissions        chan struct{}
 	podPortForwardAdmissions chan struct{}
@@ -230,6 +237,8 @@ const (
 	defaultMaxResourceBodyBytes         = 32 * 1024 * 1024
 	defaultMaxResourceStreams           = 64
 	defaultMaxResourceRequests          = 4096
+	defaultMaxResourceCacheStreams      = 16
+	defaultMaxResourceCacheRequests     = 512
 	defaultPodLogsRequestTimeout        = 30 * time.Minute
 	defaultMaxPodLogBytes               = 16 * 1024 * 1024
 	defaultMaxPodLogsStreams            = 8
@@ -318,6 +327,12 @@ func New(
 	if config.MaxResourceRequests <= 0 {
 		config.MaxResourceRequests = defaultMaxResourceRequests
 	}
+	if config.MaxResourceCacheStreams <= 0 {
+		config.MaxResourceCacheStreams = defaultMaxResourceCacheStreams
+	}
+	if config.MaxResourceCacheRequests <= 0 {
+		config.MaxResourceCacheRequests = defaultMaxResourceCacheRequests
+	}
 	if config.HelmRequestTimeout <= 0 {
 		config.HelmRequestTimeout = defaultHelmRequestTimeout
 	}
@@ -403,6 +418,10 @@ func New(
 		resourceAdmissions: make(
 			chan struct{},
 			config.MaxResourceRequests,
+		),
+		resourceCacheAdmissions: make(
+			chan struct{},
+			config.MaxResourceCacheRequests,
 		),
 		podLogsAdmissions:        make(chan struct{}, config.MaxPodLogsRequests),
 		podExecAdmissions:        make(chan struct{}, config.MaxPodExecRequests),
@@ -696,6 +715,10 @@ func (manager *Manager) handleConnection(parent context.Context, connection *qui
 		resourceAdmissions: make(
 			chan struct{},
 			manager.config.MaxResourceStreams,
+		),
+		resourceCacheAdmissions: make(
+			chan struct{},
+			manager.config.MaxResourceCacheStreams,
 		),
 		podLogsAdmissions: make(
 			chan struct{},
@@ -1534,17 +1557,16 @@ func (manager *Manager) requestResourceCache(
 	if _, supported := current.capabilities[capability]; !supported {
 		return nil, ErrResourceCacheCapabilityMissing
 	}
-	// A cache query draws on the same per-Agent and instance-wide resource
-	// allowance as any other read, so a Server cannot open more Streams towards
-	// one Agent by asking a cheaper question.
-	if !tryAcquire(manager.resourceAdmissions) {
+	// Cache reads have their own small allowance. They answer from Agent memory
+	// and must remain available when slow live Resource requests are saturated.
+	if !tryAcquire(manager.resourceCacheAdmissions) {
 		return nil, ErrResourceRequestExhausted
 	}
-	defer release(manager.resourceAdmissions)
-	if !tryAcquire(current.resourceAdmissions) {
+	defer release(manager.resourceCacheAdmissions)
+	if !tryAcquire(current.resourceCacheAdmissions) {
 		return nil, ErrResourceRequestExhausted
 	}
-	defer release(current.resourceAdmissions)
+	defer release(current.resourceCacheAdmissions)
 
 	timeout := manager.config.ResourceRequestTimeout
 	if timeout <= 0 {
