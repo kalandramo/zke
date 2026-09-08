@@ -60,7 +60,8 @@ type Config struct {
 	ListPageSize    int64
 	RetryInterval   time.Duration
 	MaxRetryWait    time.Duration
-	// Resources overrides what is cached. Empty means the core resources.
+	// Resources overrides what is cached. Empty means everything the container
+	// service reads: see CachedResources.
 	Resources []resourceKind
 }
 
@@ -126,7 +127,7 @@ func New(
 	}
 	kinds := config.Resources
 	if len(kinds) == 0 {
-		kinds = CoreResources()
+		kinds = CachedResources()
 	}
 	if logger == nil {
 		logger = slog.New(slog.DiscardHandler)

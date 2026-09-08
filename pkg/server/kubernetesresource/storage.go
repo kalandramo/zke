@@ -304,6 +304,19 @@ func (service *Service) ListStorageResources(ctx context.Context, input ListStor
 	if !ok || !validStorageScope(input.Resource, input.Namespace) {
 		return StorageResourcePage{}, ErrInvalidInput
 	}
+	if token, cacheable := cacheableList(input.ContinueToken); cacheable {
+		cached, answered, err := service.listCachedObjects(ctx, SummaryListInput{
+			ClusterID: input.ClusterID, Resource: identity, Namespace: input.Namespace,
+			Limit: input.Limit, ContinueToken: token,
+			LabelSelector: input.LabelSelector, FieldSelector: input.FieldSelector,
+		})
+		if err != nil {
+			return StorageResourcePage{}, err
+		}
+		if answered {
+			return storageResourcePage(cached, input)
+		}
+	}
 	page, err := service.ListResources(ctx, ListResourcesInput{
 		ClusterID: input.ClusterID, Resource: identity, Namespace: input.Namespace,
 		Limit: input.Limit, ContinueToken: input.ContinueToken,
@@ -312,11 +325,24 @@ func (service *Service) ListStorageResources(ctx context.Context, input ListStor
 	if err != nil {
 		return StorageResourcePage{}, err
 	}
-	result := StorageResourcePage{
-		Resources: make([]StorageResourceSummary, 0, len(page.Items)), ContinueToken: page.ContinueToken,
+	return storageResourcePage(cachedObjects{
+		Items: page.Items, ContinueToken: page.ContinueToken,
 		ResourceVersion: page.ResourceVersion, RemainingItemCount: page.RemainingItemCount,
+	}, input)
+}
+
+// storageResourcePage projects one page, whichever source it came from. Both
+// paths run the same projection, so a row cannot mean one thing when it was
+// read from the cache and another when it was read from the Cluster.
+func storageResourcePage(
+	objects cachedObjects,
+	input ListStorageResourcesInput,
+) (StorageResourcePage, error) {
+	result := StorageResourcePage{
+		Resources: make([]StorageResourceSummary, 0, len(objects.Items)), ContinueToken: objects.ContinueToken,
+		ResourceVersion: objects.ResourceVersion, RemainingItemCount: objects.RemainingItemCount,
 	}
-	for _, item := range page.Items {
+	for _, item := range objects.Items {
 		detail, err := storageResourceDetail(item, input.Resource, input.Namespace, "")
 		if err != nil {
 			return StorageResourcePage{}, err

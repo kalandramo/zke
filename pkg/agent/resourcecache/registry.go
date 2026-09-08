@@ -245,5 +245,8 @@ func summaryIdentity(summary any) resourcesummary.ObjectSummary {
 }
 
 func summaryResourceVersion(summary any) string {
+	if version, stripped := strippedResourceVersion(summary); stripped {
+		return version
+	}
 	return summaryIdentity(summary).ResourceVersion
 }

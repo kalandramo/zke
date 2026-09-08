@@ -422,6 +422,9 @@ func TestOverviewIsIdenticalFromListingsAndFromTheAgentCache(t *testing.T) {
 		seed...,
 	)
 	cache := resourcecache.New(client, nil, resourcecache.Config{
+		// The overview is built from the core resources; the extended ones feed
+		// no section and are left out so this fixture stays about the overview.
+		Resources:     resourcecache.CoreResources(),
 		StartupJitter: time.Nanosecond,
 	}, nil)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)

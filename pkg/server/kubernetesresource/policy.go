@@ -321,6 +321,19 @@ func (service *Service) ListPolicyResources(
 	if !ok || !validPolicyScope(input.Resource, input.Namespace) {
 		return PolicyResourcePage{}, ErrInvalidInput
 	}
+	if token, cacheable := cacheableList(input.ContinueToken); cacheable {
+		cached, answered, cacheErr := service.listCachedObjects(ctx, SummaryListInput{
+			ClusterID: input.ClusterID, Resource: identity, Namespace: input.Namespace,
+			Limit: input.Limit, ContinueToken: token,
+			LabelSelector: input.LabelSelector, FieldSelector: input.FieldSelector,
+		})
+		if cacheErr != nil {
+			return PolicyResourcePage{}, cacheErr
+		}
+		if answered {
+			return policyResourcePage(cached, input)
+		}
+	}
 	page, err := service.ListResources(ctx, ListResourcesInput{
 		ClusterID: input.ClusterID, Resource: identity, Namespace: input.Namespace,
 		Limit: input.Limit, ContinueToken: input.ContinueToken,
@@ -329,11 +342,22 @@ func (service *Service) ListPolicyResources(
 	if err != nil {
 		return PolicyResourcePage{}, err
 	}
-	result := PolicyResourcePage{
-		Resources: make([]PolicyResourceSummary, 0, len(page.Items)), ContinueToken: page.ContinueToken,
+	return policyResourcePage(cachedObjects{
+		Items: page.Items, ContinueToken: page.ContinueToken,
 		ResourceVersion: page.ResourceVersion, RemainingItemCount: page.RemainingItemCount,
+	}, input)
+}
+
+// policyResourcePage projects one page, whichever source it came from.
+func policyResourcePage(
+	objects cachedObjects,
+	input ListPolicyResourcesInput,
+) (PolicyResourcePage, error) {
+	result := PolicyResourcePage{
+		Resources: make([]PolicyResourceSummary, 0, len(objects.Items)), ContinueToken: objects.ContinueToken,
+		ResourceVersion: objects.ResourceVersion, RemainingItemCount: objects.RemainingItemCount,
 	}
-	for _, item := range page.Items {
+	for _, item := range objects.Items {
 		detail, err := policyResourceDetail(item, input.Resource, input.Namespace, "")
 		if err != nil {
 			return PolicyResourcePage{}, err

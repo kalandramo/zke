@@ -378,6 +378,19 @@ func (service *Service) ListNetworkingResources(
 	if err != nil || len(k8svalidation.IsDNS1123Label(input.Namespace)) != 0 {
 		return NetworkingResourcePage{}, firstNetworkingError(err)
 	}
+	if token, cacheable := cacheableList(input.ContinueToken); cacheable {
+		cached, answered, cacheErr := service.listCachedObjects(ctx, SummaryListInput{
+			ClusterID: input.ClusterID, Resource: identity, Namespace: input.Namespace,
+			Limit: input.Limit, ContinueToken: token,
+			LabelSelector: input.LabelSelector, FieldSelector: input.FieldSelector,
+		})
+		if cacheErr != nil {
+			return NetworkingResourcePage{}, cacheErr
+		}
+		if answered {
+			return networkingResourcePage(cached, input)
+		}
+	}
 	page, err := service.ListResources(ctx, ListResourcesInput{
 		ClusterID: input.ClusterID, Resource: identity, Namespace: input.Namespace,
 		Limit: input.Limit, ContinueToken: input.ContinueToken,
@@ -386,12 +399,23 @@ func (service *Service) ListNetworkingResources(
 	if err != nil {
 		return NetworkingResourcePage{}, err
 	}
+	return networkingResourcePage(cachedObjects{
+		Items: page.Items, ContinueToken: page.ContinueToken,
+		ResourceVersion: page.ResourceVersion, RemainingItemCount: page.RemainingItemCount,
+	}, input)
+}
+
+// networkingResourcePage projects one page, whichever source it came from.
+func networkingResourcePage(
+	objects cachedObjects,
+	input ListNetworkingResourcesInput,
+) (NetworkingResourcePage, error) {
 	result := NetworkingResourcePage{
-		Resources:     make([]NetworkingResourceSummary, 0, len(page.Items)),
-		ContinueToken: page.ContinueToken, ResourceVersion: page.ResourceVersion,
-		RemainingItemCount: page.RemainingItemCount,
+		Resources:     make([]NetworkingResourceSummary, 0, len(objects.Items)),
+		ContinueToken: objects.ContinueToken, ResourceVersion: objects.ResourceVersion,
+		RemainingItemCount: objects.RemainingItemCount,
 	}
-	for _, item := range page.Items {
+	for _, item := range objects.Items {
 		detail, err := networkingResourceDetail(item, input.Resource, input.Namespace, "")
 		if err != nil {
 			return NetworkingResourcePage{}, err

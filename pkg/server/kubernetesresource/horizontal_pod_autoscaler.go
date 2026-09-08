@@ -192,6 +192,19 @@ func (service *Service) ListHorizontalPodAutoscalers(
 	if !validHPANamespace(input.Namespace) {
 		return HorizontalPodAutoscalerPage{}, ErrInvalidInput
 	}
+	if token, cacheable := cacheableList(input.ContinueToken); cacheable {
+		cached, answered, cacheErr := service.listCachedObjects(ctx, SummaryListInput{
+			ClusterID: input.ClusterID, Resource: horizontalPodAutoscalerIdentity,
+			Namespace: input.Namespace, Limit: input.Limit, ContinueToken: token,
+			LabelSelector: input.LabelSelector, FieldSelector: input.FieldSelector,
+		})
+		if cacheErr != nil {
+			return HorizontalPodAutoscalerPage{}, cacheErr
+		}
+		if answered {
+			return horizontalPodAutoscalerPage(cached, input.Namespace)
+		}
+	}
 	page, err := service.ListResources(ctx, ListResourcesInput{
 		ClusterID: input.ClusterID, Resource: horizontalPodAutoscalerIdentity, Namespace: input.Namespace,
 		Limit: input.Limit, ContinueToken: input.ContinueToken,
@@ -200,13 +213,24 @@ func (service *Service) ListHorizontalPodAutoscalers(
 	if err != nil {
 		return HorizontalPodAutoscalerPage{}, err
 	}
+	return horizontalPodAutoscalerPage(cachedObjects{
+		Items: page.Items, ContinueToken: page.ContinueToken,
+		ResourceVersion: page.ResourceVersion, RemainingItemCount: page.RemainingItemCount,
+	}, input.Namespace)
+}
+
+// horizontalPodAutoscalerPage projects one page, whichever source it came from.
+func horizontalPodAutoscalerPage(
+	objects cachedObjects,
+	namespace string,
+) (HorizontalPodAutoscalerPage, error) {
 	result := HorizontalPodAutoscalerPage{
-		Autoscalers:   make([]HorizontalPodAutoscalerSummary, 0, len(page.Items)),
-		ContinueToken: page.ContinueToken, ResourceVersion: page.ResourceVersion,
-		RemainingItemCount: page.RemainingItemCount,
+		Autoscalers:   make([]HorizontalPodAutoscalerSummary, 0, len(objects.Items)),
+		ContinueToken: objects.ContinueToken, ResourceVersion: objects.ResourceVersion,
+		RemainingItemCount: objects.RemainingItemCount,
 	}
-	for _, item := range page.Items {
-		detail, err := horizontalPodAutoscalerDetail(item, input.Namespace, "")
+	for _, item := range objects.Items {
+		detail, err := horizontalPodAutoscalerDetail(item, namespace, "")
 		if err != nil {
 			return HorizontalPodAutoscalerPage{}, err
 		}
