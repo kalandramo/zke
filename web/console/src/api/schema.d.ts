@@ -654,6 +654,12 @@ export interface paths {
          *     只达到条目上限的结果会进入。缓存按 Cluster 定键而与调用者无关：本响应描述的是
          *     Cluster 本身，且每个请求都独立校验该 Cluster 的 `cluster.read`。
          *
+         *     同一 Cluster 的并发冷请求只触发一次实际读取，其余调用共享同一结果；不同
+         *     Cluster 之间不合并。超出新鲜窗口后，接口先返回上一次成功的快照并标记
+         *     `stale: true`，同时在后台刷新一次；Agent 断开或 Kubernetes 暂时不可读时，
+         *     该快照在有上限的时间内继续应答。连续失败使用有上限的指数退避，退避期内的
+         *     请求直接返回上一次的失败原因，不再读取集群。
+         *
          *     CPU 使用 millicores，内存与存储使用 bytes。请求量依据 Kubernetes 调度语义计算
          *     非终态 Pod 的 requests，包含 init container、restartable init container、
          *     Pod-level resources 和 overhead；不代表实时利用率。
@@ -6805,6 +6811,11 @@ export interface components {
         };
         KubernetesClusterOverview: {
             generated_at: components["schemas"]["Timestamp"];
+            /**
+             * @description 该结果超出新鲜窗口后仍被返回，因为此刻无法产生新的快照。`generated_at`
+             *     说明它的实际时间。
+             */
+            stale: boolean;
             partial: boolean;
             issues: components["schemas"]["KubernetesClusterOverviewIssue"][];
             nodes: components["schemas"]["KubernetesClusterNodeOverview"];
@@ -8431,6 +8442,19 @@ export interface components {
         };
         /** @description 请求正文媒体类型不受支持 */
         UnsupportedMediaType: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /**
+         * @description 续页令牌指向的分页已经失效——签发它的 Agent 缓存快照不再存在，或令牌已超过有效期。
+         *     位置本身已经不存在，唯一正确的处理是重新开始列举，而不是返回另一页。语义与 Kubernetes
+         *     对过期 `continue` 令牌的处理一致。
+         */
+        ListPageExpired: {
             headers: {
                 [name: string]: unknown;
             };
@@ -10456,6 +10480,7 @@ export interface operations {
             400: components["responses"]["InvalidRequest"];
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
+            410: components["responses"]["ListPageExpired"];
             429: components["responses"]["TooManyRequests"];
             502: components["responses"]["BadGateway"];
             503: components["responses"]["Unavailable"];
@@ -10662,6 +10687,7 @@ export interface operations {
             400: components["responses"]["InvalidRequest"];
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
+            410: components["responses"]["ListPageExpired"];
             429: components["responses"]["TooManyRequests"];
             502: components["responses"]["BadGateway"];
             503: components["responses"]["Unavailable"];
@@ -10823,6 +10849,7 @@ export interface operations {
             400: components["responses"]["InvalidRequest"];
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
+            410: components["responses"]["ListPageExpired"];
             429: components["responses"]["TooManyRequests"];
             502: components["responses"]["BadGateway"];
             503: components["responses"]["Unavailable"];
@@ -11400,6 +11427,7 @@ export interface operations {
             400: components["responses"]["InvalidRequest"];
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
+            410: components["responses"]["ListPageExpired"];
             429: components["responses"]["TooManyRequests"];
             502: components["responses"]["BadGateway"];
             503: components["responses"]["Unavailable"];
@@ -11994,6 +12022,7 @@ export interface operations {
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
             409: components["responses"]["Conflict"];
+            410: components["responses"]["ListPageExpired"];
             429: components["responses"]["TooManyRequests"];
             502: components["responses"]["BadGateway"];
             503: components["responses"]["Unavailable"];
@@ -12230,6 +12259,7 @@ export interface operations {
             400: components["responses"]["InvalidRequest"];
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
+            410: components["responses"]["ListPageExpired"];
             429: components["responses"]["TooManyRequests"];
             502: components["responses"]["BadGateway"];
             503: components["responses"]["Unavailable"];
@@ -12377,6 +12407,7 @@ export interface operations {
             400: components["responses"]["InvalidRequest"];
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
+            410: components["responses"]["ListPageExpired"];
             429: components["responses"]["TooManyRequests"];
             502: components["responses"]["BadGateway"];
             503: components["responses"]["Unavailable"];
@@ -12562,6 +12593,7 @@ export interface operations {
             400: components["responses"]["InvalidRequest"];
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
+            410: components["responses"]["ListPageExpired"];
             429: components["responses"]["TooManyRequests"];
             502: components["responses"]["BadGateway"];
             503: components["responses"]["Unavailable"];
@@ -13058,6 +13090,7 @@ export interface operations {
             400: components["responses"]["InvalidRequest"];
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
+            410: components["responses"]["ListPageExpired"];
             429: components["responses"]["TooManyRequests"];
             502: components["responses"]["BadGateway"];
             503: components["responses"]["Unavailable"];
@@ -13205,6 +13238,7 @@ export interface operations {
             400: components["responses"]["InvalidRequest"];
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
+            410: components["responses"]["ListPageExpired"];
             429: components["responses"]["TooManyRequests"];
             502: components["responses"]["BadGateway"];
             503: components["responses"]["Unavailable"];

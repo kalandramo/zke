@@ -58,10 +58,9 @@ func TestOverviewSnapshotOverRealQUIC(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("real QUIC listener timing is not stable on Windows")
 	}
-	podGVR := schema.GroupVersionResource{Version: "v1", Resource: "pods"}
 	client := dynamicfake.NewSimpleDynamicClientWithCustomListKinds(
 		k8sruntime.NewScheme(),
-		map[schema.GroupVersionResource]string{podGVR: "PodList"},
+		resourceCacheIntegrationListKinds(),
 		cachePod(t, "web-0", "500m", "128Mi"),
 		cachePod(t, "web-1", "250m", "64Mi"),
 	)
@@ -111,6 +110,52 @@ func TestOverviewSnapshotOverRealQUIC(t *testing.T) {
 			t.Fatalf("the cache never reached the expected contents: %+v", snapshot)
 		}
 		time.Sleep(20 * time.Millisecond)
+	}
+}
+
+// The fake dynamic client panics when a Reflector lists a GVR whose ListKind
+// was not registered. Production discovery does not need this mapping, but the
+// integration cache starts every built-in resource just like a real Agent, so
+// its fake must describe all of them even when only Pods contain test data.
+func resourceCacheIntegrationListKinds() map[schema.GroupVersionResource]string {
+	return map[schema.GroupVersionResource]string{
+		{Version: "v1", Resource: "nodes"}:                                          "NodeList",
+		{Version: "v1", Resource: "namespaces"}:                                     "NamespaceList",
+		{Version: "v1", Resource: "pods"}:                                           "PodList",
+		{Group: "apps", Version: "v1", Resource: "deployments"}:                     "DeploymentList",
+		{Group: "apps", Version: "v1", Resource: "statefulsets"}:                    "StatefulSetList",
+		{Group: "apps", Version: "v1", Resource: "daemonsets"}:                      "DaemonSetList",
+		{Group: "batch", Version: "v1", Resource: "jobs"}:                           "JobList",
+		{Group: "batch", Version: "v1", Resource: "cronjobs"}:                       "CronJobList",
+		{Version: "v1", Resource: "persistentvolumes"}:                              "PersistentVolumeList",
+		{Version: "v1", Resource: "persistentvolumeclaims"}:                         "PersistentVolumeClaimList",
+		{Version: "v1", Resource: "services"}:                                       "ServiceList",
+		{Group: "networking.k8s.io", Version: "v1", Resource: "ingresses"}:          "IngressList",
+		{Group: "storage.k8s.io", Version: "v1", Resource: "storageclasses"}:        "StorageClassList",
+		{Group: "autoscaling", Version: "v2", Resource: "horizontalpodautoscalers"}: "HorizontalPodAutoscalerList",
+		{Group: "policy", Version: "v1", Resource: "poddisruptionbudgets"}:          "PodDisruptionBudgetList",
+		{Group: "networking.k8s.io", Version: "v1", Resource: "networkpolicies"}:    "NetworkPolicyList",
+		{Version: "v1", Resource: "resourcequotas"}:                                 "ResourceQuotaList",
+		{Version: "v1", Resource: "limitranges"}:                                    "LimitRangeList",
+		{Group: "scheduling.k8s.io", Version: "v1", Resource: "priorityclasses"}:    "PriorityClassList",
+	}
+}
+
+func TestResourceCacheIntegrationFakeCoversEveryCachedResource(t *testing.T) {
+	t.Parallel()
+	client := dynamicfake.NewSimpleDynamicClientWithCustomListKinds(
+		k8sruntime.NewScheme(),
+		resourceCacheIntegrationListKinds(),
+	)
+	cache := resourcecache.New(client, nil, resourcecache.Config{
+		StartupJitter: time.Nanosecond,
+	}, nil)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	cache.Start(ctx)
+	defer cache.Close()
+	if !cache.WaitForSync(ctx) {
+		t.Fatal("the integration fake did not cover every cached resource")
 	}
 }
 
