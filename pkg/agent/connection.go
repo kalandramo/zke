@@ -164,56 +164,7 @@ func runConnection(
 	); err != nil {
 		return fmt.Errorf("set Agent control handshake deadline: %w", err)
 	}
-	capabilities := []string{
-		agentprotocol.CapabilityCertificateRenewal,
-	}
-	if services.resourceHandler != nil {
-		capabilities = append(
-			capabilities,
-			agentprotocol.CapabilityResourceV1,
-			agentprotocol.CapabilityResourceDiscoveryV1,
-			agentprotocol.CapabilityResourceWriteV1,
-		)
-	}
-	if services.podLogsHandler != nil {
-		capabilities = append(capabilities, agentprotocol.CapabilityPodLogsV1)
-	}
-	if services.podExecHandler != nil {
-		capabilities = append(capabilities, agentprotocol.CapabilityPodExecV1)
-	}
-	if services.podPortForwardHandler != nil {
-		capabilities = append(capabilities, agentprotocol.CapabilityPodPortForwardV1)
-	}
-	if services.resourceWatchHandler != nil {
-		capabilities = append(capabilities, agentprotocol.CapabilityResourceWatchV1)
-	}
-	if services.resourceCacheHandler != nil {
-		capabilities = append(
-			capabilities,
-			agentprotocol.CapabilityOverviewSnapshotV1,
-			agentprotocol.CapabilityResourceSummaryV1,
-		)
-	}
-	if services.terminalSessionHandler != nil {
-		capabilities = append(capabilities, agentprotocol.CapabilityTerminalSessionV1)
-		if services.podExecHandler != nil {
-			capabilities = append(capabilities, agentprotocol.CapabilityTerminalCommandV1)
-		}
-	}
-	if services.metricsForwarder != nil {
-		capabilities = append(capabilities, agentprotocol.CapabilityMetricsIngestV1)
-	}
-	if services.metricsCollectorHandler != nil {
-		capabilities = append(capabilities, agentprotocol.CapabilityMetricsCollectorV1)
-	}
-	if services.helmHandler != nil {
-		capabilities = append(capabilities, agentprotocol.CapabilityHelmV1)
-		// Advertised beside the Helm capability rather than folded into it: the
-		// Server has to know, before it opens the Stream, whether this Agent
-		// will answer with progress frames or with a bare response, because the
-		// two are read differently.
-		capabilities = append(capabilities, agentprotocol.CapabilityHelmProgressV1)
-	}
+	capabilities := agentCapabilities(services)
 	if err := agentprotocol.WriteFrame(controlStream, &agentv1.ControlFrame{
 		ProtocolVersion: agentprotocol.ProtocolVersion,
 		Message: &agentv1.ControlFrame_ClientHello{
@@ -665,6 +616,67 @@ func validateServerHello(
 		}
 	}
 	return heartbeatInterval, heartbeatTimeout, nil
+}
+
+// agentCapabilities is what this Agent tells the Server it can do.
+//
+// It is derived from which handlers are actually wired in, and from nothing
+// else: an Agent that announces a capability it cannot serve would have the
+// Server open a Stream that then fails, and one that stays silent about a
+// capability it has would simply never be asked. Keeping it a function of the
+// services makes both halves testable without a connection.
+func agentCapabilities(services connectionServices) []string {
+	capabilities := []string{
+		agentprotocol.CapabilityCertificateRenewal,
+	}
+	if services.resourceHandler != nil {
+		capabilities = append(
+			capabilities,
+			agentprotocol.CapabilityResourceV1,
+			agentprotocol.CapabilityResourceDiscoveryV1,
+			agentprotocol.CapabilityResourceWriteV1,
+		)
+	}
+	if services.podLogsHandler != nil {
+		capabilities = append(capabilities, agentprotocol.CapabilityPodLogsV1)
+	}
+	if services.podExecHandler != nil {
+		capabilities = append(capabilities, agentprotocol.CapabilityPodExecV1)
+	}
+	if services.podPortForwardHandler != nil {
+		capabilities = append(capabilities, agentprotocol.CapabilityPodPortForwardV1)
+	}
+	if services.resourceWatchHandler != nil {
+		capabilities = append(capabilities, agentprotocol.CapabilityResourceWatchV1)
+	}
+	if services.resourceCacheHandler != nil {
+		capabilities = append(
+			capabilities,
+			agentprotocol.CapabilityOverviewSnapshotV1,
+			agentprotocol.CapabilityResourceSummaryV1,
+		)
+	}
+	if services.terminalSessionHandler != nil {
+		capabilities = append(capabilities, agentprotocol.CapabilityTerminalSessionV1)
+		if services.podExecHandler != nil {
+			capabilities = append(capabilities, agentprotocol.CapabilityTerminalCommandV1)
+		}
+	}
+	if services.metricsForwarder != nil {
+		capabilities = append(capabilities, agentprotocol.CapabilityMetricsIngestV1)
+	}
+	if services.metricsCollectorHandler != nil {
+		capabilities = append(capabilities, agentprotocol.CapabilityMetricsCollectorV1)
+	}
+	if services.helmHandler != nil {
+		capabilities = append(capabilities, agentprotocol.CapabilityHelmV1)
+		// Advertised beside the Helm capability rather than folded into it: the
+		// Server has to know, before it opens the Stream, whether this Agent
+		// will answer with progress frames or with a bare response, because the
+		// two are read differently.
+		capabilities = append(capabilities, agentprotocol.CapabilityHelmProgressV1)
+	}
+	return capabilities
 }
 
 func serverSupportsCapability(
