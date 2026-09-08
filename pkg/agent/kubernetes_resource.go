@@ -1,7 +1,6 @@
 package agent
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -53,6 +52,7 @@ func newKubernetesResourceHandler(
 	client dynamic.Interface,
 	discoveryClient discovery.DiscoveryInterface,
 	maxBodyBytes uint64,
+	compressionThreshold uint64,
 	identityNamespace string,
 ) func(
 	context.Context,
@@ -61,6 +61,9 @@ func newKubernetesResourceHandler(
 ) (*agentv1.ResourceResponse, io.Reader, error) {
 	if maxBodyBytes == 0 {
 		maxBodyBytes = agentprotocol.DefaultMaxResourceBodySize
+	}
+	if compressionThreshold == 0 {
+		compressionThreshold = agentprotocol.DefaultResourceCompressionThreshold
 	}
 	mutationCache := newResourceMutationCache()
 	discoveryPolicy := &kubernetesResourceDiscoveryPolicy{
@@ -77,7 +80,9 @@ func newKubernetesResourceHandler(
 				ctx,
 				client,
 				discoveryClient,
+				request,
 				maxBodyBytes,
+				compressionThreshold,
 			)
 		}
 		if client == nil {
@@ -224,7 +229,13 @@ func newKubernetesResourceHandler(
 			if len(result.body) == 0 {
 				return result.response, nil, nil
 			}
-			return result.response, bytes.NewReader(result.body), nil
+			response, responseBody := resourceResponseBody(
+				request,
+				result.response,
+				result.body,
+				compressionThreshold,
+			)
+			return response, responseBody, nil
 		default:
 			return resourceErrorResponse(
 				agentv1.ResultCode_RESULT_CODE_INVALID_ARGUMENT,
@@ -249,12 +260,17 @@ func newKubernetesResourceHandler(
 				"Kubernetes resource response exceeds the configured limit",
 			), nil, nil
 		}
-		return &agentv1.ResourceResponse{
-			Result:               agentv1.ResultCode_RESULT_CODE_OK,
-			KubernetesStatusCode: http.StatusOK,
-			ContentType:          kubernetesJSONContentType,
-			BodySize:             uint64(len(body)),
-		}, bytes.NewReader(body), nil
+		response, responseBody := resourceResponseBody(
+			request,
+			&agentv1.ResourceResponse{
+				Result:               agentv1.ResultCode_RESULT_CODE_OK,
+				KubernetesStatusCode: http.StatusOK,
+				ContentType:          kubernetesJSONContentType,
+			},
+			body,
+			compressionThreshold,
+		)
+		return response, responseBody, nil
 	}
 }
 
@@ -561,7 +577,9 @@ func discoverKubernetesResources(
 	ctx context.Context,
 	dynamicClient dynamic.Interface,
 	client discovery.DiscoveryInterface,
+	request *agentv1.ResourceRequest,
 	maxBodyBytes uint64,
+	compressionThreshold uint64,
 ) (*agentv1.ResourceResponse, io.Reader, error) {
 	if client == nil {
 		return resourceErrorResponse(
@@ -670,12 +688,17 @@ func discoverKubernetesResources(
 			"Kubernetes discovery response exceeds the configured limit",
 		), nil, nil
 	}
-	return &agentv1.ResourceResponse{
-		Result:               agentv1.ResultCode_RESULT_CODE_OK,
-		KubernetesStatusCode: http.StatusOK,
-		ContentType:          kubernetesJSONContentType,
-		BodySize:             uint64(len(body)),
-	}, bytes.NewReader(body), nil
+	response, responseBody := resourceResponseBody(
+		request,
+		&agentv1.ResourceResponse{
+			Result:               agentv1.ResultCode_RESULT_CODE_OK,
+			KubernetesStatusCode: http.StatusOK,
+			ContentType:          kubernetesJSONContentType,
+		},
+		body,
+		compressionThreshold,
+	)
+	return response, responseBody, nil
 }
 
 func supportedKubernetesVerbs(verbs metav1.Verbs) []string {

@@ -30,6 +30,18 @@ enum ResourceRepresentation {
   RESOURCE_REPRESENTATION_FULL_OBJECT = 3;
 }
 
+// Content encodings a Resource body may use on the wire.
+//
+// The unspecified value is an uncompressed body, which is what every Agent
+// predating this field sends and what every Agent still sends unless the
+// request says the caller can decode something else. That keeps the choice
+// with the reader: a Server that cannot decompress never announces gzip, so it
+// never receives it.
+enum ContentEncoding {
+  CONTENT_ENCODING_UNSPECIFIED = 0;
+  CONTENT_ENCODING_GZIP = 1;
+}
+
 enum PatchType {
   PATCH_TYPE_UNSPECIFIED = 0;
   PATCH_TYPE_JSON = 1;
@@ -95,6 +107,10 @@ message ResourceRequest {
   // body whose Namespace, Name and UID precondition match this request. It is
   // not a generic permission to address arbitrary subresources.
   bool pod_eviction_access = 13;
+  // Encodings the caller can decode. An Agent answers with one of these or
+  // with an uncompressed body; it never picks an encoding that is absent.
+  // Identity needs no entry — it is always acceptable.
+  repeated ContentEncoding accepted_encodings = 14;
 }
 
 message ResourceResponse {
@@ -103,5 +119,11 @@ message ResourceResponse {
   string reason = 3;
   string message = 4;
   string content_type = 5;
+  // Bytes carried on the Stream after this message, in content_encoding form.
   uint64 body_size = 6;
+  ContentEncoding content_encoding = 7;
+  // Bytes the body decodes to. Zero for an uncompressed body, where body_size
+  // already answers the question; required when content_encoding is set, so a
+  // reader can size and bound the decode before starting it.
+  uint64 decoded_body_size = 8;
 }

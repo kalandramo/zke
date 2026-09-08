@@ -137,6 +137,59 @@ func (ResourceRepresentation) EnumDescriptor() ([]byte, []int) {
 	return file_api_agent_v1_resource_proto_rawDescGZIP(), []int{1}
 }
 
+// Content encodings a Resource body may use on the wire.
+//
+// The unspecified value is an uncompressed body, which is what every Agent
+// predating this field sends and what every Agent still sends unless the
+// request says the caller can decode something else. That keeps the choice
+// with the reader: a Server that cannot decompress never announces gzip, so it
+// never receives it.
+type ContentEncoding int32
+
+const (
+	ContentEncoding_CONTENT_ENCODING_UNSPECIFIED ContentEncoding = 0
+	ContentEncoding_CONTENT_ENCODING_GZIP        ContentEncoding = 1
+)
+
+// Enum value maps for ContentEncoding.
+var (
+	ContentEncoding_name = map[int32]string{
+		0: "CONTENT_ENCODING_UNSPECIFIED",
+		1: "CONTENT_ENCODING_GZIP",
+	}
+	ContentEncoding_value = map[string]int32{
+		"CONTENT_ENCODING_UNSPECIFIED": 0,
+		"CONTENT_ENCODING_GZIP":        1,
+	}
+)
+
+func (x ContentEncoding) Enum() *ContentEncoding {
+	p := new(ContentEncoding)
+	*p = x
+	return p
+}
+
+func (x ContentEncoding) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ContentEncoding) Descriptor() protoreflect.EnumDescriptor {
+	return file_api_agent_v1_resource_proto_enumTypes[2].Descriptor()
+}
+
+func (ContentEncoding) Type() protoreflect.EnumType {
+	return &file_api_agent_v1_resource_proto_enumTypes[2]
+}
+
+func (x ContentEncoding) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ContentEncoding.Descriptor instead.
+func (ContentEncoding) EnumDescriptor() ([]byte, []int) {
+	return file_api_agent_v1_resource_proto_rawDescGZIP(), []int{2}
+}
+
 type PatchType int32
 
 const (
@@ -176,11 +229,11 @@ func (x PatchType) String() string {
 }
 
 func (PatchType) Descriptor() protoreflect.EnumDescriptor {
-	return file_api_agent_v1_resource_proto_enumTypes[2].Descriptor()
+	return file_api_agent_v1_resource_proto_enumTypes[3].Descriptor()
 }
 
 func (PatchType) Type() protoreflect.EnumType {
-	return &file_api_agent_v1_resource_proto_enumTypes[2]
+	return &file_api_agent_v1_resource_proto_enumTypes[3]
 }
 
 func (x PatchType) Number() protoreflect.EnumNumber {
@@ -189,7 +242,7 @@ func (x PatchType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use PatchType.Descriptor instead.
 func (PatchType) EnumDescriptor() ([]byte, []int) {
-	return file_api_agent_v1_resource_proto_rawDescGZIP(), []int{2}
+	return file_api_agent_v1_resource_proto_rawDescGZIP(), []int{3}
 }
 
 type DeletePropagation int32
@@ -228,11 +281,11 @@ func (x DeletePropagation) String() string {
 }
 
 func (DeletePropagation) Descriptor() protoreflect.EnumDescriptor {
-	return file_api_agent_v1_resource_proto_enumTypes[3].Descriptor()
+	return file_api_agent_v1_resource_proto_enumTypes[4].Descriptor()
 }
 
 func (DeletePropagation) Type() protoreflect.EnumType {
-	return &file_api_agent_v1_resource_proto_enumTypes[3]
+	return &file_api_agent_v1_resource_proto_enumTypes[4]
 }
 
 func (x DeletePropagation) Number() protoreflect.EnumNumber {
@@ -241,7 +294,7 @@ func (x DeletePropagation) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use DeletePropagation.Descriptor instead.
 func (DeletePropagation) EnumDescriptor() ([]byte, []int) {
-	return file_api_agent_v1_resource_proto_rawDescGZIP(), []int{3}
+	return file_api_agent_v1_resource_proto_rawDescGZIP(), []int{4}
 }
 
 type GroupVersionResource struct {
@@ -585,6 +638,10 @@ type ResourceRequest struct {
 	// body whose Namespace, Name and UID precondition match this request. It is
 	// not a generic permission to address arbitrary subresources.
 	PodEvictionAccess bool `protobuf:"varint,13,opt,name=pod_eviction_access,json=podEvictionAccess,proto3" json:"pod_eviction_access,omitempty"`
+	// Encodings the caller can decode. An Agent answers with one of these or
+	// with an uncompressed body; it never picks an encoding that is absent.
+	// Identity needs no entry — it is always acceptable.
+	AcceptedEncodings []ContentEncoding `protobuf:"varint,14,rep,packed,name=accepted_encodings,json=acceptedEncodings,proto3,enum=zke.agent.v1.ContentEncoding" json:"accepted_encodings,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -710,6 +767,13 @@ func (x *ResourceRequest) GetPodEvictionAccess() bool {
 	return false
 }
 
+func (x *ResourceRequest) GetAcceptedEncodings() []ContentEncoding {
+	if x != nil {
+		return x.AcceptedEncodings
+	}
+	return nil
+}
+
 type ResourceResponse struct {
 	state                protoimpl.MessageState `protogen:"open.v1"`
 	Result               ResultCode             `protobuf:"varint,1,opt,name=result,proto3,enum=zke.agent.v1.ResultCode" json:"result,omitempty"`
@@ -717,9 +781,15 @@ type ResourceResponse struct {
 	Reason               string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
 	Message              string                 `protobuf:"bytes,4,opt,name=message,proto3" json:"message,omitempty"`
 	ContentType          string                 `protobuf:"bytes,5,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
-	BodySize             uint64                 `protobuf:"varint,6,opt,name=body_size,json=bodySize,proto3" json:"body_size,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	// Bytes carried on the Stream after this message, in content_encoding form.
+	BodySize        uint64          `protobuf:"varint,6,opt,name=body_size,json=bodySize,proto3" json:"body_size,omitempty"`
+	ContentEncoding ContentEncoding `protobuf:"varint,7,opt,name=content_encoding,json=contentEncoding,proto3,enum=zke.agent.v1.ContentEncoding" json:"content_encoding,omitempty"`
+	// Bytes the body decodes to. Zero for an uncompressed body, where body_size
+	// already answers the question; required when content_encoding is set, so a
+	// reader can size and bound the decode before starting it.
+	DecodedBodySize uint64 `protobuf:"varint,8,opt,name=decoded_body_size,json=decodedBodySize,proto3" json:"decoded_body_size,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *ResourceResponse) Reset() {
@@ -794,6 +864,20 @@ func (x *ResourceResponse) GetBodySize() uint64 {
 	return 0
 }
 
+func (x *ResourceResponse) GetContentEncoding() ContentEncoding {
+	if x != nil {
+		return x.ContentEncoding
+	}
+	return ContentEncoding_CONTENT_ENCODING_UNSPECIFIED
+}
+
+func (x *ResourceResponse) GetDecodedBodySize() uint64 {
+	if x != nil {
+		return x.DecodedBodySize
+	}
+	return 0
+}
+
 var File_api_agent_v1_resource_proto protoreflect.FileDescriptor
 
 const file_api_agent_v1_resource_proto_rawDesc = "" +
@@ -821,7 +905,7 @@ const file_api_agent_v1_resource_proto_rawDesc = "" +
 	"\x14grace_period_seconds\x18\x02 \x01(\x03H\x00R\x12gracePeriodSeconds\x88\x01\x01\x12A\n" +
 	"\vpropagation\x18\x03 \x01(\x0e2\x1f.zke.agent.v1.DeletePropagationR\vpropagation\x12I\n" +
 	"\rpreconditions\x18\x04 \x01(\v2#.zke.agent.v1.ResourcePreconditionsR\rpreconditionsB\x17\n" +
-	"\x15_grace_period_seconds\"\x99\x05\n" +
+	"\x15_grace_period_seconds\"\xe7\x05\n" +
 	"\x0fResourceRequest\x12.\n" +
 	"\x04verb\x18\x01 \x01(\x0e2\x1a.zke.agent.v1.ResourceVerbR\x04verb\x12>\n" +
 	"\bresource\x18\x02 \x01(\v2\".zke.agent.v1.GroupVersionResourceR\bresource\x12\x1c\n" +
@@ -837,14 +921,17 @@ const file_api_agent_v1_resource_proto_rawDesc = "" +
 	" \x01(\v2\x1d.zke.agent.v1.MutationOptionsR\x0fmutationOptions\x12B\n" +
 	"\x0edelete_options\x18\v \x01(\v2\x1b.zke.agent.v1.DeleteOptionsR\rdeleteOptions\x12#\n" +
 	"\rsecret_access\x18\f \x01(\bR\fsecretAccess\x12.\n" +
-	"\x13pod_eviction_access\x18\r \x01(\bR\x11podEvictionAccess\"\xec\x01\n" +
+	"\x13pod_eviction_access\x18\r \x01(\bR\x11podEvictionAccess\x12L\n" +
+	"\x12accepted_encodings\x18\x0e \x03(\x0e2\x1d.zke.agent.v1.ContentEncodingR\x11acceptedEncodings\"\xe2\x02\n" +
 	"\x10ResourceResponse\x120\n" +
 	"\x06result\x18\x01 \x01(\x0e2\x18.zke.agent.v1.ResultCodeR\x06result\x124\n" +
 	"\x16kubernetes_status_code\x18\x02 \x01(\x05R\x14kubernetesStatusCode\x12\x16\n" +
 	"\x06reason\x18\x03 \x01(\tR\x06reason\x12\x18\n" +
 	"\amessage\x18\x04 \x01(\tR\amessage\x12!\n" +
 	"\fcontent_type\x18\x05 \x01(\tR\vcontentType\x12\x1b\n" +
-	"\tbody_size\x18\x06 \x01(\x04R\bbodySize*\xdf\x01\n" +
+	"\tbody_size\x18\x06 \x01(\x04R\bbodySize\x12H\n" +
+	"\x10content_encoding\x18\a \x01(\x0e2\x1d.zke.agent.v1.ContentEncodingR\x0fcontentEncoding\x12*\n" +
+	"\x11decoded_body_size\x18\b \x01(\x04R\x0fdecodedBodySize*\xdf\x01\n" +
 	"\fResourceVerb\x12\x1d\n" +
 	"\x19RESOURCE_VERB_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12RESOURCE_VERB_LIST\x10\x01\x12\x15\n" +
@@ -858,7 +945,10 @@ const file_api_agent_v1_resource_proto_rawDesc = "" +
 	"#RESOURCE_REPRESENTATION_UNSPECIFIED\x10\x00\x12!\n" +
 	"\x1dRESOURCE_REPRESENTATION_TABLE\x10\x01\x12$\n" +
 	" RESOURCE_REPRESENTATION_METADATA\x10\x02\x12'\n" +
-	"#RESOURCE_REPRESENTATION_FULL_OBJECT\x10\x03*\x88\x01\n" +
+	"#RESOURCE_REPRESENTATION_FULL_OBJECT\x10\x03*N\n" +
+	"\x0fContentEncoding\x12 \n" +
+	"\x1cCONTENT_ENCODING_UNSPECIFIED\x10\x00\x12\x19\n" +
+	"\x15CONTENT_ENCODING_GZIP\x10\x01*\x88\x01\n" +
 	"\tPatchType\x12\x1a\n" +
 	"\x16PATCH_TYPE_UNSPECIFIED\x10\x00\x12\x13\n" +
 	"\x0fPATCH_TYPE_JSON\x10\x01\x12\x14\n" +
@@ -883,38 +973,41 @@ func file_api_agent_v1_resource_proto_rawDescGZIP() []byte {
 	return file_api_agent_v1_resource_proto_rawDescData
 }
 
-var file_api_agent_v1_resource_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
+var file_api_agent_v1_resource_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
 var file_api_agent_v1_resource_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_api_agent_v1_resource_proto_goTypes = []any{
 	(ResourceVerb)(0),             // 0: zke.agent.v1.ResourceVerb
 	(ResourceRepresentation)(0),   // 1: zke.agent.v1.ResourceRepresentation
-	(PatchType)(0),                // 2: zke.agent.v1.PatchType
-	(DeletePropagation)(0),        // 3: zke.agent.v1.DeletePropagation
-	(*GroupVersionResource)(nil),  // 4: zke.agent.v1.GroupVersionResource
-	(*ListOptions)(nil),           // 5: zke.agent.v1.ListOptions
-	(*MutationOptions)(nil),       // 6: zke.agent.v1.MutationOptions
-	(*ResourcePreconditions)(nil), // 7: zke.agent.v1.ResourcePreconditions
-	(*DeleteOptions)(nil),         // 8: zke.agent.v1.DeleteOptions
-	(*ResourceRequest)(nil),       // 9: zke.agent.v1.ResourceRequest
-	(*ResourceResponse)(nil),      // 10: zke.agent.v1.ResourceResponse
-	(ResultCode)(0),               // 11: zke.agent.v1.ResultCode
+	(ContentEncoding)(0),          // 2: zke.agent.v1.ContentEncoding
+	(PatchType)(0),                // 3: zke.agent.v1.PatchType
+	(DeletePropagation)(0),        // 4: zke.agent.v1.DeletePropagation
+	(*GroupVersionResource)(nil),  // 5: zke.agent.v1.GroupVersionResource
+	(*ListOptions)(nil),           // 6: zke.agent.v1.ListOptions
+	(*MutationOptions)(nil),       // 7: zke.agent.v1.MutationOptions
+	(*ResourcePreconditions)(nil), // 8: zke.agent.v1.ResourcePreconditions
+	(*DeleteOptions)(nil),         // 9: zke.agent.v1.DeleteOptions
+	(*ResourceRequest)(nil),       // 10: zke.agent.v1.ResourceRequest
+	(*ResourceResponse)(nil),      // 11: zke.agent.v1.ResourceResponse
+	(ResultCode)(0),               // 12: zke.agent.v1.ResultCode
 }
 var file_api_agent_v1_resource_proto_depIdxs = []int32{
-	3,  // 0: zke.agent.v1.DeleteOptions.propagation:type_name -> zke.agent.v1.DeletePropagation
-	7,  // 1: zke.agent.v1.DeleteOptions.preconditions:type_name -> zke.agent.v1.ResourcePreconditions
+	4,  // 0: zke.agent.v1.DeleteOptions.propagation:type_name -> zke.agent.v1.DeletePropagation
+	8,  // 1: zke.agent.v1.DeleteOptions.preconditions:type_name -> zke.agent.v1.ResourcePreconditions
 	0,  // 2: zke.agent.v1.ResourceRequest.verb:type_name -> zke.agent.v1.ResourceVerb
-	4,  // 3: zke.agent.v1.ResourceRequest.resource:type_name -> zke.agent.v1.GroupVersionResource
+	5,  // 3: zke.agent.v1.ResourceRequest.resource:type_name -> zke.agent.v1.GroupVersionResource
 	1,  // 4: zke.agent.v1.ResourceRequest.representation:type_name -> zke.agent.v1.ResourceRepresentation
-	5,  // 5: zke.agent.v1.ResourceRequest.list_options:type_name -> zke.agent.v1.ListOptions
-	2,  // 6: zke.agent.v1.ResourceRequest.patch_type:type_name -> zke.agent.v1.PatchType
-	6,  // 7: zke.agent.v1.ResourceRequest.mutation_options:type_name -> zke.agent.v1.MutationOptions
-	8,  // 8: zke.agent.v1.ResourceRequest.delete_options:type_name -> zke.agent.v1.DeleteOptions
-	11, // 9: zke.agent.v1.ResourceResponse.result:type_name -> zke.agent.v1.ResultCode
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	6,  // 5: zke.agent.v1.ResourceRequest.list_options:type_name -> zke.agent.v1.ListOptions
+	3,  // 6: zke.agent.v1.ResourceRequest.patch_type:type_name -> zke.agent.v1.PatchType
+	7,  // 7: zke.agent.v1.ResourceRequest.mutation_options:type_name -> zke.agent.v1.MutationOptions
+	9,  // 8: zke.agent.v1.ResourceRequest.delete_options:type_name -> zke.agent.v1.DeleteOptions
+	2,  // 9: zke.agent.v1.ResourceRequest.accepted_encodings:type_name -> zke.agent.v1.ContentEncoding
+	12, // 10: zke.agent.v1.ResourceResponse.result:type_name -> zke.agent.v1.ResultCode
+	2,  // 11: zke.agent.v1.ResourceResponse.content_encoding:type_name -> zke.agent.v1.ContentEncoding
+	12, // [12:12] is the sub-list for method output_type
+	12, // [12:12] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_api_agent_v1_resource_proto_init() }
@@ -929,7 +1022,7 @@ func file_api_agent_v1_resource_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_agent_v1_resource_proto_rawDesc), len(file_api_agent_v1_resource_proto_rawDesc)),
-			NumEnums:      4,
+			NumEnums:      5,
 			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,

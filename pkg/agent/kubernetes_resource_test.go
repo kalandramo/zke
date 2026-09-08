@@ -27,7 +27,7 @@ func TestKubernetesResourceHandlerMutatesGenericResources(t *testing.T) {
 	t.Parallel()
 
 	client := dynamicfake.NewSimpleDynamicClient(runtime.NewScheme())
-	handler := newKubernetesResourceHandler(client, nil, 1024*1024, "zke-system")
+	handler := newKubernetesResourceHandler(client, nil, 1024*1024, 0, "zke-system")
 	resource := &agentv1.GroupVersionResource{
 		Group:    "example.io",
 		Version:  "v1alpha1",
@@ -495,7 +495,7 @@ func TestKubernetesResourceHandlerDiscoversBuiltInAndCustomResources(
 			},
 		},
 	}
-	handler := newKubernetesResourceHandler(nil, fakeDiscovery, 1024*1024, "zke-system")
+	handler := newKubernetesResourceHandler(nil, fakeDiscovery, 1024*1024, 0, "zke-system")
 	response, body, err := handler(
 		context.Background(),
 		&agentv1.ResourceRequest{
@@ -546,7 +546,7 @@ func TestKubernetesResourceHandlerListsAndGetsCustomResources(t *testing.T) {
 		"spec": map[string]any{"size": "large"},
 	}}
 	client := dynamicfake.NewSimpleDynamicClient(runtime.NewScheme(), widget)
-	handler := newKubernetesResourceHandler(client, nil, 1024*1024, "zke-system")
+	handler := newKubernetesResourceHandler(client, nil, 1024*1024, 0, "zke-system")
 	resource := &agentv1.GroupVersionResource{
 		Group:    "example.io",
 		Version:  "v1alpha1",
@@ -622,7 +622,7 @@ func TestKubernetesResourceHandlerListsAndGetsNodes(t *testing.T) {
 		first,
 		second,
 	)
-	handler := newKubernetesResourceHandler(client, nil, 1024*1024, "zke-system")
+	handler := newKubernetesResourceHandler(client, nil, 1024*1024, 0, "zke-system")
 
 	response, body, err := handler(
 		context.Background(),
@@ -702,7 +702,7 @@ func TestKubernetesResourceHandlerMapsKubernetesErrors(t *testing.T) {
 			nil,
 		)
 	})
-	handler := newKubernetesResourceHandler(client, nil, 1024, "zke-system")
+	handler := newKubernetesResourceHandler(client, nil, 1024, 0, "zke-system")
 	response, body, err := handler(
 		context.Background(),
 		&agentv1.ResourceRequest{
@@ -737,7 +737,7 @@ func TestKubernetesResourceHandlerRejectsUnsupportedRepresentationAndLargeBody(
 		"large": "value-that-does-not-fit",
 	})
 	client := dynamicfake.NewSimpleDynamicClient(runtime.NewScheme(), node)
-	handler := newKubernetesResourceHandler(client, nil, 8, "zke-system")
+	handler := newKubernetesResourceHandler(client, nil, 8, 0, "zke-system")
 
 	response, body, err := handler(
 		context.Background(),
@@ -875,7 +875,7 @@ func TestKubernetesResourceDiscoveryMarksCustomResourceDefinitions(t *testing.T)
 			},
 		},
 	}
-	handler := newKubernetesResourceHandler(client, fakeDiscovery, 1024*1024, "zke-system")
+	handler := newKubernetesResourceHandler(client, fakeDiscovery, 1024*1024, 0, "zke-system")
 	response, body, err := handler(
 		context.Background(),
 		&agentv1.ResourceRequest{Verb: agentv1.ResourceVerb_RESOURCE_VERB_DISCOVER},
@@ -921,7 +921,7 @@ func TestKubernetesResourceDiscoveryWithoutCustomResourceAccess(t *testing.T) {
 			}},
 		},
 	}
-	handler := newKubernetesResourceHandler(nil, fakeDiscovery, 1024*1024, "zke-system")
+	handler := newKubernetesResourceHandler(nil, fakeDiscovery, 1024*1024, 0, "zke-system")
 	_, body, err := handler(
 		context.Background(),
 		&agentv1.ResourceRequest{Verb: agentv1.ResourceVerb_RESOURCE_VERB_DISCOVER},

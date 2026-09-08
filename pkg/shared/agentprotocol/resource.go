@@ -216,18 +216,17 @@ func DoResource(
 	}
 	if response.GetBodySize() > 0 {
 		if reserver, ok := responseBody.(ResourceBodyReserver); ok {
+			// The decoded size, not the wire size: what the caller is about to
+			// hold is the inflated body, and a budget told about the compressed
+			// one would be describing bytes nobody keeps.
 			if err := reserver.ReserveResourceBody(
-				response.GetBodySize(),
+				ResourceBodyDecodedSize(response),
 			); err != nil {
 				return nil, err
 			}
 		}
-		if _, err := io.CopyN(
-			responseBody,
-			stream,
-			int64(response.GetBodySize()),
-		); err != nil {
-			return nil, fmt.Errorf("read Resource response body: %w", err)
+		if err := readResourceBody(stream, response, responseBody); err != nil {
+			return nil, err
 		}
 	}
 	if err := requireStreamEOF(stream); err != nil {
@@ -242,6 +241,9 @@ func validateResourceRequest(
 	request *agentv1.ResourceRequest,
 	maxBodySize uint64,
 ) error {
+	if err := validateAcceptedEncodings(request); err != nil {
+		return err
+	}
 	if request != nil &&
 		request.GetVerb() == agentv1.ResourceVerb_RESOURCE_VERB_DISCOVER {
 		if request.GetResource() != nil ||
@@ -458,7 +460,7 @@ func validateResourceResponse(
 	if response.GetBodySize() > 0 && !hasBody {
 		return ErrStreamProtocol
 	}
-	return nil
+	return validateResourceBodyEncoding(response, maxBodySize)
 }
 
 func validResourceSegment(value string) bool {

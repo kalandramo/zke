@@ -98,11 +98,17 @@ type ConnectionConfig struct {
 	KeepAliveInterval time.Duration
 	// MaxIncomingStreams bounds the streams a Server may open towards this
 	// Agent. The Agent-created Control Stream is not counted in this direction.
-	MaxIncomingStreams                int64
-	StreamHeaderTimeout               time.Duration
-	MaxResourceRequestTimeout         time.Duration
-	MaxConcurrentResourceStreams      int
-	MaxResourceBodyBytes              uint64
+	MaxIncomingStreams           int64
+	StreamHeaderTimeout          time.Duration
+	MaxResourceRequestTimeout    time.Duration
+	MaxConcurrentResourceStreams int
+	MaxResourceBodyBytes         uint64
+	// ResourceCompressionThresholdBytes is the smallest Resource response body
+	// the Agent compresses, and only for a Server that said it can decompress.
+	// Small bodies are left alone: gzip on them spends Agent CPU — shared with
+	// heartbeats, terminals and writes — on a link that was never the
+	// bottleneck for a few kilobytes.
+	ResourceCompressionThresholdBytes uint64
 	MaxPodLogsStreamTimeout           time.Duration
 	MaxConcurrentPodLogsStreams       int
 	MaxPodLogBytes                    uint64
@@ -152,6 +158,7 @@ type fileConfig struct {
 		MaxResourceRequestTimeout         string  `yaml:"max_resource_request_timeout"`
 		MaxConcurrentResourceStreams      *int    `yaml:"max_concurrent_resource_streams"`
 		MaxResourceBodyBytes              *uint64 `yaml:"max_resource_body_bytes"`
+		ResourceCompressionThresholdBytes *uint64 `yaml:"resource_compression_threshold_bytes"`
 		MaxPodLogsStreamTimeout           string  `yaml:"max_pod_logs_stream_timeout"`
 		MaxConcurrentPodLogsStreams       *int    `yaml:"max_concurrent_pod_logs_streams"`
 		MaxPodLogBytes                    *uint64 `yaml:"max_pod_log_bytes"`
@@ -209,6 +216,7 @@ func DefaultConfig() Config {
 			MaxResourceRequestTimeout:         2 * time.Minute,
 			MaxConcurrentResourceStreams:      64,
 			MaxResourceBodyBytes:              32 * 1024 * 1024,
+			ResourceCompressionThresholdBytes: agentprotocol.DefaultResourceCompressionThreshold,
 			MaxPodLogsStreamTimeout:           30 * time.Minute,
 			MaxConcurrentPodLogsStreams:       8,
 			MaxPodLogBytes:                    16 * 1024 * 1024,
@@ -396,6 +404,10 @@ func applyFile(cfg *Config, path string) error {
 	if raw.Connection.MaxResourceBodyBytes != nil {
 		cfg.Connection.MaxResourceBodyBytes =
 			*raw.Connection.MaxResourceBodyBytes
+	}
+	if raw.Connection.ResourceCompressionThresholdBytes != nil {
+		cfg.Connection.ResourceCompressionThresholdBytes =
+			*raw.Connection.ResourceCompressionThresholdBytes
 	}
 	if err := applyAgentDuration(
 		&cfg.Connection.MaxPodLogsStreamTimeout,

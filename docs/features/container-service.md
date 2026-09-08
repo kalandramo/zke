@@ -78,6 +78,10 @@ PersistentVolume 返回所有卷 `spec.capacity.storage` 之和（不分阶段�
 PersistentVolumeClaim 返回 `spec.resources.requests.storage` 之和，即申请量而非实际制备量，与本页其余
 requests 口径一致。
 
+当前完整对象读取、概览聚合和列表传输的性能边界，以及计划中的统一 Agent Informer 缓存、Summary 查询、请求合并与
+QUIC 压缩方案，见[容器服务资源读取性能优化方案](container-service-performance-optimization.md)。该方案尚未实现，不能视为
+当前行为。
+
 一份完整快照在 Server 内按 Cluster 缓存 15 秒，窗口内的重复请求直接返回同一份结果，`generated_at` 因此
 可能早于当前时间。这是有意的：概览是每个操作者进入应用时的落地页，而一次概览是对集群的十次完整列举，也是
 本应用最贵的读取。缓存按 Cluster 定键而与调用者无关——本响应描述的是 Cluster 本身，且每个请求都独立校验

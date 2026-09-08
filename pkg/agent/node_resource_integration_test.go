@@ -57,7 +57,7 @@ func TestNodeResourceDynamicClientOverRealQUIC(t *testing.T) {
 	limits := defaultResourceTestLimits()
 	environment := startResourceStreamEnvironment(
 		t,
-		newKubernetesResourceHandler(client, nil, limits.maxBodyBytes, "zke-system"),
+		newKubernetesResourceHandler(client, nil, limits.maxBodyBytes, 0, "zke-system"),
 		limits,
 	)
 	service := kubernetesresource.NewService(environment.manager)
@@ -159,7 +159,7 @@ func TestCustomResourceDiscoveryListAndGetOverRealQUIC(t *testing.T) {
 			client,
 			fakeDiscovery,
 			limits.maxBodyBytes,
-
+			0,
 			"zke-system",
 		),
 		limits,
@@ -236,7 +236,7 @@ func TestCustomResourceCRUDOverRealQUIC(t *testing.T) {
 	limits := defaultResourceTestLimits()
 	environment := startResourceStreamEnvironment(
 		t,
-		newKubernetesResourceHandler(client, nil, limits.maxBodyBytes, "zke-system"),
+		newKubernetesResourceHandler(client, nil, limits.maxBodyBytes, 0, "zke-system"),
 		limits,
 	)
 	service := kubernetesresource.NewService(environment.manager)

@@ -1411,6 +1411,11 @@ func (manager *Manager) requestResource(
 	if err != nil {
 		return nil, err
 	}
+	// Announced here rather than by each caller, so every Resource body —
+	// a list, a detail, a YAML document, an Agent that has no cache yet — can
+	// travel compressed on the link between this Server and its Agents. An
+	// Agent that predates the field ignores it and answers in plain JSON.
+	request.AcceptedEncodings = agentprotocol.AcceptedResourceEncodings()
 	return agentprotocol.DoResource(
 		requestContext,
 		current.business,

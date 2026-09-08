@@ -126,6 +126,7 @@ func Run(ctx context.Context, cfg Config, logger *slog.Logger) error {
 				dynamicClient,
 				kubernetesClient.Discovery(),
 				cfg.Connection.MaxResourceBodyBytes,
+				cfg.Connection.ResourceCompressionThresholdBytes,
 				cfg.IdentityNamespace,
 			),
 			podLogsHandler:         newKubernetesPodLogsHandler(kubernetesClient),
