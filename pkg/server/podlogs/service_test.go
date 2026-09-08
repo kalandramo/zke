@@ -56,11 +56,11 @@ func TestServiceStreamsExplicitBoundedPodLogs(t *testing.T) {
 			return nil, nil, err
 		}
 		return &agentv1.PodLogsResponse{
-			Result: agentv1.ResultCode_RESULT_CODE_OK,
-		}, &agentv1.PodLogsTrailer{
-			Result:    agentv1.ResultCode_RESULT_CODE_OK,
-			BytesSent: uint64(written),
-		}, nil
+				Result: agentv1.ResultCode_RESULT_CODE_OK,
+			}, &agentv1.PodLogsTrailer{
+				Result:    agentv1.ResultCode_RESULT_CODE_OK,
+				BytesSent: uint64(written),
+			}, nil
 	}}
 	service := NewService(requester, Config{MaxBytes: 4096})
 	var output bytes.Buffer
