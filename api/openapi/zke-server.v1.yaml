@@ -1893,6 +1893,12 @@ paths:
         只达到条目上限的结果会进入。缓存按 Cluster 定键而与调用者无关：本响应描述的是
         Cluster 本身，且每个请求都独立校验该 Cluster 的 `cluster.read`。
 
+        同一 Cluster 的并发冷请求只触发一次实际读取，其余调用共享同一结果；不同
+        Cluster 之间不合并。超出新鲜窗口后，接口先返回上一次成功的快照并标记
+        `stale: true`，同时在后台刷新一次；Agent 断开或 Kubernetes 暂时不可读时，
+        该快照在有上限的时间内继续应答。连续失败使用有上限的指数退避，退避期内的
+        请求直接返回上一次的失败原因，不再读取集群。
+
         CPU 使用 millicores，内存与存储使用 bytes。请求量依据 Kubernetes 调度语义计算
         非终态 Pod 的 requests，包含 init container、restartable init container、
         Pod-level resources 和 overhead；不代表实时利用率。
@@ -16336,6 +16342,7 @@ components:
       additionalProperties: false
       required:
         - generated_at
+        - stale
         - partial
         - issues
         - nodes
@@ -16347,6 +16354,11 @@ components:
       properties:
         generated_at:
           $ref: "#/components/schemas/Timestamp"
+        stale:
+          type: boolean
+          description: |
+            该结果超出新鲜窗口后仍被返回，因为此刻无法产生新的快照。`generated_at`
+            说明它的实际时间。
         partial:
           type: boolean
         issues:

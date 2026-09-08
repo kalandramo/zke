@@ -32,6 +32,25 @@ const (
 	// `generated_at`, so a repeat inside the window is visibly the same snapshot
 	// rather than a silently stale one.
 	defaultCacheTTL = 15 * time.Second
+	// How long past its window a snapshot still answers.
+	//
+	// Past the fresh window the numbers are re-read, but a Cluster whose Agent
+	// has just dropped, or whose control plane is briefly refusing reads, has
+	// no numbers to re-read. Showing the last ones that were true, marked
+	// `stale`, is a better answer than an error page for an operator who is
+	// looking at that Cluster precisely because something is wrong with it.
+	defaultMaxStaleAge = 2 * time.Minute
+	// The first wait after a failed load, doubling up to the ceiling.
+	//
+	// A Cluster that cannot answer is the case where users press refresh most,
+	// and every press is ten Kubernetes listings. The backoff is what turns a
+	// row of refreshes into one attempt.
+	defaultFailureBackoff    = 2 * time.Second
+	defaultMaxFailureBackoff = 30 * time.Second
+	// The lifetime of one shared load. It is not any caller's deadline: the
+	// load outlives the request that started it so the callers still waiting
+	// keep their answer, so it needs a bound of its own.
+	defaultLoadTimeout = 2 * time.Minute
 	// Cached Clusters, so the cache cannot grow with the number of Clusters a
 	// Server has ever been asked about.
 	defaultMaxCachedClusters = 64
@@ -48,35 +67,75 @@ type Config struct {
 	MaxItemsPerSection int
 	MaxParallelQueries int
 	// Negative disables the cache; zero selects the default.
-	CacheTTL          time.Duration
+	CacheTTL time.Duration
+	// MaxStaleAge is how long past the fresh window a completed snapshot may
+	// still be returned, marked stale, while a refresh runs behind it.
+	// Negative disables serving stale snapshots.
+	MaxStaleAge time.Duration
+	// FailureBackoff and MaxFailureBackoff bound how often a Cluster that keeps
+	// failing is asked again.
+	FailureBackoff    time.Duration
+	MaxFailureBackoff time.Duration
+	// LoadTimeout bounds one shared load.
+	LoadTimeout       time.Duration
 	MaxCachedClusters int
 }
 
 type Service struct {
 	resources ResourceReader
 	config    Config
-	// Completed snapshots, keyed by Cluster. Nothing here is caller-specific:
-	// the overview describes a Cluster, and every caller reaching this service
-	// has already been checked for `cluster.read` on that Cluster.
+	// Completed snapshots and in-flight loads, keyed by Cluster. Nothing here
+	// is caller-specific: the overview describes a Cluster, and every caller
+	// reaching this service has already been checked for `cluster.read` on that
+	// Cluster. Keying by Cluster is also what keeps one Cluster's snapshot from
+	// ever answering for another.
 	mutex sync.Mutex
-	cache map[string]cacheEntry
+	cache map[string]*cacheEntry
+	// clock and afterLoad exist for tests, which need to move time and to
+	// observe a background refresh that no caller is waiting on.
+	clock     func() time.Time
+	afterLoad func(clusterID string, err error)
 }
 
 type cacheEntry struct {
-	overview  Overview
-	expiresAt time.Time
+	// The last snapshot that completed with every section intact. It keeps
+	// answering, marked stale, while a refresh runs behind it.
+	overview    Overview
+	hasSnapshot bool
+	freshUntil  time.Time
+	staleUntil  time.Time
+	// The one load allowed to be in flight for this Cluster. Every other caller
+	// waits on it rather than starting a second set of ten Kubernetes listings.
+	call *loadCall
+	// Consecutive failures, and the time before which no new load starts.
+	failures   int
+	retryAfter time.Time
+	lastError  error
+}
+
+// loadCall is one shared load. It is deliberately detached from the Context of
+// whichever caller started it: the others waiting on it did nothing wrong, and
+// a load canceled because the first caller closed a browser tab would make them
+// all fail together.
+type loadCall struct {
+	done     chan struct{}
+	overview Overview
+	err      error
 }
 
 type Overview struct {
-	GeneratedAt time.Time             `json:"generated_at"`
-	Partial     bool                  `json:"partial"`
-	Issues      []SectionIssue        `json:"issues"`
-	Nodes       NodeOverview          `json:"nodes"`
-	Namespaces  NamespaceOverview     `json:"namespaces"`
-	Pods        PodOverview           `json:"pods"`
-	Workloads   WorkloadOverview      `json:"workloads"`
-	Storage     StorageOverview       `json:"storage"`
-	Resources   ClusterResourceTotals `json:"resources"`
+	GeneratedAt time.Time `json:"generated_at"`
+	// Stale marks a snapshot returned past its fresh window because a current
+	// one could not be produced. `generated_at` says how old it is.
+	Stale      bool                  `json:"stale"`
+	Partial    bool                  `json:"partial"`
+	Issues     []SectionIssue        `json:"issues"`
+	Nodes      NodeOverview          `json:"nodes"`
+	Namespaces NamespaceOverview     `json:"namespaces"`
+	Pods       PodOverview           `json:"pods"`
+	Workloads  WorkloadOverview      `json:"workloads"`
+	Storage    StorageOverview       `json:"storage"`
+	Resources  ClusterResourceTotals `json:"resources"`
 }
 
 type SectionIssue struct {
@@ -199,78 +258,224 @@ func NewService(resources ResourceReader, configs ...Config) *Service {
 	if config.CacheTTL == 0 {
 		config.CacheTTL = defaultCacheTTL
 	}
+	if config.MaxStaleAge == 0 {
+		config.MaxStaleAge = defaultMaxStaleAge
+	}
+	if config.FailureBackoff <= 0 {
+		config.FailureBackoff = defaultFailureBackoff
+	}
+	if config.MaxFailureBackoff < config.FailureBackoff {
+		config.MaxFailureBackoff = max(defaultMaxFailureBackoff, config.FailureBackoff)
+	}
+	if config.LoadTimeout <= 0 {
+		config.LoadTimeout = defaultLoadTimeout
+	}
 	if config.MaxCachedClusters <= 0 {
 		config.MaxCachedClusters = defaultMaxCachedClusters
 	}
 	return &Service{
 		resources: resources,
 		config:    config,
-		cache:     make(map[string]cacheEntry),
+		cache:     make(map[string]*cacheEntry),
+		clock:     time.Now,
 	}
 }
 
+func (service *Service) now() time.Time {
+	if service.clock != nil {
+		return service.clock()
+	}
+	return time.Now()
+}
+
+// Get answers for one Cluster.
+//
+// Freshness is decided per Cluster and nowhere else: a snapshot inside its
+// window is returned as it stands, one just past it is returned marked stale
+// while a single refresh runs behind it, and a Cluster with nothing to return
+// gets exactly one load however many callers are waiting. Authorization is not
+// part of that decision — every caller has already been checked for
+// cluster.read on this Cluster before reaching here, and a cached snapshot can
+// therefore never be a way around that check.
 func (service *Service) Get(ctx context.Context, clusterID string) (Overview, error) {
 	if service == nil || service.resources == nil || ctx == nil || !validation.IsUUID(clusterID) {
 		return Overview{}, kubernetesresource.ErrInvalidInput
 	}
-	if cached, ok := service.cached(clusterID); ok {
-		return cached, nil
-	}
-	overview, err := service.load(ctx, clusterID)
-	if err != nil {
-		return Overview{}, err
-	}
-	service.store(clusterID, overview)
-	return overview, nil
-}
-
-// The snapshot held for this Cluster, if one is still within its window.
-func (service *Service) cached(clusterID string) (Overview, bool) {
 	if service.config.CacheTTL < 0 {
-		return Overview{}, false
+		return service.load(ctx, clusterID)
 	}
-	service.mutex.Lock()
-	defer service.mutex.Unlock()
-	entry, ok := service.cache[clusterID]
-	if !ok || !time.Now().Before(entry.expiresAt) {
-		return Overview{}, false
+	call, cached, err := service.begin(ctx, clusterID)
+	if call == nil {
+		return cached, err
 	}
-	// A copy, because the caller receives maps and slices that the next caller
-	// will receive as well.
-	return entry.overview.clone(), true
+	select {
+	case <-call.done:
+		if call.err != nil {
+			return Overview{}, call.err
+		}
+		return call.overview.clone(), nil
+	case <-ctx.Done():
+		// Only this caller leaves. The load keeps running for whoever else is
+		// waiting on it, and its result still reaches the cache.
+		return Overview{}, ctx.Err()
+	}
 }
 
-// Holds a snapshot for its window, unless a section of it failed.
-//
-// A failure is not cached: an operator who sees a section reported as
-// unavailable presses refresh precisely to find out whether it still is, and a
-// cache that answers that question from the failure itself has turned the button
-// off. A section that only hit its item ceiling is cached — re-reading a Cluster
-// too large to count will produce the same ceiling at the same cost.
-func (service *Service) store(clusterID string, overview Overview) {
-	if service.config.CacheTTL < 0 || !cacheable(overview) {
-		return
-	}
+// begin decides what this caller gets: a snapshot to return now, or the load to
+// wait on. Exactly one of them comes back.
+func (service *Service) begin(
+	ctx context.Context,
+	clusterID string,
+) (*loadCall, Overview, error) {
+	now := service.now()
 	service.mutex.Lock()
 	defer service.mutex.Unlock()
-	if _, replacing := service.cache[clusterID]; !replacing &&
-		len(service.cache) >= service.config.MaxCachedClusters {
-		now := time.Now()
-		for key, entry := range service.cache {
-			if !now.Before(entry.expiresAt) {
+	entry := service.cache[clusterID]
+	if entry != nil && entry.hasSnapshot {
+		if now.Before(entry.freshUntil) {
+			return nil, entry.overview.clone(), nil
+		}
+		if now.Before(entry.staleUntil) {
+			// Answer from the last known good and refresh behind it, so the
+			// operator waiting on the page never pays for the ten listings.
+			service.startLocked(ctx, clusterID, entry, now)
+			stale := entry.overview.clone()
+			stale.Stale = true
+			return nil, stale, nil
+		}
+	}
+	if entry != nil && entry.call == nil && now.Before(entry.retryAfter) {
+		// Backing off after repeated failures. Returning the remembered failure
+		// is what keeps a row of refreshes from becoming a row of ten-listing
+		// attempts against a Cluster that is already struggling.
+		return nil, Overview{}, entry.lastError
+	}
+	if entry == nil {
+		entry = &cacheEntry{}
+		if !service.admitLocked(clusterID, entry, now) {
+			// The cache is full of live entries, so this Cluster is loaded
+			// without one. It still gets an answer; it just does not displace a
+			// snapshot another Cluster is about to read.
+			return service.startDetached(ctx, clusterID), Overview{}, nil
+		}
+	}
+	call := service.startLocked(ctx, clusterID, entry, now)
+	if call == nil {
+		return nil, Overview{}, entry.lastError
+	}
+	return call, Overview{}, nil
+}
+
+// startLocked returns the load in flight for this Cluster, starting one if
+// there is none and nothing says to wait.
+func (service *Service) startLocked(
+	ctx context.Context,
+	clusterID string,
+	entry *cacheEntry,
+	now time.Time,
+) *loadCall {
+	if entry.call != nil {
+		return entry.call
+	}
+	if now.Before(entry.retryAfter) {
+		return nil
+	}
+	entry.call = service.startDetached(ctx, clusterID)
+	return entry.call
+}
+
+func (service *Service) startDetached(ctx context.Context, clusterID string) *loadCall {
+	call := &loadCall{done: make(chan struct{})}
+	// The Context keeps its values — the request identifier travels with the
+	// Agent Stream — and loses its cancellation, which belongs to one caller
+	// rather than to the load every caller is sharing.
+	loadContext := context.WithoutCancel(ctx)
+	go service.run(loadContext, clusterID, call)
+	return call
+}
+
+func (service *Service) run(ctx context.Context, clusterID string, call *loadCall) {
+	loadContext, cancel := context.WithTimeout(ctx, service.config.LoadTimeout)
+	overview, err := service.load(loadContext, clusterID)
+	cancel()
+
+	now := service.now()
+	service.mutex.Lock()
+	entry := service.cache[clusterID]
+	if entry != nil {
+		if entry.call == call {
+			entry.call = nil
+		}
+		switch {
+		case err != nil:
+			entry.failures++
+			entry.lastError = err
+			entry.retryAfter = now.Add(service.backoff(entry.failures))
+		case cacheable(overview):
+			entry.overview = overview.clone()
+			entry.hasSnapshot = true
+			entry.freshUntil = now.Add(service.config.CacheTTL)
+			entry.staleUntil = entry.freshUntil
+			if service.config.MaxStaleAge > 0 {
+				entry.staleUntil = entry.freshUntil.Add(service.config.MaxStaleAge)
+			}
+			entry.failures = 0
+			entry.lastError = nil
+			entry.retryAfter = time.Time{}
+		default:
+			// A section failed. The result is returned to whoever asked, but it
+			// is not remembered: an operator who sees a section reported as
+			// unavailable presses refresh precisely to find out whether it still
+			// is, and a cache that answers from the failure has turned the
+			// button off. Nor is it a failure to back off from — it succeeded.
+			entry.failures = 0
+			entry.lastError = nil
+			entry.retryAfter = time.Time{}
+		}
+	}
+	service.mutex.Unlock()
+
+	call.overview = overview
+	call.err = err
+	close(call.done)
+	if service.afterLoad != nil {
+		service.afterLoad(clusterID, err)
+	}
+}
+
+func (service *Service) backoff(failures int) time.Duration {
+	delay := service.config.FailureBackoff
+	for range failures - 1 {
+		if delay >= service.config.MaxFailureBackoff {
+			break
+		}
+		delay *= 2
+	}
+	return min(delay, service.config.MaxFailureBackoff)
+}
+
+// admitLocked makes room for one more Cluster, dropping entries nothing can
+// still read. A cache full of live entries admits nothing rather than evicting
+// a snapshot another Cluster is about to use.
+func (service *Service) admitLocked(
+	clusterID string,
+	entry *cacheEntry,
+	now time.Time,
+) bool {
+	if len(service.cache) >= service.config.MaxCachedClusters {
+		for key, cached := range service.cache {
+			if cached.call == nil &&
+				!now.Before(cached.staleUntil) &&
+				!now.Before(cached.retryAfter) {
 				delete(service.cache, key)
 			}
 		}
-		// Still full of live entries: this Cluster simply goes uncached rather
-		// than evicting a snapshot someone else is about to read.
 		if len(service.cache) >= service.config.MaxCachedClusters {
-			return
+			return false
 		}
 	}
-	service.cache[clusterID] = cacheEntry{
-		overview:  overview.clone(),
-		expiresAt: time.Now().Add(service.config.CacheTTL),
-	}
+	service.cache[clusterID] = entry
+	return true
 }
 
 func cacheable(overview Overview) bool {
