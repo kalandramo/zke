@@ -1,0 +1,475 @@
+package resourcesummary
+
+import (
+	"sort"
+	"strings"
+	"time"
+
+	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	resourcehelper "k8s.io/component-helpers/resource"
+)
+
+// Workload resource names, matching the plural Kubernetes names the Server's
+// workload API already uses.
+const (
+	WorkloadDeployments  = "deployments"
+	WorkloadStatefulSets = "statefulsets"
+	WorkloadDaemonSets   = "daemonsets"
+	WorkloadJobs         = "jobs"
+	WorkloadCronJobs     = "cronjobs"
+)
+
+func objectSummary(meta metav1.ObjectMeta) ObjectSummary {
+	summary := ObjectSummary{
+		UID:               string(meta.UID),
+		Namespace:         meta.Namespace,
+		Name:              meta.Name,
+		ResourceVersion:   meta.ResourceVersion,
+		CreationTimestamp: meta.CreationTimestamp.Time,
+	}
+	if len(meta.Labels) > 0 {
+		summary.Labels = make(map[string]string, len(meta.Labels))
+		for key, value := range meta.Labels {
+			summary.Labels[key] = value
+		}
+	}
+	if meta.DeletionTimestamp != nil {
+		deletion := meta.DeletionTimestamp.Time
+		summary.DeletionTimestamp = &deletion
+	}
+	return summary
+}
+
+// ProjectPod keeps the Kubernetes scheduling reading of a Pod's requests.
+//
+// resourcehelper.PodRequests is the same function the scheduler and
+// `kubectl describe node` use, so init containers, restartable init
+// containers, Pod-level resources and overhead are all accounted for the way
+// Kubernetes accounts for them. A terminal Pod holds nothing, and contributes
+// nothing.
+func ProjectPod(pod *corev1.Pod) Pod {
+	terminal := pod.Status.Phase == corev1.PodSucceeded ||
+		pod.Status.Phase == corev1.PodFailed
+	summary := Pod{
+		ObjectSummary: objectSummary(pod.ObjectMeta),
+		NodeName:      pod.Spec.NodeName,
+		PodIP:         pod.Status.PodIP,
+		Phase:         string(pod.Status.Phase),
+		Reason:        pod.Status.Reason,
+		Ready:         PodReady(pod),
+		Terminating:   pod.DeletionTimestamp != nil,
+		Terminal:      terminal,
+		RestartCount:  PodRestartCount(pod.Status),
+		Images:        podImages(pod.Spec),
+	}
+	if controller := podController(pod.OwnerReferences); controller != nil {
+		summary.Controller = controller
+	}
+	if !terminal {
+		requests := resourcehelper.PodRequests(pod, resourcehelper.PodResourcesOptions{})
+		cpu := requests[corev1.ResourceCPU]
+		memory := requests[corev1.ResourceMemory]
+		if cpu.Sign() > 0 {
+			summary.CPURequestsMillis = cpu.MilliValue()
+		}
+		if memory.Sign() > 0 {
+			summary.MemoryRequestsBytes = memory.Value()
+		}
+	}
+	return summary
+}
+
+func PodReady(pod *corev1.Pod) bool {
+	for _, condition := range pod.Status.Conditions {
+		if condition.Type == corev1.PodReady {
+			return condition.Status == corev1.ConditionTrue
+		}
+	}
+	return false
+}
+
+func PodRestartCount(status corev1.PodStatus) int64 {
+	total := int64(0)
+	for _, container := range status.InitContainerStatuses {
+		total += int64(container.RestartCount)
+	}
+	for _, container := range status.ContainerStatuses {
+		total += int64(container.RestartCount)
+	}
+	return total
+}
+
+func podImages(spec corev1.PodSpec) []string {
+	images := make([]string, 0, len(spec.Containers)+len(spec.InitContainers))
+	for _, container := range spec.InitContainers {
+		if container.Image != "" {
+			images = append(images, container.Image)
+		}
+	}
+	for _, container := range spec.Containers {
+		if container.Image != "" {
+			images = append(images, container.Image)
+		}
+	}
+	return images
+}
+
+func podController(owners []metav1.OwnerReference) *OwnerReference {
+	for index := range owners {
+		owner := owners[index]
+		if owner.Controller == nil || !*owner.Controller {
+			continue
+		}
+		return &OwnerReference{
+			APIVersion: owner.APIVersion,
+			Kind:       owner.Kind,
+			Name:       owner.Name,
+			UID:        string(owner.UID),
+			Controller: true,
+		}
+	}
+	return nil
+}
+
+func ProjectNode(node *corev1.Node) Node {
+	taintKeys := make([]string, 0, len(node.Spec.Taints))
+	for _, taint := range node.Spec.Taints {
+		taintKeys = append(taintKeys, taint.Key)
+	}
+	sort.Strings(taintKeys)
+	return Node{
+		ObjectSummary:     objectSummary(node.ObjectMeta),
+		Status:            NodeStatus(node),
+		Unschedulable:     node.Spec.Unschedulable,
+		Roles:             NodeRoles(node.Labels),
+		InternalIP:        nodeAddress(node.Status.Addresses, corev1.NodeInternalIP),
+		KubernetesVersion: node.Status.NodeInfo.KubeletVersion,
+		OperatingSystem:   node.Status.NodeInfo.OperatingSystem,
+		OSImage:           node.Status.NodeInfo.OSImage,
+		KernelVersion:     node.Status.NodeInfo.KernelVersion,
+		ContainerRuntime:  node.Status.NodeInfo.ContainerRuntimeVersion,
+		CPUCapacity:       quantityText(node.Status.Capacity, corev1.ResourceCPU),
+		MemoryCapacity:    quantityText(node.Status.Capacity, corev1.ResourceMemory),
+		PodsCapacity:      quantityText(node.Status.Capacity, corev1.ResourcePods),
+		CPUAllocatable:    quantityText(node.Status.Allocatable, corev1.ResourceCPU),
+		MemoryAllocatable: quantityText(node.Status.Allocatable, corev1.ResourceMemory),
+		PodsAllocatable:   quantityText(node.Status.Allocatable, corev1.ResourcePods),
+		TaintCount:        len(node.Spec.Taints),
+		TaintKeys:         taintKeys,
+	}
+}
+
+func NodeStatus(node *corev1.Node) string {
+	for _, condition := range node.Status.Conditions {
+		if condition.Type != corev1.NodeReady {
+			continue
+		}
+		switch condition.Status {
+		case corev1.ConditionTrue:
+			return "ready"
+		case corev1.ConditionFalse:
+			return "not_ready"
+		default:
+			return "unknown"
+		}
+	}
+	return "unknown"
+}
+
+func NodeRoles(nodeLabels map[string]string) []string {
+	const rolePrefix = "node-role.kubernetes.io/"
+	roles := make(map[string]struct{})
+	for key, value := range nodeLabels {
+		if strings.HasPrefix(key, rolePrefix) {
+			role := strings.TrimPrefix(key, rolePrefix)
+			if role != "" {
+				roles[role] = struct{}{}
+			}
+			continue
+		}
+		if key == "kubernetes.io/role" && value != "" {
+			roles[value] = struct{}{}
+		}
+	}
+	result := make([]string, 0, len(roles))
+	for role := range roles {
+		result = append(result, role)
+	}
+	sort.Strings(result)
+	return result
+}
+
+func nodeAddress(addresses []corev1.NodeAddress, kind corev1.NodeAddressType) string {
+	for _, address := range addresses {
+		if address.Type == kind {
+			return address.Address
+		}
+	}
+	return ""
+}
+
+func quantityText(resources corev1.ResourceList, name corev1.ResourceName) string {
+	value, exists := resources[name]
+	if !exists {
+		return ""
+	}
+	return value.String()
+}
+
+// ProjectNamespace reports a Namespace being deleted as terminating whatever
+// its stored phase says, which is the reading the overview has always used.
+func ProjectNamespace(namespace *corev1.Namespace) Namespace {
+	status := strings.ToLower(string(namespace.Status.Phase))
+	if namespace.DeletionTimestamp != nil {
+		status = strings.ToLower(string(corev1.NamespaceTerminating))
+	}
+	return Namespace{
+		ObjectSummary: objectSummary(namespace.ObjectMeta),
+		Status:        status,
+	}
+}
+
+func ProjectDeployment(workload *appsv1.Deployment) Workload {
+	desired := desiredReplicas(workload.Spec.Replicas)
+	summary := Workload{
+		ObjectSummary:      objectSummary(workload.ObjectMeta),
+		Resource:           WorkloadDeployments,
+		Generation:         workload.Generation,
+		ObservedGeneration: workload.Status.ObservedGeneration,
+		Images:             podImages(workload.Spec.Template.Spec),
+		Replicas: &WorkloadReplicas{
+			Desired:     desired,
+			Current:     workload.Status.Replicas,
+			Updated:     workload.Status.UpdatedReplicas,
+			Ready:       workload.Status.ReadyReplicas,
+			Available:   workload.Status.AvailableReplicas,
+			Unavailable: workload.Status.UnavailableReplicas,
+		},
+	}
+	summary.Status = DeploymentStatus(workload, desired)
+	return summary
+}
+
+func DeploymentStatus(workload *appsv1.Deployment, desired int32) string {
+	if workload.Spec.Paused {
+		return "paused"
+	}
+	if desired == 0 {
+		return "scaled_down"
+	}
+	if workload.Status.UpdatedReplicas == desired &&
+		workload.Status.ReadyReplicas == desired &&
+		workload.Status.Replicas == desired {
+		return "available"
+	}
+	if workload.Status.ReadyReplicas > 0 {
+		return "progressing"
+	}
+	return "unavailable"
+}
+
+func ProjectStatefulSet(workload *appsv1.StatefulSet) Workload {
+	desired := desiredReplicas(workload.Spec.Replicas)
+	status := "unavailable"
+	switch {
+	case desired == 0:
+		status = "scaled_down"
+	case workload.Status.ReadyReplicas == desired &&
+		workload.Status.UpdatedReplicas == desired &&
+		workload.Status.Replicas == desired:
+		status = "available"
+	case workload.Status.ReadyReplicas > 0:
+		status = "progressing"
+	}
+	return Workload{
+		ObjectSummary:      objectSummary(workload.ObjectMeta),
+		Resource:           WorkloadStatefulSets,
+		Generation:         workload.Generation,
+		ObservedGeneration: workload.Status.ObservedGeneration,
+		Status:             status,
+		Images:             podImages(workload.Spec.Template.Spec),
+		Replicas: &WorkloadReplicas{
+			Desired:   desired,
+			Current:   workload.Status.Replicas,
+			Updated:   workload.Status.UpdatedReplicas,
+			Ready:     workload.Status.ReadyReplicas,
+			Available: workload.Status.AvailableReplicas,
+		},
+	}
+}
+
+func ProjectDaemonSet(workload *appsv1.DaemonSet) Workload {
+	desired := workload.Status.DesiredNumberScheduled
+	status := "unavailable"
+	switch {
+	case desired == 0:
+		status = "scaled_down"
+	case workload.Status.NumberReady == desired &&
+		workload.Status.UpdatedNumberScheduled == desired:
+		status = "available"
+	case workload.Status.NumberReady > 0:
+		status = "progressing"
+	}
+	return Workload{
+		ObjectSummary:      objectSummary(workload.ObjectMeta),
+		Resource:           WorkloadDaemonSets,
+		Generation:         workload.Generation,
+		ObservedGeneration: workload.Status.ObservedGeneration,
+		Status:             status,
+		Images:             podImages(workload.Spec.Template.Spec),
+		Replicas: &WorkloadReplicas{
+			Desired:     desired,
+			Current:     workload.Status.CurrentNumberScheduled,
+			Updated:     workload.Status.UpdatedNumberScheduled,
+			Ready:       workload.Status.NumberReady,
+			Available:   workload.Status.NumberAvailable,
+			Unavailable: workload.Status.NumberUnavailable,
+		},
+	}
+}
+
+func ProjectJob(workload *batchv1.Job) Workload {
+	return Workload{
+		ObjectSummary: objectSummary(workload.ObjectMeta),
+		Resource:      WorkloadJobs,
+		Generation:    workload.Generation,
+		Status:        JobStatus(workload),
+		Images:        podImages(workload.Spec.Template.Spec),
+		Job: &WorkloadJob{
+			Parallelism:    cloneInt32(workload.Spec.Parallelism),
+			Completions:    cloneInt32(workload.Spec.Completions),
+			Active:         workload.Status.Active,
+			Succeeded:      workload.Status.Succeeded,
+			Failed:         workload.Status.Failed,
+			StartTime:      timePointer(workload.Status.StartTime),
+			CompletionTime: timePointer(workload.Status.CompletionTime),
+		},
+	}
+}
+
+func JobStatus(workload *batchv1.Job) string {
+	for _, condition := range workload.Status.Conditions {
+		if condition.Status != corev1.ConditionTrue {
+			continue
+		}
+		switch condition.Type {
+		case batchv1.JobComplete:
+			return "complete"
+		case batchv1.JobFailed:
+			return "failed"
+		case batchv1.JobSuspended:
+			return "suspended"
+		}
+	}
+	if workload.Status.Active > 0 {
+		return "running"
+	}
+	return "pending"
+}
+
+func ProjectCronJob(workload *batchv1.CronJob) Workload {
+	suspend := workload.Spec.Suspend != nil && *workload.Spec.Suspend
+	status := "active"
+	if suspend {
+		status = "suspended"
+	}
+	return Workload{
+		ObjectSummary: objectSummary(workload.ObjectMeta),
+		Resource:      WorkloadCronJobs,
+		Generation:    workload.Generation,
+		Status:        status,
+		Images:        podImages(workload.Spec.JobTemplate.Spec.Template.Spec),
+		CronJob: &WorkloadCronJob{
+			Schedule:           workload.Spec.Schedule,
+			Suspend:            suspend,
+			Active:             len(workload.Status.Active),
+			LastScheduleTime:   timePointer(workload.Status.LastScheduleTime),
+			LastSuccessfulTime: timePointer(workload.Status.LastSuccessfulTime),
+		},
+	}
+}
+
+func ProjectPersistentVolume(volume *corev1.PersistentVolume) PersistentVolume {
+	capacity := volume.Spec.Capacity[corev1.ResourceStorage]
+	summary := PersistentVolume{
+		ObjectSummary: objectSummary(volume.ObjectMeta),
+		// The phase as `kubectl get pv` prints it, and nothing derived: a
+		// volume being deleted keeps the phase that says whether anything still
+		// claims it.
+		Status:        strings.ToLower(string(volume.Status.Phase)),
+		Capacity:      capacity.String(),
+		AccessModes:   accessModes(volume.Spec.AccessModes),
+		ReclaimPolicy: string(volume.Spec.PersistentVolumeReclaimPolicy),
+		StorageClass:  volume.Spec.StorageClassName,
+	}
+	if capacity.Sign() > 0 {
+		summary.CapacityBytes = capacity.Value()
+	}
+	if volume.Spec.ClaimRef != nil {
+		summary.ClaimRef = volume.Spec.ClaimRef.Namespace + "/" + volume.Spec.ClaimRef.Name
+	}
+	if volume.Spec.VolumeMode != nil {
+		summary.VolumeMode = string(*volume.Spec.VolumeMode)
+	}
+	return summary
+}
+
+func ProjectPersistentVolumeClaim(claim *corev1.PersistentVolumeClaim) PersistentVolumeClaim {
+	requested := claim.Spec.Resources.Requests[corev1.ResourceStorage]
+	capacity := claim.Status.Capacity[corev1.ResourceStorage]
+	summary := PersistentVolumeClaim{
+		ObjectSummary: objectSummary(claim.ObjectMeta),
+		Status:        strings.ToLower(string(claim.Status.Phase)),
+		Requested:     requested.String(),
+		Capacity:      capacity.String(),
+		AccessModes:   accessModes(claim.Spec.AccessModes),
+		VolumeName:    claim.Spec.VolumeName,
+	}
+	if requested.Sign() > 0 {
+		summary.RequestedBytes = requested.Value()
+	}
+	if capacity.Sign() > 0 {
+		summary.CapacityBytes = capacity.Value()
+	}
+	if claim.Spec.StorageClassName != nil {
+		summary.StorageClass = *claim.Spec.StorageClassName
+	}
+	if claim.Spec.VolumeMode != nil {
+		summary.VolumeMode = string(*claim.Spec.VolumeMode)
+	}
+	return summary
+}
+
+func accessModes(modes []corev1.PersistentVolumeAccessMode) []string {
+	result := make([]string, 0, len(modes))
+	for _, mode := range modes {
+		result = append(result, string(mode))
+	}
+	return result
+}
+
+func desiredReplicas(value *int32) int32 {
+	if value == nil {
+		return 1
+	}
+	return *value
+}
+
+func cloneInt32(value *int32) *int32 {
+	if value == nil {
+		return nil
+	}
+	copied := *value
+	return &copied
+}
+
+func timePointer(value *metav1.Time) *time.Time {
+	if value == nil {
+		return nil
+	}
+	copied := value.Time
+	return &copied
+}
