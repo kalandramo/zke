@@ -19,10 +19,7 @@ import (
 // the ones it holds tens of thousands of, and never for anything whose body is
 // sensitive: Secrets and ConfigMaps are not cached at all, and what is removed
 // below is exactly where large opaque content collects.
-func projectStripped(
-	kind resourceKind,
-	contribute func(*unstructured.Unstructured) (contribution, error),
-) func(*unstructured.Unstructured) (entry, error) {
+func projectStripped() func(*unstructured.Unstructured) (entry, error) {
 	return func(object *unstructured.Unstructured) (entry, error) {
 		if object.GetName() == "" {
 			return entry{}, fmt.Errorf(
@@ -30,24 +27,17 @@ func projectStripped(
 				errUnexpectedObject,
 			)
 		}
-		value := contribution{}
-		if contribute != nil {
-			computed, err := contribute(object)
-			if err != nil {
-				return entry{}, err
-			}
-			value = computed
-		}
+		// No contribution: none of the resources projected this way feeds a
+		// section of the Cluster overview.
 		return entry{
 			key: objectKey{
 				namespace: object.GetNamespace(),
 				name:      object.GetName(),
 			},
-			uid:          string(object.GetUID()),
-			labels:       object.GetLabels(),
-			createdAt:    object.GetCreationTimestamp().Time,
-			summary:      strip(object),
-			contribution: value,
+			uid:       string(object.GetUID()),
+			labels:    object.GetLabels(),
+			createdAt: object.GetCreationTimestamp().Time,
+			summary:   strip(object),
 		}, nil
 	}
 }

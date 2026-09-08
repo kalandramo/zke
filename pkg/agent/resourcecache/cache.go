@@ -269,9 +269,22 @@ func (instance *Cache) markAbsent(gvr schema.GroupVersionResource, code string) 
 	instance.mutex.Lock()
 	instance.absent[gvr] = struct{}{}
 	instance.mutex.Unlock()
-	instance.stores[gvr].recordFailure(code)
-	instance.logger.Info(
-		"Agent resource cache skipped a resource this Cluster does not have",
+	target := instance.stores[gvr]
+	target.recordFailure(code)
+	// An optional resource the Cluster does not have is ordinary — a Cluster
+	// with no Ingress controller has no Ingresses. A core one missing is not:
+	// the container service reads it on nearly every page, so it is worth
+	// saying loudly rather than leaving to be inferred from an empty section.
+	level := slog.LevelWarn
+	message := "Agent resource cache is missing a resource the container service reads"
+	if target.kind.optional {
+		level = slog.LevelInfo
+		message = "Agent resource cache skipped a resource this Cluster does not have"
+	}
+	instance.logger.Log(
+		context.Background(),
+		level,
+		message,
 		slog.String("resource", gvr.String()),
 		slog.String("reason", code),
 	)

@@ -33,7 +33,7 @@ func ExtendedResources() []resourceKind {
 			namespaced: namespaced,
 			optional:   true,
 		}
-		kind.project = projectStripped(kind, nil)
+		kind.project = projectStripped()
 		return kind
 	}
 	return []resourceKind{
