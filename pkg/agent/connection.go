@@ -188,7 +188,11 @@ func runConnection(
 		capabilities = append(capabilities, agentprotocol.CapabilityResourceWatchV1)
 	}
 	if services.resourceCacheHandler != nil {
-		capabilities = append(capabilities, agentprotocol.CapabilityOverviewSnapshotV1)
+		capabilities = append(
+			capabilities,
+			agentprotocol.CapabilityOverviewSnapshotV1,
+			agentprotocol.CapabilityResourceSummaryV1,
+		)
 	}
 	if services.terminalSessionHandler != nil {
 		capabilities = append(capabilities, agentprotocol.CapabilityTerminalSessionV1)

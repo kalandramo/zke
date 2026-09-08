@@ -3,6 +3,7 @@ package kubernetesresource
 import (
 	"context"
 	"errors"
+	"github.com/togettoyou/zke/pkg/shared/resourcesummary"
 	"sort"
 	"strconv"
 	"time"
@@ -154,7 +155,7 @@ func (service *Service) ListWorkloadRevisions(
 			CreationTimestamp: record.creationTimestamp,
 			Current:           workloadTemplatesEqual(record.template, workload.template),
 			ChangeCause:       record.changeCause,
-			Images:            podImages(record.template.Spec),
+			Images:            resourcesummary.PodImages(record.template.Spec),
 			Containers:        workloadRevisionContainers(record.template.Spec.Containers),
 			InitContainers:    workloadRevisionContainers(record.template.Spec.InitContainers),
 		})

@@ -63,10 +63,21 @@ type DeleteNamespaceInput struct {
 	IdempotencyKey  string
 }
 
+// ListNamespaces answers from the Agent's resource cache when it can, and from
+// Kubernetes when it cannot. Both produce the same rows in the same order.
 func (service *Service) ListNamespaces(
 	ctx context.Context,
 	input ListNamespacesInput,
 ) (NamespacePage, error) {
+	if token, cacheable := cacheableList(input.ContinueToken); cacheable {
+		cached, answered, err := service.listNamespacesFromCache(ctx, input, token)
+		if err != nil {
+			return NamespacePage{}, err
+		}
+		if answered {
+			return cached, nil
+		}
+	}
 	page, err := service.ListResources(ctx, ListResourcesInput{
 		ClusterID:       input.ClusterID,
 		Resource:        namespaceIdentity,

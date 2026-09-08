@@ -63,7 +63,7 @@ func ProjectPod(pod *corev1.Pod) Pod {
 		Terminating:   pod.DeletionTimestamp != nil,
 		Terminal:      terminal,
 		RestartCount:  PodRestartCount(pod.Status),
-		Images:        podImages(pod.Spec),
+		Images:        PodAllImages(pod.Spec),
 	}
 	if controller := podController(pod.OwnerReferences); controller != nil {
 		summary.Controller = controller
@@ -102,19 +102,37 @@ func PodRestartCount(status corev1.PodStatus) int64 {
 	return total
 }
 
-func podImages(spec corev1.PodSpec) []string {
-	images := make([]string, 0, len(spec.Containers)+len(spec.InitContainers))
-	for _, container := range spec.InitContainers {
-		if container.Image != "" {
-			images = append(images, container.Image)
+// PodImages is the set of images a Pod template runs, deduplicated and sorted.
+//
+// A list shows which images are in play, not how many containers happen to
+// share one, and a stable order keeps the same Pod from appearing to change
+// every time it is read.
+func PodImages(spec corev1.PodSpec) []string {
+	unique := make(map[string]struct{}, len(spec.Containers)+len(spec.InitContainers))
+	for _, containers := range [][]corev1.Container{spec.InitContainers, spec.Containers} {
+		for _, container := range containers {
+			if container.Image != "" {
+				unique[container.Image] = struct{}{}
+			}
 		}
 	}
-	for _, container := range spec.Containers {
-		if container.Image != "" {
-			images = append(images, container.Image)
-		}
+	result := make([]string, 0, len(unique))
+	for image := range unique {
+		result = append(result, image)
 	}
-	return images
+	sort.Strings(result)
+	return result
+}
+
+// PodAllImages adds the ephemeral containers a running Pod has been given.
+// They belong to the Pod rather than to any template, so they are not part of
+// what a workload reports.
+func PodAllImages(spec corev1.PodSpec) []string {
+	result := PodImages(spec)
+	for _, container := range spec.EphemeralContainers {
+		result = append(result, container.Image)
+	}
+	return result
 }
 
 func podController(owners []metav1.OwnerReference) *OwnerReference {
@@ -228,6 +246,7 @@ func ProjectNamespace(namespace *corev1.Namespace) Namespace {
 	}
 	return Namespace{
 		ObjectSummary: objectSummary(namespace.ObjectMeta),
+		Phase:         string(namespace.Status.Phase),
 		Status:        status,
 	}
 }
@@ -240,7 +259,7 @@ func ProjectDeployment(workload *appsv1.Deployment) Workload {
 		Generation:         workload.Generation,
 		ObservedGeneration: workload.Status.ObservedGeneration,
 		Status:             DeploymentStatus(workload, desired),
-		Images:             podImages(workload.Spec.Template.Spec),
+		Images:             PodImages(workload.Spec.Template.Spec),
 		Replicas: &WorkloadReplicas{
 			Desired:     desired,
 			Current:     workload.Status.Replicas,
@@ -288,7 +307,7 @@ func ProjectStatefulSet(workload *appsv1.StatefulSet) Workload {
 		Generation:         workload.Generation,
 		ObservedGeneration: workload.Status.ObservedGeneration,
 		Status:             StatefulSetStatus(workload, desired),
-		Images:             podImages(workload.Spec.Template.Spec),
+		Images:             PodImages(workload.Spec.Template.Spec),
 		Replicas: &WorkloadReplicas{
 			Desired:     desired,
 			Current:     workload.Status.CurrentReplicas,
@@ -316,7 +335,7 @@ func ProjectDaemonSet(workload *appsv1.DaemonSet) Workload {
 		Generation:         workload.Generation,
 		ObservedGeneration: workload.Status.ObservedGeneration,
 		Status:             DaemonSetStatus(workload),
-		Images:             podImages(workload.Spec.Template.Spec),
+		Images:             PodImages(workload.Spec.Template.Spec),
 		Replicas: &WorkloadReplicas{
 			Desired:     workload.Status.DesiredNumberScheduled,
 			Current:     workload.Status.CurrentNumberScheduled,
@@ -343,7 +362,7 @@ func ProjectJob(workload *batchv1.Job) Workload {
 		Resource:      WorkloadJobs,
 		Generation:    workload.Generation,
 		Status:        JobStatus(workload),
-		Images:        podImages(workload.Spec.Template.Spec),
+		Images:        PodImages(workload.Spec.Template.Spec),
 		Job: &WorkloadJob{
 			Parallelism:    cloneInt32(workload.Spec.Parallelism),
 			Completions:    cloneInt32(workload.Spec.Completions),
@@ -384,7 +403,7 @@ func ProjectCronJob(workload *batchv1.CronJob) Workload {
 		Resource:      WorkloadCronJobs,
 		Generation:    workload.Generation,
 		Status:        CronJobStatus(workload),
-		Images:        podImages(workload.Spec.JobTemplate.Spec.Template.Spec),
+		Images:        PodImages(workload.Spec.JobTemplate.Spec.Template.Spec),
 		CronJob: &WorkloadCronJob{
 			Schedule:           workload.Spec.Schedule,
 			Suspend:            suspend,

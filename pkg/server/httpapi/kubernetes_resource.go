@@ -713,6 +713,11 @@ func kubernetesResourceErrorMappings() []errorMapping {
 		// Carries the API Server's own account of what it refused; the fixed
 		// message is only the fallback for a rejection that arrived without one.
 		{kubernetesresource.ErrUpstreamRejected, http.StatusBadRequest, "cluster_api_rejected", "Kubernetes rejected the submitted resource"},
+		// A continuation whose page is gone. It is 410 for the same reason
+		// Kubernetes answers 410 for an expired continue token: the position it
+		// named no longer exists, and the only correct thing a client can do is
+		// start the listing again rather than be handed a different page.
+		{kubernetesresource.ErrCachePageExpired, http.StatusGone, "page_expired", "listing page has expired; start the listing again"},
 		{kubernetesresource.ErrResourceNotFound, http.StatusNotFound, "resource_not_found", "Kubernetes resource not found"},
 		{kubernetesresource.ErrAgentNotConnected, http.StatusServiceUnavailable, "agent_not_connected", "Cluster Agent is not connected"},
 		{kubernetesresource.ErrAgentUnsupported, http.StatusServiceUnavailable, "agent_capability_unavailable", "Cluster Agent does not support generic resource queries"},

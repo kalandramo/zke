@@ -254,12 +254,23 @@ func (buffer *responseBuffer) Release() {
 	buffer.reserved = 0
 }
 
+// ListNodes answers from the Agent's resource cache when it can, and from
+// Kubernetes when it cannot. Both produce the same rows in the same order.
 func (service *Service) ListNodes(
 	ctx context.Context,
 	input ListNodesInput,
 ) (NodePage, error) {
 	if err := validateListNodesInput(input); err != nil {
 		return NodePage{}, err
+	}
+	if token, cacheable := cacheableList(input.ContinueToken); cacheable {
+		cached, answered, err := service.listNodesFromCache(ctx, input, token)
+		if err != nil {
+			return NodePage{}, err
+		}
+		if answered {
+			return cached, nil
+		}
 	}
 	body := service.newResponseBuffer()
 	defer body.Release()

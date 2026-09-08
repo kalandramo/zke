@@ -787,6 +787,16 @@ func (manager *Manager) handleConnection(parent context.Context, connection *qui
 			agentprotocol.CapabilityOverviewSnapshotV1,
 		)
 		current.capabilities[agentprotocol.CapabilityOverviewSnapshotV1] = struct{}{}
+		if hasCapability(
+			hello.GetCapabilities(),
+			agentprotocol.CapabilityResourceSummaryV1,
+		) {
+			serverCapabilities = append(
+				serverCapabilities,
+				agentprotocol.CapabilityResourceSummaryV1,
+			)
+			current.capabilities[agentprotocol.CapabilityResourceSummaryV1] = struct{}{}
+		}
 	}
 	if hasCapability(hello.GetCapabilities(), agentprotocol.CapabilityTerminalSessionV1) {
 		serverCapabilities = append(serverCapabilities, agentprotocol.CapabilityTerminalSessionV1)
@@ -1462,6 +1472,49 @@ func (manager *Manager) RequestOverviewSnapshot(
 	clusterID string,
 	responseBody io.Writer,
 ) (*agentv1.ResourceCacheResponse, error) {
+	return manager.requestResourceCache(
+		ctx,
+		clusterID,
+		agentprotocol.CapabilityOverviewSnapshotV1,
+		&agentv1.ResourceCacheRequest{
+			Query:             agentv1.ResourceCacheQuery_RESOURCE_CACHE_QUERY_OVERVIEW_SNAPSHOT,
+			AcceptedEncodings: agentprotocol.AcceptedResourceCacheEncodings(),
+		},
+		responseBody,
+	)
+}
+
+// RequestResourceSummaries reads one page of compact summaries from the Agent's
+// cache. Like the snapshot above, it is sent only to an Agent that said it
+// keeps one.
+func (manager *Manager) RequestResourceSummaries(
+	ctx context.Context,
+	clusterID string,
+	request *agentv1.ResourceCacheRequest,
+	responseBody io.Writer,
+) (*agentv1.ResourceCacheResponse, error) {
+	if request == nil ||
+		request.GetQuery() !=
+			agentv1.ResourceCacheQuery_RESOURCE_CACHE_QUERY_SUMMARY_LIST {
+		return nil, errors.New("Resource cache summary request is invalid")
+	}
+	request.AcceptedEncodings = agentprotocol.AcceptedResourceCacheEncodings()
+	return manager.requestResourceCache(
+		ctx,
+		clusterID,
+		agentprotocol.CapabilityResourceSummaryV1,
+		request,
+		responseBody,
+	)
+}
+
+func (manager *Manager) requestResourceCache(
+	ctx context.Context,
+	clusterID string,
+	capability string,
+	request *agentv1.ResourceCacheRequest,
+	responseBody io.Writer,
+) (*agentv1.ResourceCacheResponse, error) {
 	if ctx == nil {
 		return nil, errors.New("Resource cache request Context is required")
 	}
@@ -1478,7 +1531,7 @@ func (manager *Manager) RequestOverviewSnapshot(
 		return nil, ErrAgentNotConnected
 	}
 	defer current.endBusiness()
-	if _, supported := current.capabilities[agentprotocol.CapabilityOverviewSnapshotV1]; !supported {
+	if _, supported := current.capabilities[capability]; !supported {
 		return nil, ErrResourceCacheCapabilityMissing
 	}
 	// A cache query draws on the same per-Agent and instance-wide resource
@@ -1514,10 +1567,7 @@ func (manager *Manager) RequestOverviewSnapshot(
 			RequestId:       requestID,
 			TimeoutMillis:   uint64(timeoutMillis),
 		},
-		&agentv1.ResourceCacheRequest{
-			Query:             agentv1.ResourceCacheQuery_RESOURCE_CACHE_QUERY_OVERVIEW_SNAPSHOT,
-			AcceptedEncodings: agentprotocol.AcceptedResourceCacheEncodings(),
-		},
+		request,
 		responseBody,
 		manager.config.MaxResourceCacheBodyBytes,
 	)

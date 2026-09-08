@@ -290,6 +290,7 @@ func (handler *kubernetesNodeHandler) respondNodeError(
 		operation,
 		err,
 		errorMapping{kubernetesresource.ErrInvalidInput, http.StatusBadRequest, "invalid_request", "invalid Node request"},
+		errorMapping{kubernetesresource.ErrCachePageExpired, http.StatusGone, "page_expired", "listing page has expired; start the listing again"},
 		errorMapping{kubernetesresource.ErrNodeNotFound, http.StatusNotFound, "node_not_found", "Node not found"},
 		errorMapping{kubernetesresource.ErrDrainInventoryTruncated, http.StatusConflict, "drain_inventory_truncated", "Node has more Pods than the bounded drain inventory can safely process"},
 		errorMapping{kubernetesresource.ErrAgentNotConnected, http.StatusServiceUnavailable, "agent_not_connected", "Cluster Agent is not connected"},

@@ -2,7 +2,6 @@ package kubernetesresource
 
 import (
 	"context"
-	"sort"
 	"time"
 
 	"github.com/togettoyou/zke/pkg/shared/resourcesummary"
@@ -180,6 +179,15 @@ func (service *Service) ListWorkloads(
 	if !exists || (input.Namespace != "" &&
 		len(k8svalidation.IsDNS1123Label(input.Namespace)) != 0) {
 		return WorkloadPage{}, ErrInvalidInput
+	}
+	if token, cacheable := cacheableList(input.ContinueToken); cacheable {
+		cached, answered, err := service.listWorkloadsFromCache(ctx, input, token)
+		if err != nil {
+			return WorkloadPage{}, err
+		}
+		if answered {
+			return cached, nil
+		}
 	}
 	page, err := service.ListResources(ctx, ListResourcesInput{
 		ClusterID:     input.ClusterID,
@@ -499,7 +507,7 @@ func workloadSummary(
 		ObservedGeneration: observedGeneration,
 		Labels:             cloneMap(objectMeta.Labels),
 		Status:             status,
-		Images:             podImages(podSpec),
+		Images:             resourcesummary.PodImages(podSpec),
 	}
 }
 
@@ -554,23 +562,6 @@ func workloadSelector(selector *metav1.LabelSelector) *WorkloadSelector {
 			Values:   append([]string(nil), expression.Values...),
 		})
 	}
-	return result
-}
-
-func podImages(spec corev1.PodSpec) []string {
-	unique := make(map[string]struct{}, len(spec.Containers)+len(spec.InitContainers))
-	for _, containers := range [][]corev1.Container{spec.InitContainers, spec.Containers} {
-		for _, container := range containers {
-			if container.Image != "" {
-				unique[container.Image] = struct{}{}
-			}
-		}
-	}
-	result := make([]string, 0, len(unique))
-	for image := range unique {
-		result = append(result, image)
-	}
-	sort.Strings(result)
 	return result
 }
 

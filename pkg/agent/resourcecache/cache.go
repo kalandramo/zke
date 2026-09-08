@@ -93,6 +93,8 @@ type Cache struct {
 	// absent records resources Discovery says this Cluster does not have. They
 	// are reported as unavailable sections rather than failing the cache.
 	absent map[schema.GroupVersionResource]struct{}
+	// paging holds the sorted keys of queries that have more than one page.
+	paging *pagingSessions
 }
 
 func New(
@@ -139,6 +141,7 @@ func New(
 		order:     make([]schema.GroupVersionResource, 0, len(kinds)),
 		absent:    make(map[schema.GroupVersionResource]struct{}),
 	}
+	instance.paging = newPagingSessions(instance.now)
 	for _, kind := range kinds {
 		// One GVR, one store, one watch. A second registration of the same
 		// resource is a duplicate watch on the API Server and a second copy of

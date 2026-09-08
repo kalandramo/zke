@@ -92,8 +92,14 @@ type Node struct {
 
 type Namespace struct {
 	ObjectSummary
-	// Phase as Kubernetes reports it, lowered, with a deleting Namespace
-	// reported as terminating whatever its stored phase says.
+	// Phase exactly as Kubernetes stores it. A Namespace being deleted often
+	// still reads Active here, because the phase changes only once the
+	// controller has begun clearing it out.
+	Phase string `json:"phase"`
+	// Status is the reading the overview counts: lowered, and reported as
+	// terminating for a Namespace with a deletion timestamp whatever its stored
+	// phase says. It answers "what is happening to this Namespace", which is
+	// not the same question Phase answers.
 	Status string `json:"status"`
 }
 

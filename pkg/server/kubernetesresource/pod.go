@@ -7,6 +7,7 @@ import (
 	"time"
 
 	agentv1 "github.com/togettoyou/zke/api/agent/v1"
+	"github.com/togettoyou/zke/pkg/shared/resourcesummary"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -148,10 +149,26 @@ type DeletePodInput struct {
 	IdempotencyKey     string
 }
 
+// ListPods answers from the Agent's resource cache when it can, and from
+// Kubernetes when it cannot.
+//
+// The two produce the same rows: the cache holds a projection of the same Pods,
+// ordered the way Kubernetes orders a listing. What differs is the cost — the
+// cached page is a read of the Agent's memory, while the other is a listing of
+// the Cluster for every request.
 func (service *Service) ListPods(
 	ctx context.Context,
 	input ListPodsInput,
 ) (PodPage, error) {
+	if token, cacheable := cacheableList(input.ContinueToken); cacheable {
+		cached, answered, err := service.listPodsFromCache(ctx, input, token)
+		if err != nil {
+			return PodPage{}, err
+		}
+		if answered {
+			return cached, nil
+		}
+	}
 	page, err := service.ListResources(ctx, ListResourcesInput{
 		ClusterID:     input.ClusterID,
 		Resource:      podIdentity,
@@ -353,7 +370,7 @@ func podDetail(object map[string]any, namespace string, name string) (PodDetail,
 			NodeName:          pod.Spec.NodeName,
 			PodIP:             pod.Status.PodIP,
 			RestartCount:      podRestartCount(pod.Status),
-			Images:            podAllImages(pod.Spec),
+			Images:            resourcesummary.PodAllImages(pod.Spec),
 			Controller:        podController(owners),
 		},
 		Annotations:        annotations,
@@ -498,14 +515,6 @@ func podContainer(
 		State:           state,
 		LastState:       lastState,
 	}
-}
-
-func podAllImages(spec corev1.PodSpec) []string {
-	result := podImages(spec)
-	for _, container := range spec.EphemeralContainers {
-		result = append(result, container.Image)
-	}
-	return result
 }
 
 func podContainerState(input corev1.ContainerState) PodContainerState {
