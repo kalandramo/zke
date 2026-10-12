@@ -11,7 +11,7 @@
 [![License](https://img.shields.io/github/license/togettoyou/zke)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/togettoyou/zke?style=flat)](https://github.com/togettoyou/zke/stargazers)
 
-[在线体验](https://fbcupchhlacp.sealosbja.site/) · [部署指南](docs/deployment.md) · [完整文档](docs/README.md) · [Roadmap](docs/roadmap.md)
+[部署指南](docs/deployment.md) · [完整文档](docs/README.md) · [Roadmap](docs/roadmap.md)
 
 </div>
 
@@ -20,10 +20,6 @@ ZKE（Z Kubernetes Engine）是一个 AI 原生的 Kubernetes 云操作环境，
 ZKE Console 采用了一套运行在浏览器中的桌面式交互界面。集群接入管理、组织与资源、访问与审计、容器服务、Helm 应用、项目自定义应用、终端和 AIOps 都以独立应用存在。用户可以从桌面或 Dock 打开应用，在窗口之间切换、最小化、最大化，并保存自己的桌面布局和工作作用域。这种设计并不只是视觉模仿。多集群运维很少是一条从上到下的单页面流程。排查一个异常工作负载时，操作者可能同时需要资源详情、事件、Pod 日志和终端。多窗口让这些上下文保留在同一个工作空间中，最小化终端窗口也不会被当成关闭会话。
 
 https://github.com/user-attachments/assets/f06f2229-48c2-4911-8e72-8cf60975d28f
-
-> **在线体验：** <https://fbcupchhlacp.sealosbja.site/>
->
-> 用户名 `view` / 密码 `LECQkqcp2tQ5Yh8`（只读账号，体验数据可能随时重置）
 
 ## 把多集群当成一台机器来用
 
