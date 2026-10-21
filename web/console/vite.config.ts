@@ -39,5 +39,12 @@ export default defineConfig({
     // Immutable asset names; index.html itself must not be cached long term.
     assetsDir: "assets",
     sourcemap: true,
+    rollupOptions: {
+      // desktop-kit 集成实验页（desktop-kit 分支专用，见 DESKTOP-KIT-INTEGRATION.md）。
+      input: {
+        main: fileURLToPath(new URL("./index.html", import.meta.url)),
+        "kit-lab": fileURLToPath(new URL("./kit-lab.html", import.meta.url)),
+      },
+    },
   },
 });

@@ -1,0 +1,5 @@
+﻿# desktop-kit 集成实验分支专用（见 DESKTOP-KIT-INTEGRATION.md）。
+# pnpm 11 默认启用最小发布时间闸门（minimumReleaseAge）：刚发布的包在校验期会被判为「过新」。
+# 只对 @kalandramo 这一个 scope 放行；不声明 packages，因此不会把 console 变成多包工作区。
+minimumReleaseAgeExclude:
+  - "@kalandramo/*"
