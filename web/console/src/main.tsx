@@ -8,7 +8,7 @@ import { SessionProvider } from "@/auth/SessionProvider";
 import { AppToaster } from "@/components/common/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-import "@/styles/theme.css";
+import "@kalandramo/desktop-kit-tokens/styles.css";
 
 // Caps a `Retry-After` the Server may state in minutes: a query that waits that
 // long is a window stuck on a spinner with nothing to show for it.
