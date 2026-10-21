@@ -55,6 +55,21 @@
 结论：**kit 的 `WindowFrame` 内容层必须加上 `@container`**，否则任何依赖容器查询的应用迁进来都会静默退化成一列。
 这是迁移前的前置条件，与「缺 `useWindowVisible`（窗口不可见暂停轮询）」并列。
 
+## P3：两条外壳契约已补进 kit（0.4.0），迁移阻塞解除
+
+kit 0.4.0 补上了 P2 量出来的两条前置，本分支已升级并复验：
+
+| 契约 | 0.3.1 的表现 | 0.4.0 的表现（本分支实测） |
+| --- | --- | --- |
+| 窗口内容层 `@container` | 应用里的 `@md:grid-cols-2` **恒为 1 列**（找不到容器） | 窗口内容宽 718px，**两块探针都是 2 列**——`@md:` 问的是窗口宽度，不再依赖视口 |
+| `useWindowVisible()` / `pollWhileVisible()` | 不存在；最小化的窗口被直接卸载（状态丢失、轮询不停） | 最小化后窗口**仍挂载**（`hidden` + `data-visibility="minimized"`），应用内 `useWindowVisible()` 翻为 `false`，`pollWhileVisible(false, 5000)` 得到 `false`；还原后回到 `visible / interval=5000` |
+
+lab 页的验证脚本现在断言：内容容器带 `@container`、两块 CQ 探针都是 2 列、最小化后 `hidden` + 可见性翻 false、
+singleton 还原后回到 `on-screen`，且页面无 JS 错误。
+
+注意语义变化：**窗口不再因最小化/显示桌面而卸载**。这是 ZKE 既有模型的采纳（终端、日志流、半填表单必须活下来），
+代价是 DOM 常驻；应用的轮询要靠 `useWindowVisible()` 自己停，否则不可见窗口仍然在打集群 Agent。
+
 ## pnpm 策略例外（为什么有这个文件）
 
 `web/console/pnpm-workspace.yaml` 只做一件事：对 `@kalandramo/*` 放行 pnpm 11 默认启用的

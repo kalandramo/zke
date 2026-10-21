@@ -12,8 +12,8 @@ importers:
         specifier: ^5.2.2
         version: 5.9.2(react-hook-form@7.90.0(@types/react@19.3.0)(react@19.3.1))(zod@4.6.7)
       '@kalandramo/desktop-kit':
-        specifier: 0.3.1
-        version: 0.3.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(lucide-react@1.25.0(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tailwindcss@4.3.3)
+        specifier: 0.4.0
+        version: 0.4.0(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(lucide-react@1.25.0(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tailwindcss@4.3.3)
       '@kalandramo/desktop-kit-tokens':
         specifier: ^0.3.0
         version: 0.3.0(tailwindcss@4.3.3)
@@ -407,8 +407,8 @@ packages:
     peerDependencies:
       tailwindcss: ^4.0.0
 
-  '@kalandramo/desktop-kit@0.3.1':
-    resolution: {integrity: sha512-QUcJ5ocEICh4BgimF6ADwA7Nyrs1YCiSRkxnpOyCFR7evhKt7+8E2FUhKZ2XS7cbJZ35hqRB0QrBwg8QauaVmw==}
+  '@kalandramo/desktop-kit@0.4.0':
+    resolution: {integrity: sha512-+AUuKQRzGi/MnUMzEOBflPSJr44/ymNvDmugdX89kPO/DXu/UkexSW338Xbc0bz6vKOj+Z926Z/lh+lNJU++Ig==}
     engines: {node: '>=24 <25'}
     peerDependencies:
       lucide-react: ~1.25.0
@@ -2280,7 +2280,7 @@ snapshots:
     dependencies:
       tailwindcss: 4.3.3
 
-  '@kalandramo/desktop-kit@0.3.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(lucide-react@1.25.0(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tailwindcss@4.3.3)':
+  '@kalandramo/desktop-kit@0.4.0(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(lucide-react@1.25.0(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tailwindcss@4.3.3)':
     dependencies:
       '@kalandramo/desktop-kit-core': 0.2.0(@types/react@19.3.0)(react@19.3.1)
       '@kalandramo/desktop-kit-tokens': 0.3.0(tailwindcss@4.3.3)
