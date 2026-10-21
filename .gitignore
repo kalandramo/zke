@@ -57,5 +57,3 @@ deploy/chart/charts/*.tgz
 
 # Local perf reports (not tracked)
 PERF.md
-
-configs/zke-server-local.yaml
