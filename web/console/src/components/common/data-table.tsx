@@ -3,8 +3,7 @@ import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tan
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import type { Pagination } from "@/api/types";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/misc";
+import { Button, Skeleton } from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 
 import { EmptyState, ErrorState } from "./state";

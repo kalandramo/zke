@@ -31,17 +31,18 @@ import { RowDeleteAction } from "@/components/common/delete-action";
 import { SensitiveActionDialog } from "@/components/common/sensitive-action-dialog";
 import { RefreshAction } from "@/components/common/refresh-action";
 import { ErrorState, LoadingState } from "@/components/common/state";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Alert, Checkbox } from "@/components/ui/misc";
 import {
+  Alert,
+  Badge,
+  Button,
+  Checkbox,
+  Input,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 import { formatAbsolute } from "@/lib/time";
 import { useSubmissionKey } from "@/lib/use-submission-key";

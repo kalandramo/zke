@@ -47,31 +47,29 @@ import {
   StatusBadge,
 } from "@/components/common/status";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/state";
-import { Button } from "@/components/ui/button";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { FieldError, FieldHint, Label } from "@/components/ui/label";
-import {
+  FieldError,
+  FieldHint,
+  HintTooltip,
+  Input,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { HintTooltip } from "@/components/ui/tooltip";
+} from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { useSubmissionKey } from "@/lib/use-submission-key";

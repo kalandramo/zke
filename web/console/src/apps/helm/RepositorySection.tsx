@@ -16,25 +16,25 @@ import { ErrorAlert } from "@/components/common/error-alert";
 import { notifyFailure } from "@/components/common/notify";
 import { RefreshAction } from "@/components/common/refresh-action";
 import { SensitiveActionDialog } from "@/components/common/sensitive-action-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
+  Alert,
+  Badge,
+  Button,
+  CREDENTIAL_MANAGER_IGNORE,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { CREDENTIAL_MANAGER_IGNORE, Input, Textarea } from "@/components/ui/input";
-import { Alert } from "@/components/ui/misc";
-import {
+  Input,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+  Textarea,
+} from "@kalandramo/desktop-kit/ui";
 
 import { Field, FieldGrid, SwitchField } from "./form";
 

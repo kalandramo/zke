@@ -24,8 +24,7 @@ import { SensitiveActionDialog } from "@/components/common/sensitive-action-dial
 import { ErrorState, LoadingState } from "@/components/common/state";
 import { RelativeTime, StatusBadge } from "@/components/common/status";
 import { YamlEditor } from "@/components/common/yaml-editor";
-import { Button } from "@/components/ui/button";
-import { Alert } from "@/components/ui/misc";
+import { Alert, Button } from "@kalandramo/desktop-kit/ui";
 import { formatAbsolute } from "@/lib/time";
 import { useSubmissionKey } from "@/lib/use-submission-key";
 import { stringify as stringifyYaml } from "yaml";

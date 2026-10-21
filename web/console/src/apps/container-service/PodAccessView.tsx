@@ -8,17 +8,19 @@ import { PageHeader } from "@/apps/AppShell";
 import { SecretReveal } from "@/components/common/secret-reveal";
 import { SensitiveActionDialog } from "@/components/common/sensitive-action-dialog";
 import { ErrorState, LoadingState } from "@/components/common/state";
-import { Button } from "@/components/ui/button";
-import { NumericInput } from "@/components/ui/input";
-import { FieldError, Label } from "@/components/ui/label";
-import { Alert, CardTitle } from "@/components/ui/misc";
 import {
+  Alert,
+  Button,
+  CardTitle,
+  FieldError,
+  Label,
+  NumericInput,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@kalandramo/desktop-kit/ui";
 import { useSubmissionKey } from "@/lib/use-submission-key";
 import { formatAbsolute } from "@/lib/time";
 

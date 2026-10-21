@@ -14,25 +14,24 @@ import {
 import type { KubernetesWorkloadSummary } from "@/api/types";
 import { DetailDeleteAction } from "@/components/common/delete-action";
 import { SensitiveActionDialog, type ScopeLine } from "@/components/common/sensitive-action-dialog";
-import { Button } from "@/components/ui/button";
 import {
+  Alert,
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input, NumericInput } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert } from "@/components/ui/misc";
+  Input,
+  Label,
+  NumericInput,
+} from "@kalandramo/desktop-kit/ui";
 import { useSubmissionKey } from "@/lib/use-submission-key";
 
 import { nameLimit, validWorkloadName } from "./workload-form-model";

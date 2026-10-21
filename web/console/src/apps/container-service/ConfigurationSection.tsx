@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { useSessionContext } from "@/auth/session-context";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@kalandramo/desktop-kit/ui";
 
 import { ConfigMapSection } from "./ConfigMapSection";
 import { SecretSection } from "./SecretSection";

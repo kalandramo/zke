@@ -1,7 +1,6 @@
 import { Trash2 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { HintTooltip } from "@/components/ui/tooltip";
+import { Button, HintTooltip } from "@kalandramo/desktop-kit/ui";
 
 type DeleteActionProps = {
   /** The object being deleted. It names the control for screen readers. */

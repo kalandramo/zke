@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useMetricsQuery } from "@/api/queries/observability";
 import { isForbidden } from "@/api/errors";
 import { ErrorState } from "@/components/common/state";
-import { Skeleton } from "@/components/ui/misc";
+import { Skeleton } from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 
 import { ChartPanel, IssueNotice } from "./ChartPanel";

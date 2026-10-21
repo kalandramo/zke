@@ -6,7 +6,7 @@ import type { HelmChartFileEntry } from "@/api/types";
 import { CopyIconButton } from "@/components/common/copy";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/state";
 import { YamlEditor } from "@/components/common/yaml-editor";
-import { Alert, CardTitle } from "@/components/ui/misc";
+import { Alert, CardTitle } from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 
 /**

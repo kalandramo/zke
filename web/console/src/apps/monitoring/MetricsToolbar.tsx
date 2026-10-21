@@ -1,13 +1,13 @@
 import { RotateCw, ZoomOut } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import {
+  Button,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@kalandramo/desktop-kit/ui";
 
 import { TimeRangePicker } from "./TimeRangePicker";
 import { REFRESH_CHOICES, useMetricsScope } from "./metrics-scope";

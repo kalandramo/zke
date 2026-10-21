@@ -28,9 +28,7 @@ import { SensitiveActionDialog } from "@/components/common/sensitive-action-dial
 import { RefreshAction } from "@/components/common/refresh-action";
 import { ErrorState, LoadingState } from "@/components/common/state";
 import { RelativeTime } from "@/components/common/status";
-import { Badge, StatusDot } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge, Button, StatusDot, Tabs, TabsList, TabsTrigger } from "@kalandramo/desktop-kit/ui";
 import { useWindowVisible } from "@/desktop/window-visibility";
 import { formatAbsolute } from "@/lib/time";
 import { useSubmissionKey } from "@/lib/use-submission-key";

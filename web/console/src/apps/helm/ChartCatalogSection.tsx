@@ -16,19 +16,24 @@ import { notifyFailure } from "@/components/common/notify";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/state";
 import { RelativeTime } from "@/components/common/status";
 import { YamlEditor } from "@/components/common/yaml-editor";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Alert, Card, CardTitle } from "@/components/ui/misc";
 import {
+  Alert,
+  Badge,
+  Button,
+  Card,
+  CardTitle,
+  HintTooltip,
+  Input,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { HintTooltip } from "@/components/ui/tooltip";
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@kalandramo/desktop-kit/ui";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 
 import { ChartFileBrowser } from "./ChartFileBrowser";

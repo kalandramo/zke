@@ -1,6 +1,6 @@
 import { CalendarClock } from "lucide-react";
 
-import { Alert } from "@/components/ui/misc";
+import { Alert } from "@kalandramo/desktop-kit/ui";
 import type { AppComponentProps } from "@/apps/types";
 
 /**

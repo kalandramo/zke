@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { Card, CardTitle } from "@/components/ui/misc";
+import { Card, CardTitle } from "@kalandramo/desktop-kit/ui";
 import { formatAbsolute } from "@/lib/time";
 
 export function DetailCard({ title, children }: { title: string; children: ReactNode }) {

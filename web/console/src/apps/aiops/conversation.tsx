@@ -26,9 +26,7 @@ import { useAITurnFeedback, useSaveAITurnFeedback, type AILiveOutput } from "@/a
 import { CopyIconButton } from "@/components/common/copy";
 import { Markdown } from "@/components/common/markdown";
 import { notifyFailure } from "@/components/common/notify";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/input";
-import { HintTooltip } from "@/components/ui/tooltip";
+import { Button, HintTooltip, Textarea } from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 
 import { openConsoleView, openEvidence } from "../evidence-link";

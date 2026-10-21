@@ -1,7 +1,6 @@
 import { CircleQuestionMark } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { HintTooltip } from "@/components/ui/tooltip";
+import { Button, HintTooltip } from "@kalandramo/desktop-kit/ui";
 
 import { METRICSQL_DOCUMENTATION_URL } from "./metricsql";
 

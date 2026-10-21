@@ -3,9 +3,7 @@ import { ChevronDown, ChevronLeft, ChevronRight, Check, Layers, Search } from "l
 
 import { useProject, useProjects, useTenant, useTenants } from "@/api/queries/resources";
 import type { Project, ScopeSelection, Tenant } from "@/api/types";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button, Input, Popover, PopoverContent, PopoverTrigger } from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 import { SCOPE_ATTENTION_MS, useScopeStore } from "@/scope/scope-store";
 

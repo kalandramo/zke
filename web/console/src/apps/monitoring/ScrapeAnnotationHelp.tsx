@@ -1,8 +1,12 @@
 import { CircleQuestionMark } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { HintTooltip } from "@/components/ui/tooltip";
+import {
+  Button,
+  HintTooltip,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@kalandramo/desktop-kit/ui";
 import {
   SCRAPE_ANNOTATION_GUIDE,
   SCRAPE_ANNOTATION_PREFIX,

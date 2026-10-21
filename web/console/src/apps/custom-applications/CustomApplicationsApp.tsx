@@ -23,10 +23,15 @@ import type { AppComponentProps } from "@/apps/types";
 import { ErrorAlert } from "@/components/common/error-alert";
 import { SensitiveActionDialog } from "@/components/common/sensitive-action-dialog";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/state";
-import { Button } from "@/components/ui/button";
-import { Input, Textarea } from "@/components/ui/input";
-import { FieldError, FieldHint, Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/misc";
+import {
+  Button,
+  Card,
+  FieldError,
+  FieldHint,
+  Input,
+  Label,
+  Textarea,
+} from "@kalandramo/desktop-kit/ui";
 import { useSessionContext } from "@/auth/session-context";
 import { cn } from "@/lib/cn";
 import { useSubmissionKey } from "@/lib/use-submission-key";

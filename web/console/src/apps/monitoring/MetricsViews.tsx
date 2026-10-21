@@ -8,7 +8,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 
 import { ChartPanel } from "./ChartPanel";

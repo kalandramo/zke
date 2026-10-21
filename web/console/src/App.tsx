@@ -4,7 +4,7 @@ import { useSetupStatus } from "@/api/queries/auth";
 import { LoginPage } from "@/auth/LoginPage";
 import { SetupPage } from "@/auth/SetupPage";
 import { useSessionContext } from "@/auth/session-context";
-import { Button } from "@/components/ui/button";
+import { Button } from "@kalandramo/desktop-kit/ui";
 import { Desktop } from "@/desktop/Desktop";
 
 /** The Server owns both first-run state and the authenticated session. */

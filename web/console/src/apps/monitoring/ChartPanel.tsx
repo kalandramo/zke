@@ -6,14 +6,14 @@ import type { MetricsQueryIssue, MetricsQuerySeries } from "@/api/types";
 import { isForbidden } from "@/api/errors";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/state";
 import { CopyIconButton } from "@/components/common/copy";
-import { Button } from "@/components/ui/button";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 
 import { ChartLegend, type LegendSeries } from "./ChartLegend";

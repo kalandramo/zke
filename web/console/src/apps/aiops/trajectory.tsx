@@ -14,17 +14,20 @@ import type { AITrajectoryEntry, AITrajectoryKind } from "@/api/types";
 import { CopyIconButton } from "@/components/common/copy";
 import { Markdown } from "@/components/common/markdown";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/state";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
+  Button,
+  HintTooltip,
+  Input,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { HintTooltip } from "@/components/ui/tooltip";
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 
 import { Evidence } from "./conversation";

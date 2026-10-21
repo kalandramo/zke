@@ -22,11 +22,12 @@ import type { KubernetesPodDetail } from "@/api/types";
 import { PageHeader } from "@/apps/AppShell";
 import { SensitiveActionDialog } from "@/components/common/sensitive-action-dialog";
 import { ErrorState, LoadingState } from "@/components/common/state";
-import { Badge, StatusDot } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Alert, Checkbox } from "@/components/ui/misc";
 import {
+  Alert,
+  Badge,
+  Button,
+  Checkbox,
+  Label,
   Select,
   SelectContent,
   SelectGroup,
@@ -34,7 +35,8 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+  StatusDot,
+} from "@kalandramo/desktop-kit/ui";
 import { useSubmissionKey } from "@/lib/use-submission-key";
 import { formatAbsolute } from "@/lib/time";
 import { queryKeys } from "@/api/query-keys";

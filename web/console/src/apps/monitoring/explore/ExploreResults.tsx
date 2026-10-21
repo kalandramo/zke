@@ -4,9 +4,14 @@ import { BarChart3, Braces, Table2 } from "lucide-react";
 import type { MetricsExploreOutcome } from "@/api/types";
 import { CopyIconButton } from "@/components/common/copy";
 import { EmptyState, LoadingState } from "@/components/common/state";
-import { Alert } from "@/components/ui/misc";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { HintTooltip } from "@/components/ui/tooltip";
+import {
+  Alert,
+  HintTooltip,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 import { highlightJson, type JsonTokenKind } from "@/lib/json-highlight";
 

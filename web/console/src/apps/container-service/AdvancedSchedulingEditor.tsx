@@ -1,17 +1,21 @@
 import { Plus, X } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Input, NumericInput } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/misc";
 import {
+  Button,
+  Checkbox,
+  Input,
+  Label,
+  NumericInput,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@kalandramo/desktop-kit/ui";
 
 import {
   DEFAULT_OPTION,

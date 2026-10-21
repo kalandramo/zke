@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { AlertTriangle, Inbox, Loader2, ShieldAlert } from "lucide-react";
 
 import { errorMessage, errorRequestId, isForbidden } from "@/api/errors";
-import { Button } from "@/components/ui/button";
+import { Button } from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 
 export function LoadingState({ label = "加载中…" }: { label?: string }) {

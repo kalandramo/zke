@@ -5,8 +5,7 @@ import { useNodeMetrics, usePodMetrics } from "@/api/queries/metrics";
 import { SectionToolbarActions } from "@/apps/AppShell";
 import { DataTable } from "@/components/common/data-table";
 import { RefreshAction } from "@/components/common/refresh-action";
-import { Alert } from "@/components/ui/misc";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, Tabs, TabsContent, TabsList, TabsTrigger } from "@kalandramo/desktop-kit/ui";
 import { useWindowVisible } from "@/desktop/window-visibility";
 import { formatAbsolute } from "@/lib/time";
 

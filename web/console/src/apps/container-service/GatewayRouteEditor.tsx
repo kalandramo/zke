@@ -2,16 +2,17 @@ import { Plus, X } from "lucide-react";
 import type { ReactNode } from "react";
 
 import type { KubernetesNetworkingResource } from "@/api/types";
-import { Button } from "@/components/ui/button";
-import { Input, NumericInput } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
+  Button,
+  Input,
+  Label,
+  NumericInput,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@kalandramo/desktop-kit/ui";
 
 import {
   emptyGatewayRouteRule,

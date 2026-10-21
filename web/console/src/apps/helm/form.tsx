@@ -2,8 +2,7 @@ import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { Package } from "lucide-react";
 
-import { FieldHint, Label } from "@/components/ui/label";
-import { Alert, Checkbox } from "@/components/ui/misc";
+import { Alert, Checkbox, FieldHint, Label } from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 
 /**

@@ -1,14 +1,16 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { TooltipProvider } from "@kalandramo/desktop-kit/ui";
 
 import { isApiError } from "@/api/errors";
 import { App } from "@/App";
 import { SessionProvider } from "@/auth/SessionProvider";
 import { AppToaster } from "@/components/common/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
 
-import "@kalandramo/desktop-kit-tokens/styles.css";
+// desktop-kit 的唯一 CSS 出口：令牌（含 @theme inline 映射）与 ui 组件样式都在里面，
+// 它自身还带着 @source "./dist"，Tailwind 才能扫到 node_modules 里的组件类名。
+import "@kalandramo/desktop-kit/styles.css";
 
 // Caps a `Retry-After` the Server may state in minutes: a query that waits that
 // long is a window stuck on a spinner with nothing to show for it.

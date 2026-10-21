@@ -1,8 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Check, Copy } from "lucide-react";
 
-import { Badge, StatusDot } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge, Button, StatusDot } from "@kalandramo/desktop-kit/ui";
 import { copyText } from "@/lib/clipboard";
 import { cn } from "@/lib/cn";
 import { formatAbsolute, formatRelative } from "@/lib/time";

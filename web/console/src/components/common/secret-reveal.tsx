@@ -1,8 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { Eye, EyeOff, ShieldAlert } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Alert } from "@/components/ui/misc";
+import { Alert, Button } from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 
 import { CopyButton } from "./status";

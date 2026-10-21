@@ -17,16 +17,19 @@ import { SectionToolbarActions } from "@/apps/AppShell";
 import { DataTable } from "@/components/common/data-table";
 import { SensitiveActionDialog } from "@/components/common/sensitive-action-dialog";
 import { YamlEditor } from "@/components/common/yaml-editor";
-import { Button } from "@/components/ui/button";
-import { Alert, Checkbox } from "@/components/ui/misc";
 import {
+  Alert,
+  Button,
+  Checkbox,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@kalandramo/desktop-kit/ui";
 
 /**
  * Only the target Cluster. Unlike the other sections this one is not scoped by

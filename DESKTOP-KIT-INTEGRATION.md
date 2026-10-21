@@ -101,8 +101,10 @@ git merge upstream/main
 
 ## 还没做
 
-- 把 `@container` 与 `useWindowVisible` 做进 kit（前置条件）；
-- 用 kit 的 11 个基础件替换 `components/ui`，再逐应用迁移（`window-store` 里带着 scope / 集群事件流等业务耦合）。
+- ~~把 `@container` 与 `useWindowVisible` 做进 kit~~ —— 已完成，见 P3（kit 0.4.0）；
+- ~~用 kit 的 11 个基础件替换 `components/ui`~~ —— 已完成，见 P4；
+- **迁移一个应用**：建议从没有集群作用域耦合的开始（避开 `window-store` 里的 scope / 集群事件流）；
+- 收尾：`web/console/AGENTS.md` 与 `eslint.config.js` 里仍提到 `components/ui`，需要同步更新（P4 未授权，未动）。
 
 ## 踩过的两个坑（供后来者）
 
@@ -111,3 +113,53 @@ git merge upstream/main
    重发才修好；desktop-kit 仓库已加断言防止复发。
 2. **把 `pnpm-workspace.yaml` 写进 `web/console` 会让它变成工作区根**，从而把依赖里的 `workspace:*` 当成工作区引用。
    所以本分支的例外文件必须在 kit 用真实版本发布之后才成立。
+
+## P4：基础件替换
+
+`src/components/ui/*` 的 11 个本地基础件（badge、button、dialog、dropdown-menu、input、label、
+misc、popover、select、tabs、tooltip）已整体下线，调用侧全部改为 npm 包单一 barrel
+`@kalandramo/desktop-kit/ui`。这一步是纯 import 路径迁移：kit 0.4.0 的 ui 与 ZKE `20e9f39`
+的本地实现逐字节等价（仅 cn 导入路径不同），没有改任何组件实现。
+
+- **替换范围**：101 个文件、333 行 `from "@/components/ui/<name>"` import（button 81、misc 60、
+  input 40、badge 33、select 33、label 29、tooltip 20、tabs 14、dialog 11、dropdown-menu 6、
+  popover 6），由一次性 codemod（TypeScript AST、按 import 语句粒度，脚本放 %TEMP%，未入库）改写：
+  同一文件的多条 ui import 合并为一条 `import { … } from "@kalandramo/desktop-kit/ui"`，纯类型符号
+  另立一条 `import type`；新语句落在原第一条 ui import 的位置，符号按字母序排列，超过 100 列按
+  prettier 风格折行。共合并掉 232 条语句，无重复符号、无 default/namespace 导入。符号覆盖事先核对过：
+  本地 11 个文件的 54 个公开符号在 kit barrel 里全部存在，Console 实际使用的 49 个符号全部可用。
+- **删除**：`web/console/src/components/ui/`（11 个 `.tsx`）。`components/common/`、
+  `components/brand/` 与 `src/lib/cn.ts` 保留不动。
+- **两处最小修正**：
+  1. `components/common/status-labels.ts`：原文件是整句 `import type { BadgeProps }`，codemod 把它
+     降级成了值导入，被 `verbatimModuleSyntax` 拒绝（TS1484）；恢复为 type-only 导入。
+  2. `src/main.tsx` 新增 `import "@kalandramo/desktop-kit/styles.css";`。这是 P4 暴露出的一个真问题：
+     kit 的组件类名只存在于 `node_modules/.../dist` 的 bundle 里，Tailwind v4 默认不扫描 node_modules，
+     kit 的官方契约是消费方 import 它的 `styles.css`（内含 `@source "./dist"`，见该文件自述）。kit-lab
+     入口已接、main 入口没接，而 P1/P3 都不渲染 kit 基础件，所以此前未暴露。首轮像素回归因此抓到
+     704 像素差异（登录按钮失去 `text-primary-foreground` 变成深色文字、右上两个图标按钮失去
+     `[&_svg]:size-*` 回到 24px 默认尺寸）；补上这条 import 后 main 入口拿到含全部 kit 类的 CSS chunk，
+     差异清零。令牌 CSS 由此被引入两次，CSS 变量声明幂等，像素回归确认无影响。
+- **门禁**：typecheck（`tsc -b`）exit 0；lint exit 0（5 条 warning 全部是 P3 遗留的
+  `react-refresh/only-export-components`，位于 `src/kit-lab/main.tsx`，与本迁移无关）；build exit 0；
+  像素回归（`vite preview --port 4319` + desktop-kit 仓库 `.tmp/zke-shot/` 的 Playwright 登录页规格，
+  msedge、1440×960、light）1 passed、与基线逐像素相同。
+- **改动量**：112 个文件（101 改写 + 11 删除），+397/−1056 行（不含本文档本次追加）。
+- **遗留**：`web/console/AGENTS.md` 与 `web/console/eslint.config.js` 的注释仍提及 `components/ui`
+  （不在本步授权范围内，未改动）；「还没做」清单中的「逐应用迁移（window-store 业务耦合）」保持不变。
+### 最终接线（父代理复核后定稿）
+
+`src/main.tsx` 只需要**一条** CSS 导入：
+
+```ts
+import "@kalandramo/desktop-kit/styles.css";
+```
+
+它已经 `@import` 了 token 层（`@import "@kalandramo/desktop-kit-tokens/styles.css"`）并自带 `@source "./dist"`，
+所以 P1 阶段额外加的那条 tokens 导入已删除——两条导入虽不会改变像素（变量声明幂等），但会让「唯一 CSS 出口」
+这条契约在代码里失去约束力。
+
+独立复核（父代理自己跑的，不是子代理自述）：`tsc -b` exit 0、`eslint` 0 errors（5 条 warning 是 P3 遗留）、
+`vite build` exit 0、`src/components/ui` 已不存在、`@/components/ui/` 残留 0 处；
+登录页截图对比 **1 passed、0 diff**——也就是说**令牌层与 11 个基础件同时换成 npm 包之后，登录页仍与本仓库
+`20e9f39` 的原始实现逐像素相同**。

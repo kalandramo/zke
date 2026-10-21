@@ -11,8 +11,7 @@ import {
   X,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button, Input } from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 import { highlightYaml, type YamlTokenKind } from "@/lib/yaml-highlight";
 import {

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ShieldAlert } from "lucide-react";
 
 import type { AppComponentProps } from "@/apps/types";
-import { Alert } from "@/components/ui/misc";
+import { Alert } from "@kalandramo/desktop-kit/ui";
 
 export function CustomApplicationFrame({ manifest }: AppComponentProps) {
   const application = manifest.customApplication;

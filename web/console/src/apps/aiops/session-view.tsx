@@ -15,7 +15,7 @@ import {
 import type { AISession, AISkill, AITool } from "@/api/types";
 import { notifyFailure } from "@/components/common/notify";
 import { ErrorState, LoadingState } from "@/components/common/state";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 
 import { Composer } from "./composer";

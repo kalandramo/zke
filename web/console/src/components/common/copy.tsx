@@ -2,8 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
-import { HintTooltip } from "@/components/ui/tooltip";
+import { Button, HintTooltip } from "@kalandramo/desktop-kit/ui";
 import { copyText } from "@/lib/clipboard";
 import { cn } from "@/lib/cn";
 

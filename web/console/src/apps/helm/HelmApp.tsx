@@ -20,7 +20,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@kalandramo/desktop-kit/ui";
 import { useScopeStore } from "@/scope/scope-store";
 import { stringify as stringifyYaml } from "yaml";
 

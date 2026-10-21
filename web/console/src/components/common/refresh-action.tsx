@@ -1,6 +1,6 @@
 import { RotateCw } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@kalandramo/desktop-kit/ui";
 
 /**
  * Reloads what a section is showing.

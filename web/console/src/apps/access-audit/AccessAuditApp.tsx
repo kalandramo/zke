@@ -61,30 +61,30 @@ import {
   RelativeTime,
   StatusBadge,
 } from "@/components/common/status";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
+  Alert,
+  Badge,
+  Button,
+  Checkbox,
+  CREDENTIAL_MANAGER_IGNORE,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { CREDENTIAL_MANAGER_IGNORE, Input } from "@/components/ui/input";
-import { FieldError, FieldHint, Label } from "@/components/ui/label";
-import { Alert, Checkbox } from "@/components/ui/misc";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/cn";
-import { useDebouncedValue } from "@/lib/use-debounced-value";
-import {
+  FieldError,
+  FieldHint,
+  Input,
+  Label,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
   Select,
   SelectContent,
   SelectGroup,
@@ -92,7 +92,9 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@kalandramo/desktop-kit/ui";
+import { cn } from "@/lib/cn";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 
 const NAV: AppNavItem[] = [
   { id: "users", label: "用户", icon: Users },

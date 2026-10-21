@@ -4,7 +4,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { appFaceClass, appHoverClass } from "@/apps/accent";
 import { AppGlyph } from "@/apps/AppGlyph";
 import type { AppManifest } from "@/apps/types";
-import { HintTooltip } from "@/components/ui/tooltip";
+import { HintTooltip } from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 
 import { useWindowStore, type WindowInstance } from "./window-store";

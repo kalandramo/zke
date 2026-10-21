@@ -22,31 +22,27 @@ import { EmptyState } from "@/components/common/state";
 import { ErrorAlert } from "@/components/common/error-alert";
 import { SensitiveActionDialog } from "@/components/common/sensitive-action-dialog";
 import { IdentifierLabel, RelativeTime, StatusBadge } from "@/components/common/status";
-import { Button } from "@/components/ui/button";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useScopeStore } from "@/scope/scope-store";
-import {
+  Input,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@kalandramo/desktop-kit/ui";
+import { useScopeStore } from "@/scope/scope-store";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { useSubmissionKey } from "@/lib/use-submission-key";
 

@@ -1,9 +1,7 @@
 import { useId, useState } from "react";
 import { Check, ChevronDown, Clock } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button, Input, Popover, PopoverContent, PopoverTrigger } from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 
 import {

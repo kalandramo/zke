@@ -23,7 +23,7 @@ import type { AppComponentProps } from "@/apps/types";
 import { isApiError } from "@/api/errors";
 import { useSessionContext } from "@/auth/session-context";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/state";
-import { Alert } from "@/components/ui/misc";
+import { Alert } from "@kalandramo/desktop-kit/ui";
 import { useScopeStore } from "@/scope/scope-store";
 
 import { CollectionQualitySection } from "./CollectionQualitySection";

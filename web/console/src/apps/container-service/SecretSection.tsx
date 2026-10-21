@@ -14,10 +14,7 @@ import { SensitiveActionDialog } from "@/components/common/sensitive-action-dial
 import { RefreshAction } from "@/components/common/refresh-action";
 import { ErrorState, LoadingState } from "@/components/common/state";
 import { CopyButton } from "@/components/common/status";
-import { Badge, StatusDot } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Alert } from "@/components/ui/misc";
-import { HintTooltip } from "@/components/ui/tooltip";
+import { Alert, Badge, Button, HintTooltip, StatusDot } from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 import { formatAbsolute } from "@/lib/time";
 import { useSubmissionKey } from "@/lib/use-submission-key";

@@ -8,10 +8,7 @@ import type { KubernetesConfigMapDetail } from "@/api/types";
 import { PageHeader } from "@/apps/AppShell";
 import { SensitiveActionDialog } from "@/components/common/sensitive-action-dialog";
 import { ErrorState, LoadingState } from "@/components/common/state";
-import { Button } from "@/components/ui/button";
-import { Input, Textarea } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert, Checkbox } from "@/components/ui/misc";
+import { Alert, Button, Checkbox, Input, Label, Textarea } from "@kalandramo/desktop-kit/ui";
 import { useSubmissionKey } from "@/lib/use-submission-key";
 
 const DNS_SUBDOMAIN = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/;

@@ -19,24 +19,22 @@ import {
 import type { AISession } from "@/api/types";
 import type { ClusterListResult } from "@/api/queries/clusters";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/state";
-import { Button } from "@/components/ui/button";
 import {
+  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import {
+  HintTooltip,
+  Input,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { HintTooltip } from "@/components/ui/tooltip";
+} from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 
 import { groupSessions } from "./entries";

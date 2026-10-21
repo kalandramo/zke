@@ -29,8 +29,7 @@ import { RefreshAction } from "@/components/common/refresh-action";
 import { SensitiveActionDialog } from "@/components/common/sensitive-action-dialog";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/state";
 import { RelativeTime, StatusBadge } from "@/components/common/status";
-import { Button } from "@/components/ui/button";
-import { Alert } from "@/components/ui/misc";
+import { Alert, Button } from "@kalandramo/desktop-kit/ui";
 import { useWindowVisible } from "@/desktop/window-visibility";
 import { useScopeStore } from "@/scope/scope-store";
 

@@ -5,11 +5,15 @@ import { useDeleteMetricsSavedQuery, useMetricsSavedQueries } from "@/api/querie
 import type { MetricsSavedQuery } from "@/api/types";
 import { SensitiveActionDialog } from "@/components/common/sensitive-action-dialog";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/state";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { HintTooltip } from "@/components/ui/tooltip";
+import {
+  Badge,
+  Button,
+  HintTooltip,
+  Input,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@kalandramo/desktop-kit/ui";
 
 import type { SaveQueryDraft } from "./SaveQueryDialog";
 

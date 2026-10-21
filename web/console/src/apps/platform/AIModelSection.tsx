@@ -10,18 +10,23 @@ import {
 import type { AIModelSettings, AIModelSettingsUpdate } from "@/api/types";
 import { errorMessage } from "@/api/errors";
 import { ErrorAlert } from "@/components/common/error-alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { CREDENTIAL_MANAGER_IGNORE, Input, NumericInput } from "@/components/ui/input";
-import { FieldHint, Label } from "@/components/ui/label";
-import { Alert, Checkbox, Switch } from "@/components/ui/misc";
 import {
+  Alert,
+  Badge,
+  Button,
+  Checkbox,
+  CREDENTIAL_MANAGER_IGNORE,
+  FieldHint,
+  Input,
+  Label,
+  NumericInput,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+  Switch,
+} from "@kalandramo/desktop-kit/ui";
 
 /**
  * What the form holds, which is not what the Server stores.

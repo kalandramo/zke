@@ -4,15 +4,15 @@ import { Check, CircleDashed, LoaderCircle, X } from "lucide-react";
 import { useHelmOperation } from "@/api/queries/helm";
 import type { HelmReleaseOperation, HelmReleaseOperationStage } from "@/api/types";
 import { ErrorAlert } from "@/components/common/error-alert";
-import { Button } from "@/components/ui/button";
 import {
+  Alert,
+  Button,
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Alert } from "@/components/ui/misc";
+} from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 
 import { HELM_ACTION_LABELS } from "./labels";

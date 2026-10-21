@@ -1,4 +1,4 @@
-import type { BadgeProps } from "@/components/ui/badge";
+import type { BadgeProps } from "@kalandramo/desktop-kit/ui";
 
 export type Tone = NonNullable<BadgeProps["tone"]>;
 type StatusDescriptor = { label: string; tone: Tone };

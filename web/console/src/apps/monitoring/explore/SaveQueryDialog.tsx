@@ -6,24 +6,23 @@ import {
 } from "@/api/queries/observability";
 import type { MetricsSavedQuery, MetricsSavedQueryVisibility } from "@/api/types";
 import { ErrorAlert } from "@/components/common/error-alert";
-import { Button } from "@/components/ui/button";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input, Textarea } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
+  Input,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+  Textarea,
+} from "@kalandramo/desktop-kit/ui";
 
 import { CLUSTER_SCOPE_LABEL } from "./metricsql";
 

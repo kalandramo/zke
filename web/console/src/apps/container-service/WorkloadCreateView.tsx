@@ -12,17 +12,21 @@ import {
 import type { KubernetesWorkloadDetail, KubernetesWorkloadResource } from "@/api/types";
 import { PageHeader } from "@/apps/AppShell";
 import { SensitiveActionDialog } from "@/components/common/sensitive-action-dialog";
-import { Button } from "@/components/ui/button";
-import { Input, NumericInput, Textarea } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert, Checkbox, Switch } from "@/components/ui/misc";
 import {
+  Alert,
+  Button,
+  Checkbox,
+  Input,
+  Label,
+  NumericInput,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+  Switch,
+  Textarea,
+} from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 import { useSubmissionKey } from "@/lib/use-submission-key";
 

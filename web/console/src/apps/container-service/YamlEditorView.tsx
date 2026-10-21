@@ -12,8 +12,7 @@ import { CopyButton } from "@/components/common/status";
 import { ErrorState, LoadingState } from "@/components/common/state";
 import { YamlEditor } from "@/components/common/yaml-editor";
 import { YamlDiff } from "@/components/common/yaml-diff";
-import { Button } from "@/components/ui/button";
-import { Alert } from "@/components/ui/misc";
+import { Alert, Button } from "@kalandramo/desktop-kit/ui";
 import { useSubmissionKey } from "@/lib/use-submission-key";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import {

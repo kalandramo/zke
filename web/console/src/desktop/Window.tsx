@@ -5,7 +5,7 @@ import { AppGlyph } from "@/apps/AppGlyph";
 import type { AppManifest } from "@/apps/types";
 import { AppErrorBoundary } from "@/components/common/error-boundary";
 import { LoadingState } from "@/components/common/state";
-import { Button } from "@/components/ui/button";
+import { Button } from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 
 import { revealTranslation, snapRect, type ResizeEdge } from "./geometry";

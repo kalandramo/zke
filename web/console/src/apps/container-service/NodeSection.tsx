@@ -23,9 +23,7 @@ import { SensitiveActionDialog } from "@/components/common/sensitive-action-dial
 import { RefreshAction } from "@/components/common/refresh-action";
 import { ErrorState, LoadingState } from "@/components/common/state";
 import { AddressValues, StatusBadge } from "@/components/common/status";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Alert, Checkbox } from "@/components/ui/misc";
+import { Alert, Badge, Button, Checkbox } from "@kalandramo/desktop-kit/ui";
 import { formatAbsolute } from "@/lib/time";
 import { useSubmissionKey } from "@/lib/use-submission-key";
 

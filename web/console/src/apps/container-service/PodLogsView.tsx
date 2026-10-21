@@ -9,11 +9,12 @@ import type { KubernetesPodDetail } from "@/api/types";
 import { PageHeader } from "@/apps/AppShell";
 import { CopyButton } from "@/components/common/status";
 import { ErrorState, LoadingState } from "@/components/common/state";
-import { Badge, StatusDot } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Alert, Checkbox } from "@/components/ui/misc";
 import {
+  Alert,
+  Badge,
+  Button,
+  Checkbox,
+  Label,
   Select,
   SelectContent,
   SelectGroup,
@@ -21,7 +22,8 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+  StatusDot,
+} from "@kalandramo/desktop-kit/ui";
 
 const TAIL_OPTIONS = [100, 200, 500, 1000, 5000];
 

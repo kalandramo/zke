@@ -1,4 +1,5 @@
-import { Button, type ButtonProps } from "@/components/ui/button";
+import { Button } from "@kalandramo/desktop-kit/ui";
+import type { ButtonProps } from "@kalandramo/desktop-kit/ui";
 
 const ZKE_REPOSITORY_URL = "https://github.com/togettoyou/zke";
 

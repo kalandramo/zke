@@ -1,6 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@kalandramo/desktop-kit/ui";
 
 type Props = {
   children: ReactNode;

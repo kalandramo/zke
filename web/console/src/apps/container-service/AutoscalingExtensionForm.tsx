@@ -19,17 +19,21 @@ import type {
 } from "@/api/types";
 import { PageHeader } from "@/apps/AppShell";
 import { notifyFailure } from "@/components/common/notify";
-import { Button } from "@/components/ui/button";
-import { Input, NumericInput } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert, Card, Checkbox, Switch } from "@/components/ui/misc";
 import {
+  Alert,
+  Button,
+  Card,
+  Checkbox,
+  Input,
+  Label,
+  NumericInput,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+  Switch,
+} from "@kalandramo/desktop-kit/ui";
 import { parseQuantity } from "@/lib/quantity";
 import { useSubmissionKey } from "@/lib/use-submission-key";
 

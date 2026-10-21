@@ -12,8 +12,7 @@ import { DetailCard } from "@/components/common/detail";
 import { RefreshAction } from "@/components/common/refresh-action";
 import { ErrorState, LoadingState } from "@/components/common/state";
 import { StatusBadge } from "@/components/common/status";
-import { Badge } from "@/components/ui/badge";
-import { Alert, Card } from "@/components/ui/misc";
+import { Alert, Badge, Card } from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 import { formatAbsolute } from "@/lib/time";
 

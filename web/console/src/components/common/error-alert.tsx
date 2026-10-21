@@ -1,5 +1,5 @@
 import { errorMessage, errorRequestId } from "@/api/errors";
-import { Alert } from "@/components/ui/misc";
+import { Alert } from "@kalandramo/desktop-kit/ui";
 
 /**
  * A rejected request, reported in place.

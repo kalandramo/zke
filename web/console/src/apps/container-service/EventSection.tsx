@@ -14,18 +14,19 @@ import { PageHeader, SectionToolbarActions } from "@/apps/AppShell";
 import { DataTable } from "@/components/common/data-table";
 import { RelativeTime, StatusBadge } from "@/components/common/status";
 import { statusLabel } from "@/components/common/status-labels";
-import { Badge, StatusDot } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert } from "@/components/ui/misc";
 import {
+  Alert,
+  Badge,
+  Button,
+  Input,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+  StatusDot,
+} from "@kalandramo/desktop-kit/ui";
 
 /** Radix Select cannot hold an empty value, so "any" needs a name of its own. */
 const ANY_TYPE = "__any__";

@@ -3,17 +3,17 @@ import { CircleDot, LayoutGrid, LogOut, Moon, Settings, Sun, Tag, UserRound } fr
 import type { StreamState } from "@/api/events";
 import { ZkeMark } from "@/components/brand/zke-mark";
 import { OpenSourceLink } from "@/components/common/open-source-link";
-import { StatusDot } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
+  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { HintTooltip } from "@/components/ui/tooltip";
+  HintTooltip,
+  StatusDot,
+} from "@kalandramo/desktop-kit/ui";
 import { useSessionContext } from "@/auth/session-context";
 import { cn } from "@/lib/cn";
 import { formatRelative } from "@/lib/time";

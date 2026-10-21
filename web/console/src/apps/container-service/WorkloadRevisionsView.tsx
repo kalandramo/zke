@@ -9,9 +9,7 @@ import { PageHeader } from "@/apps/AppShell";
 import { DataTable } from "@/components/common/data-table";
 import { RefreshAction } from "@/components/common/refresh-action";
 import { SensitiveActionDialog, type ScopeLine } from "@/components/common/sensitive-action-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Alert } from "@/components/ui/misc";
+import { Alert, Badge, Button } from "@kalandramo/desktop-kit/ui";
 import { formatAbsolute } from "@/lib/time";
 import { useSubmissionKey } from "@/lib/use-submission-key";
 

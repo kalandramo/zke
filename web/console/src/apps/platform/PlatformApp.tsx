@@ -23,25 +23,27 @@ import type { AppComponentProps } from "@/apps/types";
 import { useSessionContext } from "@/auth/session-context";
 import { ErrorAlert } from "@/components/common/error-alert";
 import { SensitiveActionDialog } from "@/components/common/sensitive-action-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input, Textarea } from "@/components/ui/input";
-import { FieldError, FieldHint, Label } from "@/components/ui/label";
-import { Alert, Switch } from "@/components/ui/misc";
 import {
+  Alert,
+  Badge,
+  Button,
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import {
+  FieldError,
+  FieldHint,
+  Input,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+  Switch,
+  Textarea,
+} from "@kalandramo/desktop-kit/ui";
 import { parseQuantity } from "@/lib/quantity";
 
 // One section per workload ZKE installs, rather than one section of images and

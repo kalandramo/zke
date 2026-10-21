@@ -10,11 +10,16 @@ import { describeCapability, GLOBAL_SCOPE } from "@/auth/capabilities";
 import { useSessionContext } from "@/auth/session-context";
 import { ErrorAlert } from "@/components/common/error-alert";
 import { AbsoluteTime, IdentifierLabel } from "@/components/common/status";
-import { Badge, StatusDot } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { FieldHint, Label } from "@/components/ui/label";
-import { Alert, Switch } from "@/components/ui/misc";
+import {
+  Alert,
+  Badge,
+  Button,
+  FieldHint,
+  Input,
+  Label,
+  StatusDot,
+  Switch,
+} from "@kalandramo/desktop-kit/ui";
 import { useAgentOpenStore } from "@/desktop/agent-open-store";
 import { clearDesktopState } from "@/desktop/persistence";
 import { useWindowStore } from "@/desktop/window-store";

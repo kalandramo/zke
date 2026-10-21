@@ -5,10 +5,7 @@ import { useLogin } from "@/api/queries/auth";
 import { errorMessage, errorRequestId, isApiError } from "@/api/errors";
 import { ZkeMark } from "@/components/brand/zke-mark";
 import { OpenSourceLink } from "@/components/common/open-source-link";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert } from "@/components/ui/misc";
+import { Alert, Button, Input, Label } from "@kalandramo/desktop-kit/ui";
 import { useThemeStore } from "@/theme/theme-store";
 
 /**

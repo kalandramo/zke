@@ -2,8 +2,7 @@ import { useLayoutEffect, useRef } from "react";
 import { AlertTriangle, BookmarkPlus, Eraser, Eye, EyeOff, Play, Plus, Trash2 } from "lucide-react";
 
 import type { MetricsExploreOutcome } from "@/api/types";
-import { Button } from "@/components/ui/button";
-import { HintTooltip } from "@/components/ui/tooltip";
+import { Button, HintTooltip } from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 
 import { SegmentedTabs } from "../MetricsViews";

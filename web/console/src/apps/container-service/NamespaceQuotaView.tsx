@@ -13,9 +13,7 @@ import { PageHeader } from "@/apps/AppShell";
 import { SensitiveActionDialog } from "@/components/common/sensitive-action-dialog";
 import { RefreshAction } from "@/components/common/refresh-action";
 import { ErrorState, LoadingState } from "@/components/common/state";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Alert } from "@/components/ui/misc";
+import { Alert, Button, Input } from "@kalandramo/desktop-kit/ui";
 import { displayToQuantity, quantityToDisplay } from "@/lib/quantity";
 import { useSubmissionKey } from "@/lib/use-submission-key";
 

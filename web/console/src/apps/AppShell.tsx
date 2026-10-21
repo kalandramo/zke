@@ -13,8 +13,7 @@ import { createPortal } from "react-dom";
 import { ArrowLeft, PanelLeftClose, PanelLeftOpen, type LucideIcon } from "lucide-react";
 
 import { useNarrowSurface } from "@/apps/sidebar";
-import { Button } from "@/components/ui/button";
-import { HintTooltip } from "@/components/ui/tooltip";
+import { Button, HintTooltip } from "@kalandramo/desktop-kit/ui";
 import { cn } from "@/lib/cn";
 import { useScopeStore } from "@/scope/scope-store";
 

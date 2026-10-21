@@ -25,8 +25,7 @@ import { SensitiveActionDialog } from "@/components/common/sensitive-action-dial
 import { RefreshAction } from "@/components/common/refresh-action";
 import { ErrorState, LoadingState } from "@/components/common/state";
 import { AddressValues, StatusBadge } from "@/components/common/status";
-import { Badge, StatusDot } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge, Button, StatusDot } from "@kalandramo/desktop-kit/ui";
 import { formatAbsolute } from "@/lib/time";
 import { useSubmissionKey } from "@/lib/use-submission-key";
 

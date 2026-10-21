@@ -18,16 +18,17 @@ import {
 import { AppShell, ScopeRequired, type AppNavItem } from "@/apps/AppShell";
 import type { AppComponentProps } from "@/apps/types";
 import { SensitiveActionDialog } from "@/components/common/sensitive-action-dialog";
-import { Alert } from "@/components/ui/misc";
-import { Button } from "@/components/ui/button";
-import { Badge, StatusDot } from "@/components/ui/badge";
 import {
+  Alert,
+  Badge,
+  Button,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+  StatusDot,
+} from "@kalandramo/desktop-kit/ui";
 import { useSubmissionKey } from "@/lib/use-submission-key";
 import { useScopeStore } from "@/scope/scope-store";
 import { useWindowStore } from "@/desktop/window-store";

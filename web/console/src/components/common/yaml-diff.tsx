@@ -1,4 +1,4 @@
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@kalandramo/desktop-kit/ui";
 
 type DiffKind = "same" | "add" | "remove" | "gap";
 type DiffRow = { kind: DiffKind; text: string; before?: number; after?: number };

@@ -17,16 +17,19 @@ import { notifyFailure } from "@/components/common/notify";
 import { LoadingState } from "@/components/common/state";
 import { YamlDiff } from "@/components/common/yaml-diff";
 import { YamlEditor } from "@/components/common/yaml-editor";
-import { Button } from "@/components/ui/button";
-import { Input, NumericInput } from "@/components/ui/input";
-import { Alert, Card, CardTitle } from "@/components/ui/misc";
 import {
+  Alert,
+  Button,
+  Card,
+  CardTitle,
+  Input,
+  NumericInput,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@kalandramo/desktop-kit/ui";
 import { useSubmissionKey } from "@/lib/use-submission-key";
 
 import { ChartIcon, Field, FieldGrid, FormSection, SwitchField } from "./form";
