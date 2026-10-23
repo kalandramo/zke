@@ -109,7 +109,7 @@ export function RepositorySection({ canManage }: { canManage: boolean }) {
       {
         header: "地址",
         cell: ({ row }) => (
-          <span className="zke-mono text-muted-foreground text-xs break-all">
+          <span className="text-muted-foreground font-mono text-xs break-all tabular-nums">
             {row.original.url}
           </span>
         ),
@@ -492,7 +492,7 @@ function RepositoryDialog({
                 onChange={(event) => setCaCertificate(event.target.value)}
                 rows={3}
                 spellCheck={false}
-                className="zke-mono text-xs"
+                className="font-mono text-xs tabular-nums"
                 placeholder="-----BEGIN CERTIFICATE-----"
               />
             </Field>
@@ -544,7 +544,7 @@ function RepositoryDialog({
                     onChange={(event) => setPublicKeyring(event.target.value)}
                     rows={4}
                     spellCheck={false}
-                    className="zke-mono text-xs"
+                    className="font-mono text-xs tabular-nums"
                     placeholder="-----BEGIN PGP PUBLIC KEY BLOCK-----"
                   />
                 </Field>
@@ -556,7 +556,9 @@ function RepositoryDialog({
                       {/* The fingerprint, because it is the only part of a PGP
                           key that identifies it — a user ID is free text its
                           own owner wrote. */}
-                      <span className="zke-mono text-foreground break-all">{key.fingerprint}</span>
+                      <span className="text-foreground font-mono break-all tabular-nums">
+                        {key.fingerprint}
+                      </span>
                       <span className="break-all">{key.identities.join("、") || "—"}</span>
                     </div>
                   ))}

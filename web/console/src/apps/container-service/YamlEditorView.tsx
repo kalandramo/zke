@@ -273,8 +273,10 @@ export function YamlEditorView({
           />
 
           <div className="text-subtle-foreground mt-3 flex flex-wrap items-center gap-3 text-xs">
-            <span className="zke-mono">resourceVersion {source.data?.resourceVersion || "—"}</span>
-            <span className="zke-mono break-all">UID {source.data?.uid || "—"}</span>
+            <span className="font-mono tabular-nums">
+              resourceVersion {source.data?.resourceVersion || "—"}
+            </span>
+            <span className="font-mono break-all tabular-nums">UID {source.data?.uid || "—"}</span>
             {dirty ? <span className="text-warning">有未保存的修改</span> : null}
             {dirty && validating ? <span>正在检查 YAML 结构…</span> : null}
             {dirty && !validating && validation.valid ? (

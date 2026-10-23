@@ -212,7 +212,7 @@ function ExpressionField({
         >
           <span className="text-foreground font-medium">表达式 {reference}</span>
           {outcome ? (
-            <span className="zke-tnum text-subtle-foreground">{outcome.duration_ms} ms</span>
+            <span className="text-subtle-foreground tabular-nums">{outcome.duration_ms} ms</span>
           ) : null}
           {hidden ? <span className="text-subtle-foreground">已隐藏</span> : null}
         </label>
@@ -271,7 +271,7 @@ function ExpressionField({
         aria-invalid={failed ? true : undefined}
         placeholder="例如：sum by (node) (rate(node_cpu_usage_seconds_total[5m]))"
         className={cn(
-          "zke-focus zke-mono border-border bg-surface text-foreground rounded-control placeholder:text-subtle-foreground w-full resize-none border px-2.5 py-1.5 text-xs leading-relaxed",
+          "dk-focus border-border bg-surface text-foreground rounded-control placeholder:text-subtle-foreground w-full resize-none border px-2.5 py-1.5 font-mono text-xs leading-relaxed tabular-nums",
           failed && "border-danger",
         )}
         onFocus={onFocus}

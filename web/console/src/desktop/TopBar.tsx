@@ -71,7 +71,7 @@ export function TopBar({
           room to fall off below the content instead of ending at its edge. */}
       <div
         aria-hidden
-        className="zke-topbar pointer-events-none absolute inset-x-0 top-0 -z-10 h-16"
+        className="dk-topbar pointer-events-none absolute inset-x-0 top-0 -z-10 h-16"
       />
 
       <ZkeMark className="size-6 rounded-[8px]" />
@@ -120,7 +120,7 @@ export function TopBar({
               <span className="text-foreground block text-[13px] font-medium">
                 {session?.user.display_name}
               </span>
-              <span className="zke-mono text-subtle-foreground block text-xs">
+              <span className="text-subtle-foreground block font-mono text-xs tabular-nums">
                 {session?.user.username}
               </span>
             </DropdownMenuLabel>
@@ -152,7 +152,7 @@ export function TopBar({
               <Tag className="mt-0.5" />
               <span className="grid min-w-0 gap-0.5">
                 Server 版本
-                <span className="zke-mono text-subtle-foreground text-[11px] break-all">
+                <span className="text-subtle-foreground font-mono text-[11px] break-all tabular-nums">
                   {session?.server_version || "—"}
                 </span>
               </span>

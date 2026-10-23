@@ -1,0 +1,67 @@
+/**
+ * 应用瓦片的配色三件套，由宿主自己声明。
+ *
+ * desktop-kit 0.5.0 起只发布 6 个中性色相档（blue / cyan / violet / emerald /
+ * amber / slate），不再内置任何具体产品的应用清单——框架的默认调色板不该来自某个
+ * 产品的应用列表。这一文件就是那条边界在宿主侧的另一半：`accent.ts` 说「哪个应用
+ * 穿哪个令牌」，这里说「那个令牌是什么颜色」。
+ *
+ * 每一档三件套缺一不可。`--app-*-from` / `--app-*-to` 被 `accent.ts` 写进
+ * `bg-linear-to-b from-[var(--app-<id>-from)] to-[var(--app-<id>-to)]`，而
+ * `var()` 没有兜底值时，未定义会让**整条 background-image 在计算值阶段失效**——
+ * 瓦片渲染成无色，且 tsc / eslint / vite build 全都报绿。这正是 0.4.1 里那个静默
+ * 缺陷的形状，所以这里用别名而不是重复抄色值：能对上框架内置档的六个应用直接指向
+ * 内置档，色相只有一份定义，抄漏一个的可能性归零。
+ *
+ * 深浅两套主题下这些值都相同：框架的内置档只在 `:root` 定义，`[data-theme="dark"]`
+ * 不覆盖它们，宿主也不该自己发明暗色值——瓦片在暗色下靠的是同一份渐变，这是迁移前
+ * 的实际行为，逐像素验证过。
+ */
+
+:root {
+  /* 与框架内置色相档逐字相同的六个，用别名指过去。 */
+  --app-cluster-access-from: var(--app-blue-from);
+  --app-cluster-access-to: var(--app-blue-to);
+  --app-cluster-access-glow: var(--app-blue-glow);
+
+  --app-container-service-from: var(--app-cyan-from);
+  --app-container-service-to: var(--app-cyan-to);
+  --app-container-service-glow: var(--app-cyan-glow);
+
+  --app-helm-from: var(--app-violet-from);
+  --app-helm-to: var(--app-violet-to);
+  --app-helm-glow: var(--app-violet-glow);
+
+  --app-access-audit-from: var(--app-emerald-from);
+  --app-access-audit-to: var(--app-emerald-to);
+  --app-access-audit-glow: var(--app-emerald-glow);
+
+  --app-settings-from: var(--app-amber-from);
+  --app-settings-to: var(--app-amber-to);
+  --app-settings-glow: var(--app-amber-glow);
+
+  --app-terminal-from: var(--app-slate-from);
+  --app-terminal-to: var(--app-slate-to);
+  --app-terminal-glow: var(--app-slate-glow);
+
+  /* 框架没有对应色相的五个，值逐字来自迁移前框架内置的那一份。 */
+  --app-resources-from: #ac7bbb;
+  --app-resources-to: #754783;
+  --app-resources-glow: rgb(117 71 131 / 0.42);
+
+  --app-monitoring-from: #1fa69d;
+  --app-monitoring-to: #026b65;
+  --app-monitoring-glow: rgb(2 107 101 / 0.42);
+
+  --app-platform-from: #c8795b;
+  --app-platform-to: #8d4426;
+  --app-platform-glow: rgb(141 68 38 / 0.42);
+
+  --app-aiops-from: #c1749c;
+  --app-aiops-to: #874067;
+  --app-aiops-glow: rgb(135 64 103 / 0.42);
+
+  --app-custom-apps-from: #718ad0;
+  --app-custom-apps-to: #405996;
+  --app-custom-apps-glow: rgb(64 89 150 / 0.42);
+}

@@ -921,7 +921,7 @@ function EmptyHint({ children }: { children: React.ReactNode }) {
 
 function RuleCount({ value }: { value: number }) {
   return value > 0 ? (
-    <span className="bg-surface-muted text-muted-foreground zke-tnum rounded-full px-1.5 text-[11px]">
+    <span className="bg-surface-muted text-muted-foreground rounded-full px-1.5 text-[11px] tabular-nums">
       {value}
     </span>
   ) : null;

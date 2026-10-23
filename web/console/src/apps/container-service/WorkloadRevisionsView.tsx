@@ -64,12 +64,14 @@ export function WorkloadRevisionsView({
       cell: ({ row }) => (
         <div className="flex flex-col gap-0.5">
           <div className="flex items-baseline gap-1.5">
-            <span className="zke-tnum text-foreground font-medium">#{row.original.revision}</span>
+            <span className="text-foreground font-medium tabular-nums">
+              #{row.original.revision}
+            </span>
             {row.original.current ? <Badge tone="success">当前</Badge> : null}
           </div>
           {/* The object the revision was read from, so it can be looked at with
               kubectl without first working out which one it is. */}
-          <span className="zke-mono text-subtle-foreground text-xs break-all">
+          <span className="text-subtle-foreground font-mono text-xs break-all tabular-nums">
             {row.original.name}
           </span>
         </div>
@@ -190,7 +192,7 @@ function RevisionImages({ revision }: { revision: KubernetesWorkloadRevision }) 
           <span className="text-subtle-foreground shrink-0 text-xs">
             {container.init ? `Init · ${container.name}` : container.name}
           </span>
-          <span className="zke-mono text-muted-foreground text-xs break-all">
+          <span className="text-muted-foreground font-mono text-xs break-all tabular-nums">
             {container.image || "—"}
           </span>
         </div>

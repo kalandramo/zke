@@ -217,7 +217,7 @@ export function PodSection({
       {
         header: "重启",
         size: 70,
-        cell: ({ row }) => <span className="zke-tnum">{row.original.restart_count}</span>,
+        cell: ({ row }) => <span className="tabular-nums">{row.original.restart_count}</span>,
       },
       {
         header: "创建时间",
@@ -712,15 +712,20 @@ function PodDetailCards({ pod }: { pod: KubernetesPodDetail }) {
         <DetailRow label="命名空间" value={pod.namespace} />
         <DetailRow
           label="UID"
-          value={<span className="zke-mono text-xs break-all">{pod.uid || "—"}</span>}
+          value={<span className="font-mono text-xs break-all tabular-nums">{pod.uid || "—"}</span>}
         />
         <DetailRow
           label="版本"
-          value={<span className="zke-mono text-xs">{pod.resource_version || "—"}</span>}
+          value={
+            <span className="font-mono text-xs tabular-nums">{pod.resource_version || "—"}</span>
+          }
         />
         <DetailRow label="状态" value={<StatusBadge kind="pod" value={pod.phase || "Unknown"} />} />
         <DetailRow label="就绪" value={pod.ready ? "是" : "否"} />
-        <DetailRow label="重启次数" value={<span className="zke-tnum">{pod.restart_count}</span>} />
+        <DetailRow
+          label="重启次数"
+          value={<span className="tabular-nums">{pod.restart_count}</span>}
+        />
         <DetailRow label="QoS" value={pod.qos_class || "—"} />
         {pod.reason || pod.message ? (
           <DetailRow
@@ -809,7 +814,7 @@ function OwnerValue({ owner }: { owner: KubernetesPodOwnerReference }) {
           </Badge>
         ) : null}
       </span>
-      <span className="zke-mono text-subtle-foreground text-xs break-all">
+      <span className="text-subtle-foreground font-mono text-xs break-all tabular-nums">
         {owner.api_version} · {owner.uid || "—"}
       </span>
     </div>
@@ -847,7 +852,7 @@ function ContainerValue({ container }: { container: KubernetesPodContainer }) {
   ];
   return (
     <div className="grid gap-1">
-      <span className="zke-mono text-xs break-all">{container.image || "—"}</span>
+      <span className="font-mono text-xs break-all tabular-nums">{container.image || "—"}</span>
       <div className="flex flex-wrap items-center gap-1.5">
         <StatusBadge kind="containerState" value={container.state.type} />
         {container.ready ? null : (
@@ -857,7 +862,7 @@ function ContainerValue({ container }: { container: KubernetesPodContainer }) {
           </Badge>
         )}
         {container.restart_count > 0 ? (
-          <span className="zke-tnum text-subtle-foreground text-xs">
+          <span className="text-subtle-foreground text-xs tabular-nums">
             重启 {container.restart_count} 次
           </span>
         ) : null}

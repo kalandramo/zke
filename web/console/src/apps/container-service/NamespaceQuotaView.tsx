@@ -153,10 +153,10 @@ function UneditableQuotas({
           <dl className="grid gap-1.5 px-3 py-2 text-[13px]">
             {Object.entries(object.resource_quota?.hard ?? {}).map(([key, limit]) => (
               <div key={key} className="flex items-baseline gap-2">
-                <dt className="zke-mono text-muted-foreground min-w-0 flex-1 text-xs break-all">
+                <dt className="text-muted-foreground min-w-0 flex-1 font-mono text-xs break-all tabular-nums">
                   {key}
                 </dt>
-                <dd className="zke-tnum text-foreground shrink-0">
+                <dd className="text-foreground shrink-0 tabular-nums">
                   {object.resource_quota?.used[key] ?? "—"} / {limit}
                 </dd>
               </div>
@@ -294,8 +294,8 @@ function QuotaEditor({
           <Alert tone="info">
             {namespace}{" "}
             尚未设置任何配额限制，命名空间中的对象只受集群自身的容量约束。填写任意一项后保存，
-            将创建名为 <span className="zke-mono">{NAMESPACE_QUOTA_OBJECT_NAME}</span> 的
-            ResourceQuota。
+            将创建名为 <span className="font-mono tabular-nums">{NAMESPACE_QUOTA_OBJECT_NAME}</span>{" "}
+            的 ResourceQuota。
           </Alert>
         )}
         {readOnly ? (
@@ -304,7 +304,7 @@ function QuotaEditor({
         {Object.keys(preserved).length > 0 ? (
           <Alert tone="info">
             该 ResourceQuota 还包含本表单未建模的配额项（
-            <span className="zke-mono">{Object.keys(preserved).join("、")}</span>
+            <span className="font-mono tabular-nums">{Object.keys(preserved).join("、")}</span>
             ），保存时按当前值原样保留；需要修改请使用「策略管理 → ResourceQuota」或 YAML。
           </Alert>
         ) : null}
@@ -340,7 +340,8 @@ function QuotaEditor({
         {operation === "remove" ? (
           <Alert tone="warning">
             所有配额项都已清空。保存将删除 ResourceQuota{" "}
-            <span className="zke-mono">{pinned?.name}</span>，该命名空间将不再受配额限制。
+            <span className="font-mono tabular-nums">{pinned?.name}</span>
+            ，该命名空间将不再受配额限制。
           </Alert>
         ) : null}
         {mutation.error ? <Alert tone="danger">{errorMessage(mutation.error)}</Alert> : null}
@@ -424,7 +425,7 @@ function QuotaRow({
         {field.label}
       </label>
       <div className="flex items-center gap-2">
-        <span className="zke-tnum text-subtle-foreground w-20 text-right text-xs">
+        <span className="text-subtle-foreground w-20 text-right text-xs tabular-nums">
           {usedDisplay}
         </span>
         <span className="text-subtle-foreground text-xs">/</span>
@@ -438,7 +439,7 @@ function QuotaRow({
           placeholder="不限制"
           aria-invalid={invalid || undefined}
           aria-label={`${field.label} 总配额`}
-          className="zke-tnum h-8 w-32 text-right text-[13px]"
+          className="h-8 w-32 text-right text-[13px] tabular-nums"
           onChange={(event) => onChange(event.target.value)}
         />
         <span className="text-muted-foreground w-6 text-xs">{field.unitLabel}</span>

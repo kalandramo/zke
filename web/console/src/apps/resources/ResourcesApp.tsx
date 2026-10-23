@@ -581,7 +581,7 @@ function ProjectSection({
           <button
             type="button"
             onClick={onBack}
-            className="zke-focus hover:text-foreground rounded-control -mx-1 border border-transparent px-1 py-0.5 transition-colors"
+            className="dk-focus hover:text-foreground rounded-control -mx-1 border border-transparent px-1 py-0.5 transition-colors"
           >
             租户
           </button>

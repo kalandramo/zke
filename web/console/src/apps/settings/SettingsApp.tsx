@@ -126,7 +126,9 @@ function IdentitySection() {
           </span>
         </Row>
         <Row label="用户名">
-          <span className="zke-mono text-foreground text-[13px]">{session?.user.username}</span>
+          <span className="text-foreground font-mono text-[13px] tabular-nums">
+            {session?.user.username}
+          </span>
         </Row>
         <Row label="用户 ID">
           <IdentifierLabel value={session?.user.id ?? "—"} />
@@ -169,7 +171,7 @@ function IdentitySection() {
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {capability.permissions.map((permission) => (
-                    <Badge key={permission} tone="neutral" className="zke-mono">
+                    <Badge key={permission} tone="neutral" className="font-mono tabular-nums">
                       {permission}
                     </Badge>
                   ))}
@@ -354,7 +356,7 @@ function SystemSection() {
           {/* A width cap rather than free flow: the row's value side does not
               shrink, so an unstamped build's Go VCS pseudo-version would push
               the label off the card instead of wrapping under itself. */}
-          <span className="zke-mono text-foreground max-w-56 text-right text-[13px] break-all">
+          <span className="text-foreground max-w-56 text-right font-mono text-[13px] break-all tabular-nums">
             {session?.server_version || "—"}
           </span>
         </Row>

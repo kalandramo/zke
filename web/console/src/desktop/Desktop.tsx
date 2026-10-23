@@ -409,9 +409,9 @@ export function Desktop() {
        *
        * All of it sits below the windows and takes no pointer.
        */}
-      <div aria-hidden className="zke-desktop-surface pointer-events-none absolute inset-0" />
-      <div aria-hidden className="zke-desktop-field pointer-events-none absolute inset-0" />
-      <div aria-hidden className="zke-grain pointer-events-none absolute inset-0" />
+      <div aria-hidden className="dk-desktop-surface pointer-events-none absolute inset-0" />
+      <div aria-hidden className="dk-desktop-field pointer-events-none absolute inset-0" />
+      <div aria-hidden className="dk-grain pointer-events-none absolute inset-0" />
 
       <TopBar
         streamState={streamState}

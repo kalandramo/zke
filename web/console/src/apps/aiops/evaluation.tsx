@@ -79,7 +79,7 @@ function Metric({ label, value, detail }: { label: string; value: string; detail
   return (
     <div className="border-border bg-surface rounded-panel border p-3">
       <p className="text-subtle-foreground text-[11px]">{label}</p>
-      <p className="text-foreground zke-tnum mt-1 text-[22px] font-semibold">{value}</p>
+      <p className="text-foreground mt-1 text-[22px] font-semibold tabular-nums">{value}</p>
       <p className="text-muted-foreground mt-1 text-[11px]">{detail}</p>
     </div>
   );
@@ -89,7 +89,7 @@ function Datum({ label, value }: { label: string; value: string | number }) {
   return (
     <div>
       <p className="text-subtle-foreground text-[11px]">{label}</p>
-      <p className="text-foreground zke-tnum mt-1 text-sm font-medium">{value}</p>
+      <p className="text-foreground mt-1 text-sm font-medium tabular-nums">{value}</p>
     </div>
   );
 }
@@ -112,7 +112,7 @@ function Breakdown({
           .map(([name, count]) => (
             <li key={name} className="flex items-center justify-between gap-3 text-[13px]">
               <span className="text-muted-foreground">{labels[name] ?? name}</span>
-              <span className="text-foreground zke-tnum">{count}</span>
+              <span className="text-foreground tabular-nums">{count}</span>
             </li>
           ))}
       </ul>

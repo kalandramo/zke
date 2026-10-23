@@ -141,7 +141,7 @@ export function NetworkingSection({
         cell: ({ row }) => (
           <div className="flex flex-col gap-0.5">
             <span className="text-foreground font-medium">{row.original.name}</span>
-            <span className="zke-mono text-subtle-foreground text-xs">
+            <span className="text-subtle-foreground font-mono text-xs tabular-nums">
               {row.original.api_version}
             </span>
           </div>
@@ -361,7 +361,7 @@ export function NetworkingSection({
             <Alert tone="info" className="flex items-center justify-between gap-3">
               <span>
                 该集群没有安装 Gateway API（
-                <code className="zke-mono">
+                <code className="font-mono tabular-nums">
                   {gatewayIdentity.group}/{gatewayIdentity.version}/{gatewayIdentity.resource}
                 </code>
                 ）。ZKE 不会自动安装它；需要由集群管理员先部署对应 Gateway API CRD 与 Controller。
@@ -460,7 +460,7 @@ function typeColumns(
       {
         header: "端口",
         cell: ({ row }) => (
-          <span className="zke-mono text-muted-foreground text-xs break-all">
+          <span className="text-muted-foreground font-mono text-xs break-all tabular-nums">
             {(row.original.service?.spec.ports ?? [])
               .map(
                 (port) =>
@@ -495,7 +495,7 @@ function typeColumns(
       {
         header: "端口",
         cell: ({ row }) => (
-          <span className="zke-mono text-muted-foreground text-xs break-all">
+          <span className="text-muted-foreground font-mono text-xs break-all tabular-nums">
             {endpointPortLabels(row.original).join(" · ") || "—"}
           </span>
         ),
@@ -520,7 +520,7 @@ function typeColumns(
             .map((rule) => rule.host)
             .filter(Boolean);
           return (
-            <span className="zke-mono text-muted-foreground text-xs break-all">
+            <span className="text-muted-foreground font-mono text-xs break-all tabular-nums">
               {hosts.length > 0 ? hosts.join(" · ") : "任意主机"}
             </span>
           );
@@ -544,7 +544,7 @@ function typeColumns(
       {
         header: "主机",
         cell: ({ row }) => (
-          <span className="zke-mono text-muted-foreground text-xs break-all">
+          <span className="text-muted-foreground font-mono text-xs break-all tabular-nums">
             {(row.original.gateway_route?.hostnames ?? []).join(" · ") || "任意/不适用"}
           </span>
         ),
@@ -552,7 +552,7 @@ function typeColumns(
       {
         header: "父级",
         cell: ({ row }) => (
-          <span className="zke-mono text-muted-foreground text-xs break-all">
+          <span className="text-muted-foreground font-mono text-xs break-all tabular-nums">
             {(row.original.gateway_route?.parent_refs ?? [])
               .map(
                 (ref) =>
@@ -565,7 +565,7 @@ function typeColumns(
       {
         header: "后端",
         cell: ({ row }) => (
-          <span className="zke-mono text-muted-foreground text-xs break-all">
+          <span className="text-muted-foreground font-mono text-xs break-all tabular-nums">
             {(row.original.gateway_route?.backend_refs ?? [])
               .map(
                 (ref) =>
@@ -590,7 +590,7 @@ function typeColumns(
     {
       header: "监听器",
       cell: ({ row }) => (
-        <span className="zke-mono text-muted-foreground text-xs break-all">
+        <span className="text-muted-foreground font-mono text-xs break-all tabular-nums">
           {(row.original.gateway?.spec.listeners ?? [])
             .map((listener) => `${listener.name}:${listener.port}/${listener.protocol}`)
             .join(" · ") || "—"}
@@ -706,7 +706,7 @@ function NetworkingDetailView({
             <DetailRow
               label="类型"
               value={
-                <span className="zke-mono text-xs">
+                <span className="font-mono text-xs tabular-nums">
                   {item.api_version} · {item.kind}
                 </span>
               }
@@ -714,11 +714,17 @@ function NetworkingDetailView({
             <DetailRow label="命名空间" value={item.namespace} />
             <DetailRow
               label="UID"
-              value={<span className="zke-mono text-xs break-all">{item.uid || "—"}</span>}
+              value={
+                <span className="font-mono text-xs break-all tabular-nums">{item.uid || "—"}</span>
+              }
             />
             <DetailRow
               label="版本"
-              value={<span className="zke-mono text-xs">{item.resource_version || "—"}</span>}
+              value={
+                <span className="font-mono text-xs tabular-nums">
+                  {item.resource_version || "—"}
+                </span>
+              }
             />
             <DetailRow label="创建时间" value={formatAbsolute(item.creation_timestamp)} />
           </DetailCard>
@@ -806,7 +812,9 @@ function GatewayRouteCards({
           <DetailRow
             label="高级配置"
             value={
-              <span className="zke-mono text-xs break-all">{topLevelAdvanced.join("、")}</span>
+              <span className="font-mono text-xs break-all tabular-nums">
+                {topLevelAdvanced.join("、")}
+              </span>
             }
           />
         ) : null}
@@ -820,7 +828,9 @@ function GatewayRouteCards({
               key={`${parent.group}/${parent.kind}/${parent.namespace}/${parent.name}/${index}`}
               label={`父级 ${index + 1}`}
               value={
-                <span className="zke-mono text-xs break-all">{parentReferenceLabel(parent)}</span>
+                <span className="font-mono text-xs break-all tabular-nums">
+                  {parentReferenceLabel(parent)}
+                </span>
               }
             />
           ))
@@ -858,7 +868,7 @@ function GatewayRouteCards({
               <DetailRow
                 label={parent.parent.name || "未知父级"}
                 value={
-                  <span className="zke-mono text-xs break-all">
+                  <span className="font-mono text-xs break-all tabular-nums">
                     {parent.controller_name || "未知 Controller"}
                   </span>
                 }
@@ -904,7 +914,9 @@ function GatewayRouteRuleDetails({
       {advanced.length > 0 ? (
         <DetailRow
           label="高级配置"
-          value={<span className="zke-mono text-xs break-all">{advanced.join("、")}</span>}
+          value={
+            <span className="font-mono text-xs break-all tabular-nums">{advanced.join("、")}</span>
+          }
         />
       ) : null}
     </div>
@@ -917,7 +929,7 @@ function MatchLines({ lines, empty }: { lines: string[]; empty: string }) {
   ) : (
     <div className="grid gap-1">
       {lines.map((line, index) => (
-        <span key={`${line}/${index}`} className="zke-mono text-xs break-all">
+        <span key={`${line}/${index}`} className="font-mono text-xs break-all tabular-nums">
           {line}
         </span>
       ))}
@@ -1031,10 +1043,10 @@ function ServiceCards({ view }: { view: NonNullable<NetworkingSummary["service"]
               key={`${port.port}/${port.protocol}/${port.name}`}
               label={port.name || String(port.port)}
               value={
-                <span className="zke-mono text-xs break-all">
+                <span className="font-mono text-xs break-all tabular-nums">
                   <CopyableValue
                     value={address ? `${address}:${port.port}` : String(port.port)}
-                    className="zke-mono text-xs"
+                    className="font-mono text-xs tabular-nums"
                   >
                     {port.port}
                   </CopyableValue>{" "}
@@ -1042,7 +1054,10 @@ function ServiceCards({ view }: { view: NonNullable<NetworkingSummary["service"]
                   {port.node_port ? (
                     <>
                       {" · NodePort "}
-                      <CopyableValue value={String(port.node_port)} className="zke-mono text-xs" />
+                      <CopyableValue
+                        value={String(port.node_port)}
+                        className="font-mono text-xs tabular-nums"
+                      />
                     </>
                   ) : null}
                   {port.app_protocol ? ` · ${port.app_protocol}` : ""}
@@ -1155,7 +1170,10 @@ function IngressCards({ view }: { view: NonNullable<NetworkingSummary["ingress"]
               value={
                 <div className="grid gap-0.5">
                   {rule.paths.map((path, pathIndex) => (
-                    <span key={`${path.path}/${pathIndex}`} className="zke-mono text-xs break-all">
+                    <span
+                      key={`${path.path}/${pathIndex}`}
+                      className="font-mono text-xs break-all tabular-nums"
+                    >
                       {path.path || "/"} [{path.path_type}] → {backendLabel(path.backend)}
                     </span>
                   ))}
@@ -1173,7 +1191,9 @@ function IngressCards({ view }: { view: NonNullable<NetworkingSummary["ingress"]
               key={`${entry.secret_name}/${index}`}
               label={entry.secret_name || "未指定 Secret"}
               value={
-                <span className="zke-mono text-xs break-all">{entry.hosts.join(", ") || "—"}</span>
+                <span className="font-mono text-xs break-all tabular-nums">
+                  {entry.hosts.join(", ") || "—"}
+                </span>
               }
             />
           ))}
@@ -1217,7 +1237,7 @@ function GatewayCards({ view }: { view: NonNullable<NetworkingSummary["gateway"]
                 label={listener.name}
                 value={
                   <div className="grid gap-0.5">
-                    <span className="zke-mono text-xs break-all">
+                    <span className="font-mono text-xs break-all tabular-nums">
                       {listener.hostname || "任意主机"} · {listener.port}/{listener.protocol}
                       {listener.tls ? ` · TLS ${listener.tls.mode}` : ""}
                     </span>

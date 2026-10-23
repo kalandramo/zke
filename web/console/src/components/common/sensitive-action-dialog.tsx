@@ -96,7 +96,8 @@ export function SensitiveActionDialog({
   const confirmationControl = confirmationText ? (
     <div className={pinConfirmationControls ? "grid gap-1.5" : "mt-4 grid gap-1.5"}>
       <Label htmlFor="sensitive-action-confirmation">
-        请输入 <span className="zke-mono text-foreground">{confirmationText}</span> 以确认
+        请输入 <span className="text-foreground font-mono tabular-nums">{confirmationText}</span>{" "}
+        以确认
       </Label>
       <Input
         id="sensitive-action-confirmation"
@@ -184,7 +185,7 @@ export function SensitiveActionDialog({
                      * fits; `break-all` stays only as a floor for longer ones.
                      */}
                     {line.id ? (
-                      <div className="zke-mono text-subtle-foreground text-xs break-all">
+                      <div className="text-subtle-foreground font-mono text-xs break-all tabular-nums">
                         {line.id}
                       </div>
                     ) : null}

@@ -166,7 +166,7 @@ export function Conversation({
             size="icon-sm"
             aria-label="回到底部"
             onClick={toBottom}
-            className="shadow-e2 zke-rise absolute bottom-3 left-1/2 size-7 -translate-x-1/2 rounded-full"
+            className="shadow-e2 dk-rise absolute bottom-3 left-1/2 size-7 -translate-x-1/2 rounded-full"
           >
             <ArrowDown aria-hidden />
           </Button>
@@ -460,7 +460,7 @@ function Activity({
         type="button"
         onClick={() => setOpen((current) => !current)}
         aria-expanded={open}
-        className="zke-focus rounded-panel flex w-full items-center gap-2 px-3 py-2 text-left"
+        className="dk-focus rounded-panel flex w-full items-center gap-2 px-3 py-2 text-left"
       >
         <Wrench
           aria-hidden
@@ -526,7 +526,7 @@ function Branch({ branch }: { branch: ConversationBranch }) {
         type="button"
         onClick={() => setOpen((current) => !current)}
         aria-expanded={open}
-        className="zke-focus rounded-control flex w-full items-center gap-2 px-2.5 py-1.5 text-left"
+        className="dk-focus rounded-control flex w-full items-center gap-2 px-2.5 py-1.5 text-left"
       >
         <GitBranch aria-hidden className="text-muted-foreground size-3.5 shrink-0" />
         <span className="text-subtle-foreground shrink-0 text-[11px]">子任务 {branch.index}</span>
@@ -721,7 +721,7 @@ function Collapsible({
         type="button"
         onClick={() => setOpen((current) => !current)}
         aria-expanded={open}
-        className="zke-focus rounded-inline text-subtle-foreground hover:text-muted-foreground inline-flex items-center gap-1.5 text-xs"
+        className="dk-focus rounded-inline text-subtle-foreground hover:text-muted-foreground inline-flex items-center gap-1.5 text-xs"
       >
         <Icon aria-hidden className="size-3.5" />
         {title}
@@ -772,7 +772,7 @@ export function Evidence({ evidence }: { evidence: AIEvidence[] }) {
         <button
           key={`${item.kind}-${item.cluster}-${item.name ?? item.query ?? item.expression ?? index}`}
           type="button"
-          className="zke-focus border-border bg-surface-muted text-primary rounded-control inline-flex items-center gap-1 border px-2 py-1 text-[11px] hover:underline"
+          className="dk-focus border-border bg-surface-muted text-primary rounded-control inline-flex items-center gap-1 border px-2 py-1 text-[11px] hover:underline"
           onClick={() =>
             openEvidence({
               kind: item.kind,

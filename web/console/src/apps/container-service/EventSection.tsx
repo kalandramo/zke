@@ -217,7 +217,7 @@ export function EventSection({
       {
         header: "次数",
         size: 70,
-        cell: ({ row }) => <span className="zke-tnum">{row.original.count || 1}</span>,
+        cell: ({ row }) => <span className="tabular-nums">{row.original.count || 1}</span>,
       },
       {
         header: "最近发生",
@@ -404,7 +404,7 @@ export function EventSection({
 
       <div className="text-subtle-foreground mt-3 flex flex-wrap items-center gap-3 text-xs">
         <StreamStatus status={stream.status} following={follow} />
-        <span className="zke-tnum">
+        <span className="tabular-nums">
           共 {rows.length} 条{narrowed ? `（已读取 ${stream.events.length} 条）` : ""}
         </span>
         {nameNeedle || reasonNeedle ? (

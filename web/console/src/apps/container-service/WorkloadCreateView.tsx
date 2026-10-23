@@ -365,7 +365,7 @@ export function WorkloadCreateView({
                   >
                     <button
                       type="button"
-                      className="zke-focus rounded-inline"
+                      className="dk-focus rounded-inline"
                       title={problems.get(item.id)}
                       onClick={() => setActiveContainer(index)}
                     >
@@ -379,7 +379,7 @@ export function WorkloadCreateView({
                       <button
                         type="button"
                         aria-label={`移除容器 ${item.name}`}
-                        className="zke-focus text-subtle-foreground hover:text-danger rounded-inline"
+                        className="dk-focus text-subtle-foreground hover:text-danger rounded-inline"
                         onClick={() => {
                           patch({
                             containers: draft.containers.filter(
@@ -794,7 +794,7 @@ function ContainerPanel({
                   id={id}
                   value={container.command.join("\n")}
                   spellCheck={false}
-                  className="zke-mono min-h-20 text-xs"
+                  className="min-h-20 font-mono text-xs tabular-nums"
                   onChange={(event) => onChange({ command: event.target.value.split("\n") })}
                 />
               )}
@@ -805,7 +805,7 @@ function ContainerPanel({
                   id={id}
                   value={container.args.join("\n")}
                   spellCheck={false}
-                  className="zke-mono min-h-20 text-xs"
+                  className="min-h-20 font-mono text-xs tabular-nums"
                   onChange={(event) => onChange({ args: event.target.value.split("\n") })}
                 />
               )}
@@ -947,7 +947,7 @@ function ProbeEditor({
               aria-label="检查命令"
               spellCheck={false}
               placeholder="每行一条，例如 cat /tmp/healthy"
-              className="zke-mono min-h-9 text-xs @2xl:col-span-2"
+              className="min-h-9 font-mono text-xs tabular-nums @2xl:col-span-2"
               onChange={(event) => onChange({ ...probe, command: event.target.value })}
             />
           ) : (
@@ -1039,7 +1039,7 @@ function HookEditor({ hook, onChange }: { hook: HookDraft; onChange: (hook: Hook
               aria-label="执行命令"
               spellCheck={false}
               placeholder="每行一条"
-              className="zke-mono min-h-9 text-xs @2xl:col-span-2"
+              className="min-h-9 font-mono text-xs tabular-nums @2xl:col-span-2"
               onChange={(event) => onChange({ ...hook, command: event.target.value })}
             />
           ) : (

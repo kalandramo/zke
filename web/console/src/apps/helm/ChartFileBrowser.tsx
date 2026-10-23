@@ -81,8 +81,8 @@ export function ChartFileBrowser({
     <div className="grid min-w-0 gap-2">
       <CardTitle>Chart 文件</CardTitle>
       <p className="text-subtle-foreground text-xs">
-        仓库打包发布的原始文件，含 <code className="zke-mono">charts/</code> 下的子
-        Chart。模板未经渲染：<code className="zke-mono">{"{{ }}"}</code>{" "}
+        仓库打包发布的原始文件，含 <code className="font-mono tabular-nums">charts/</code> 下的子
+        Chart。模板未经渲染：<code className="font-mono tabular-nums">{"{{ }}"}</code>{" "}
         里的值要到目标集群安装时才有结果。
       </p>
       {truncated ? (
@@ -207,7 +207,7 @@ function TreeLevel({
               {/* `shrink-0`: `1.3 KiB` is two words, and a size left free to
                   shrink wraps onto a second line, making that one row taller
                   than every other row in the tree. */}
-              <span className="text-subtle-foreground zke-mono shrink-0 pl-2 text-[11px] whitespace-nowrap">
+              <span className="text-subtle-foreground shrink-0 pl-2 font-mono text-[11px] whitespace-nowrap tabular-nums">
                 {formatBytes(node.size)}
               </span>
             </TreeRow>
@@ -243,7 +243,7 @@ function TreeRow({
       // horizontally and hard to hit vertically, and `coarse:` is the only
       // question that has a real answer about the pointer.
       className={cn(
-        "zke-focus rounded-control coarse:py-2 flex w-full items-center gap-1.5 py-1.5 pr-1.5 text-left text-xs",
+        "dk-focus rounded-control coarse:py-2 flex w-full items-center gap-1.5 py-1.5 pr-1.5 text-left text-xs",
         selected
           ? "bg-primary-surface text-foreground"
           : "text-muted-foreground hover:bg-surface-muted",
@@ -288,11 +288,11 @@ function FileView({
           it is where the pane's height comes from, and letting it appear with
           the first file would shift the editor down as the content arrives. */}
       <div className="flex min-h-8 flex-wrap items-center gap-2">
-        <span className="zke-mono text-foreground min-w-0 flex-1 truncate text-xs">
+        <span className="text-foreground min-w-0 flex-1 truncate font-mono text-xs tabular-nums">
           {path ?? "未选择文件"}
         </span>
         {entry ? (
-          <span className="text-subtle-foreground zke-mono text-[11px]">
+          <span className="text-subtle-foreground font-mono text-[11px] tabular-nums">
             {formatBytes(entry.size)}
           </span>
         ) : null}

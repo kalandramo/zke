@@ -430,7 +430,7 @@ function UserSection() {
                 did not offer it. On the username's line, so the row stays two
                 lines deep. */}
             <span className="flex items-center gap-2">
-              <span className="zke-mono text-muted-foreground text-xs">
+              <span className="text-muted-foreground font-mono text-xs tabular-nums">
                 {row.original.username}
               </span>
               <IdentifierLabel value={row.original.id} />
@@ -1044,7 +1044,9 @@ function RoleSection() {
               <span className="text-foreground font-medium">{row.original.display_name}</span>
               {row.original.builtin ? <Badge tone="neutral">内置</Badge> : null}
             </span>
-            <span className="zke-mono text-muted-foreground text-xs">{row.original.name}</span>
+            <span className="text-muted-foreground font-mono text-xs tabular-nums">
+              {row.original.name}
+            </span>
           </div>
         ),
       },
@@ -1499,7 +1501,9 @@ function PermissionRow({
           ) : null}
           {!permission.held ? <Badge tone="neutral">当前账号未持有</Badge> : null}
         </span>
-        <span className="zke-mono text-muted-foreground text-xs">{permission.name}</span>
+        <span className="text-muted-foreground font-mono text-xs tabular-nums">
+          {permission.name}
+        </span>
       </span>
     </label>
   );
@@ -1566,7 +1570,9 @@ function RoleBindingSection() {
               ) : null}
               <span className="flex items-center gap-2">
                 {subject ? (
-                  <span className="zke-mono text-muted-foreground text-xs">{subject.username}</span>
+                  <span className="text-muted-foreground font-mono text-xs tabular-nums">
+                    {subject.username}
+                  </span>
                 ) : null}
                 <IdentifierLabel value={row.original.subject_id} />
               </span>
@@ -2127,7 +2133,9 @@ function AuditSection() {
         header: "操作",
         cell: ({ row }) => (
           <div className="flex flex-col gap-0.5">
-            <span className="zke-mono text-foreground text-[13px]">{row.original.action}</span>
+            <span className="text-foreground font-mono text-[13px] tabular-nums">
+              {row.original.action}
+            </span>
             <span className="text-subtle-foreground text-xs">
               {row.original.target_type}
               {row.original.target_name
@@ -2277,7 +2285,11 @@ function AuditSection() {
                   <SelectGroup key={group}>
                     <SelectLabel>{ACTION_GROUP_LABELS[group] ?? group}</SelectLabel>
                     {inGroup.map((action) => (
-                      <SelectItem key={action.name} value={action.name} className="zke-mono">
+                      <SelectItem
+                        key={action.name}
+                        value={action.name}
+                        className="font-mono tabular-nums"
+                      >
                         {action.name}
                       </SelectItem>
                     ))}
@@ -2337,7 +2349,7 @@ function AuditEventDialog({ event, onClose }: { event: AuditEvent | null; onClos
         {event ? (
           <>
             <DialogHeader>
-              <DialogTitle className="zke-mono break-all">{event.action}</DialogTitle>
+              <DialogTitle className="font-mono break-all tabular-nums">{event.action}</DialogTitle>
               <DialogDescription>
                 {event.target_type}
                 {event.target_name ? ` · ${event.target_name}` : ""}
@@ -2371,7 +2383,7 @@ function AuditEventDialog({ event, onClose }: { event: AuditEvent | null; onClos
                 label="来源地址"
                 value={
                   event.actor_ip ? (
-                    <span className="zke-mono">{event.actor_ip}</span>
+                    <span className="font-mono tabular-nums">{event.actor_ip}</span>
                   ) : (
                     <span className="text-subtle-foreground">—</span>
                   )
@@ -2476,7 +2488,7 @@ function RecordPicker({
           type="button"
           disabled={disabled}
           className={cn(
-            "zke-focus border-border bg-surface rounded-control shadow-e1 flex h-9 w-full items-center gap-2 border px-2.5 text-left text-sm transition-colors",
+            "dk-focus border-border bg-surface rounded-control shadow-e1 flex h-9 w-full items-center gap-2 border px-2.5 text-left text-sm transition-colors",
             "hover:border-border-strong disabled:cursor-not-allowed disabled:opacity-60",
           )}
         >
@@ -2484,7 +2496,7 @@ function RecordPicker({
             <span className="flex min-w-0 items-baseline gap-2">
               <span className="text-foreground truncate">{selected.label}</span>
               {selected.hint ? (
-                <span className="zke-mono text-subtle-foreground shrink-0 text-xs">
+                <span className="text-subtle-foreground shrink-0 font-mono text-xs tabular-nums">
                   {selected.hint}
                 </span>
               ) : null}
@@ -2545,13 +2557,13 @@ function RecordPicker({
                     onSelect(option);
                     setOpen(false);
                   }}
-                  className="zke-focus hover:bg-surface-muted rounded-control flex w-full items-center gap-2 px-2 py-1.5 text-left transition-colors"
+                  className="dk-focus hover:bg-surface-muted rounded-control flex w-full items-center gap-2 px-2 py-1.5 text-left transition-colors"
                 >
                   <span className="text-foreground min-w-0 flex-1 truncate text-[13px]">
                     {option.label}
                   </span>
                   {option.hint ? (
-                    <span className="zke-mono text-subtle-foreground shrink-0 text-xs">
+                    <span className="text-subtle-foreground shrink-0 font-mono text-xs tabular-nums">
                       {option.hint}
                     </span>
                   ) : null}

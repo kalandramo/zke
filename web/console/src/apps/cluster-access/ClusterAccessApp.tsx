@@ -156,7 +156,7 @@ function AgentVersionValue({ version, className }: { version: string; className?
           identifies the build. */}
       <span
         title={version || undefined}
-        className={cn("zke-mono text-xs", className, mismatched && "text-warning")}
+        className={cn("font-mono text-xs tabular-nums", className, mismatched && "text-warning")}
       >
         {version || "—"}
       </span>
@@ -1000,7 +1000,10 @@ function EnrollmentSection({ scope }: { scope: ScopeSelection }) {
               {resultMode === "command" ? (
                 <p className="text-subtle-foreground text-xs">
                   Manifest 地址：
-                  <span className="zke-mono break-all"> {credentialResult.manifestUrl}</span>
+                  <span className="font-mono break-all tabular-nums">
+                    {" "}
+                    {credentialResult.manifestUrl}
+                  </span>
                 </p>
               ) : null}
             </div>
@@ -1126,11 +1129,19 @@ function ClusterDetailSection({
               a warning mark. */}
           <DetailRow
             label="Server 版本"
-            value={<span className="zke-mono text-xs break-all">{serverVersion || "—"}</span>}
+            value={
+              <span className="font-mono text-xs break-all tabular-nums">
+                {serverVersion || "—"}
+              </span>
+            }
           />
           <DetailRow
             label="协议版本"
-            value={<span className="zke-mono text-xs">{connection.protocol_version || "—"}</span>}
+            value={
+              <span className="font-mono text-xs tabular-nums">
+                {connection.protocol_version || "—"}
+              </span>
+            }
           />
         </DetailCard>
 
@@ -1150,7 +1161,7 @@ function ClusterDetailSection({
           <DetailRow
             label="证书序列号"
             value={
-              <span className="zke-mono text-xs break-all">
+              <span className="font-mono text-xs break-all tabular-nums">
                 {connection.certificate_serial || "—"}
               </span>
             }

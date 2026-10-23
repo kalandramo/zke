@@ -255,7 +255,7 @@ function ResultSummary({
       >
         执行中…
       </span>
-      <span className="zke-tnum">
+      <span className="tabular-nums">
         {instant ? "瞬时" : "区间"} · {series} 条序列 · {expressions} 条表达式
       </span>
     </p>
@@ -324,7 +324,7 @@ function OutcomeTable({
             rate windows is longer than any window is wide, and a heading that
             wraps to four lines pushes the table it labels off the screen. */}
         <span
-          className="zke-mono text-muted-foreground min-w-0 truncate text-[11px]"
+          className="text-muted-foreground min-w-0 truncate font-mono text-[11px] tabular-nums"
           title={outcome.expression}
         >
           {outcome.expression}
@@ -351,7 +351,7 @@ function OutcomeTable({
                   <th
                     key={name}
                     scope="col"
-                    className="border-border text-subtle-foreground zke-mono border-b px-3 py-2 text-left font-normal"
+                    className="border-border text-subtle-foreground border-b px-3 py-2 text-left font-mono font-normal tabular-nums"
                   >
                     {name}
                   </th>
@@ -376,7 +376,7 @@ function OutcomeTable({
                   {columns.map((name) => (
                     <td
                       key={name}
-                      className="text-muted-foreground zke-mono max-w-[22rem] truncate px-3 py-1.5"
+                      className="text-muted-foreground max-w-[22rem] truncate px-3 py-1.5 font-mono tabular-nums"
                       title={row.labels[name]}
                     >
                       {row.labels[name] ?? "—"}
@@ -416,7 +416,7 @@ function NumberCell({ value, emphasis }: { value: number | null; emphasis?: bool
   return (
     <td
       className={cn(
-        "zke-tnum px-3 py-1.5 text-right whitespace-nowrap",
+        "px-3 py-1.5 text-right whitespace-nowrap tabular-nums",
         emphasis ? "text-foreground font-medium" : "text-muted-foreground",
       )}
     >
@@ -448,7 +448,7 @@ function RawDocument({ value }: { value: unknown }) {
       <div className="absolute top-2 right-2 z-10">
         <CopyIconButton value={text} label="复制 JSON" />
       </div>
-      <pre className="zke-mono border-border bg-surface-muted rounded-panel max-h-[32rem] overflow-auto border p-3 pr-12 text-[11px] leading-relaxed">
+      <pre className="border-border bg-surface-muted rounded-panel max-h-[32rem] overflow-auto border p-3 pr-12 font-mono text-[11px] leading-relaxed tabular-nums">
         {tokens.map((token, index) => (
           <span key={index} className={TOKEN_CLASS[token.kind]}>
             {token.text}

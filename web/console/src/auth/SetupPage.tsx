@@ -83,14 +83,14 @@ export function SetupPage() {
 
   return (
     <div className="from-desktop-from to-desktop-to relative h-full overflow-y-auto bg-linear-to-br">
-      <div aria-hidden className="zke-auth-surface pointer-events-none absolute inset-0" />
-      <div aria-hidden className="zke-auth-dots pointer-events-none absolute inset-0" />
-      <div aria-hidden className="zke-grain pointer-events-none absolute inset-0" />
+      <div aria-hidden className="dk-auth-surface pointer-events-none absolute inset-0" />
+      <div aria-hidden className="dk-auth-dots pointer-events-none absolute inset-0" />
+      <div aria-hidden className="dk-grain pointer-events-none absolute inset-0" />
 
       <main className="relative z-10 flex min-h-full w-full items-center px-6 py-12">
         {/* The same measure the sign-in form is set to, so the two views hold
             their text in a column of one width. */}
-        <section className="zke-rise mx-auto w-full max-w-[336px]">
+        <section className="dk-rise mx-auto w-full max-w-[336px]">
           <header className="flex items-center gap-3">
             <ZkeMark className="size-10 rounded-[13px]" />
             <span className="min-w-0">
@@ -201,7 +201,7 @@ export function SetupPage() {
               <Alert tone="danger" role="presentation">
                 {failure}
                 {initialize.error && errorRequestId(initialize.error) ? (
-                  <span className="zke-mono mt-1 block text-xs opacity-80">
+                  <span className="mt-1 block font-mono text-xs tabular-nums opacity-80">
                     请求 ID：{errorRequestId(initialize.error)}
                   </span>
                 ) : null}

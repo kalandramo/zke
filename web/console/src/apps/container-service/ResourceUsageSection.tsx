@@ -54,7 +54,7 @@ export function ResourceUsageSection({
         header: "CPU",
         size: 150,
         cell: ({ row }) => (
-          <span className="zke-tnum text-muted-foreground">
+          <span className="text-muted-foreground tabular-nums">
             {formatCPU(row.original.cpu_usage_millis)}
           </span>
         ),
@@ -63,7 +63,7 @@ export function ResourceUsageSection({
         header: "内存",
         size: 150,
         cell: ({ row }) => (
-          <span className="zke-tnum text-muted-foreground">
+          <span className="text-muted-foreground tabular-nums">
             {formatBytes(row.original.memory_usage_bytes)}
           </span>
         ),
@@ -74,7 +74,7 @@ export function ResourceUsageSection({
               header: "容器",
               size: 100,
               cell: ({ row }: { row: { original: UsageMetric } }) => (
-                <span className="zke-tnum text-muted-foreground">
+                <span className="text-muted-foreground tabular-nums">
                   {row.original.container_count}
                 </span>
               ),

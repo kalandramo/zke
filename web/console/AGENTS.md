@@ -5,8 +5,8 @@
 
 ## 技术栈与命令
 
-Vite 8 + React 19 + TypeScript 5.9（`strict`），pnpm 11 / Node 24；Tailwind CSS 4（语义变量集中在
-`src/styles/theme.css`）、Radix UI、TanStack Query 5 与 Table 8、Zustand 5、Zod 4 + react-hook-form、
+Vite 8 + React 19 + TypeScript 5.9（`strict`），pnpm 11 / Node 24；Tailwind CSS 4（语义变量由 npm 包 `@kalandramo/desktop-kit-tokens` 发布，应用瓦片配色在
+`src/styles/app-accents.css`）、Radix UI、TanStack Query 5 与 Table 8、Zustand 5、Zod 4 + react-hook-form、
 Sonner（经 `components/common/toaster.tsx`）、xterm.js；时序图表使用 uPlot。API 类型由 `openapi-typescript`
 从 `api/openapi/zke-server.v1.yaml` 生成。
 
@@ -28,20 +28,25 @@ src/
   api/        openapi-fetch 客户端、错误映射、SSE、按领域划分的 query hooks
   apps/       桌面应用。每个应用一个目录，registry.ts 是唯一的应用清单
   auth/       登录、首次初始化、会话与权限能力
-  components/ui/      无样式原语的样式化封装；common/ 跨应用复合组件；brand/ 品牌标记
+  components/ common/ 跨应用复合组件；brand/ 品牌标记；基础件来自 npm 包 @kalandramo/desktop-kit/ui
   desktop/    桌面外壳：窗口、Dock、顶栏、启动器、持久化
   scope/      租户/项目作用域选择器与 store
   lib/        无 UI 依赖的纯工具
-  styles/     theme.css，全部设计变量的唯一来源
+  styles/     app-accents.css，应用瓦片配色三件套（语义变量在 desktop-kit-tokens 包里）
 ```
 
-依赖方向：`apps` → `components` → `ui`/`lib`。`components/ui` 不得引用 `apps`。`api/queries` 只在需要暂停轮询
-时引用 `desktop/window-visibility`，除此之外不得依赖外壳。新增原语放 `components/ui/`，跨应用复合组件放
-`components/common/`，只有一个应用用到的留在该应用目录内。
+依赖方向：`apps` → `components` 与 `@kalandramo/desktop-kit/ui` → `lib`。基础件（`Button`、`Input`、`Select`
+系列、`Dialog`、`Tabs` 等）已收敛进 npm 包 `@kalandramo/desktop-kit/ui`，「基础件不认识外壳」这条边界由
+desktop-kit 仓库的 `scripts/check-boundaries.mjs` 守卫——ui 层不 import registry/react，也就不认识任何具体
+外壳；本地没有对应脚本，靠 review 守住 `components/`（common 与 brand）不得引用 `apps`：common 是跨应用
+共享层，沾上某个应用的细节，所有应用就得跟着背上它。`api/queries` 只在需要暂停轮询时引用
+`desktop/window-visibility`，除此之外不得依赖外壳。新增基础件先问归属：通用桌面 UI 提给 desktop-kit 仓库
+（清单与行为以该包 USAGE.md 为准）；跨应用复合组件放 `components/common/`；只有一个应用用到的留在该应用
+目录内。
 
 ## 设计系统：不可协商
 
-**颜色只允许语义 token。** 禁止 Tailwind 调色板（`bg-blue-500`）、字面色值，以及未在 `theme.css` 中定义的
+**颜色只允许语义 token。** 禁止 Tailwind 调色板（`bg-blue-500`）、字面色值，以及未在 `@kalandramo/desktop-kit-tokens` 中定义的
 token。完整集合：
 
 - 表面 `surface`、`surface-muted`、`surface-raised`、`surface-overlay`
@@ -53,8 +58,10 @@ token。完整集合：
   桌面 `desktop-from`、`desktop-to`
 
 不存在 `background`、`muted`、`card`、`accent`、`destructive`、`warning-foreground` 等 shadcn 习惯名。Tailwind
-对未定义 token 不报错，只静默不生成类——`bg-background` 的元素是完全透明的。新增 token 必须同时加进
-`theme.css` 的 `:root`、`[data-theme="dark"]` 和 `@theme inline` 三处。两个例外已在 `theme.css` 写明理由：
+对未定义 token 不报错，只静默不生成类——`bg-background` 的元素是完全透明的。新增语义 token 属于框架，要提到 desktop-kit 仓库的 tokens 包，并同时加进它的 `:root`、
+`[data-theme="dark"]` 和 `@theme inline` 三处；宿主自己新增的只有应用瓦片档，加进
+`styles/app-accents.css`，那里只写 `:root` 一套——框架的内置色相档不随主题变，宿主也不该
+自己发明暗色值。两个例外已在 tokens 包写明理由：
 应用图标面上的字形恒为 `text-white`，对话框遮罩为 `bg-black/35`。**深浅色是一等公民**，任何新界面都必须在两套
 主题下成立。
 
@@ -69,14 +76,14 @@ Dock 和品牌位是同一形状。
 **高度**用 `shadow-e1|e2|e3` 与 `shadow-window|window-focused`，不用 Tailwind 默认阴影。**卡片不叠阴影**：窗口
 本身已有高度，窗口内的卡片与表格容器一律靠 `border` + `bg-surface` 划分。
 
-**焦点**一律 `zke-focus`（复合控件 `zke-focus-within`），它画紧贴边框的 3px 光晕。不要写 `outline-none` 而不补
+**焦点**一律 `dk-focus`（复合控件 `dk-focus-within`），它画紧贴边框的 3px 光晕。不要写 `outline-none` 而不补
 焦点样式，也不要用默认的偏移 outline。
 
-**动效**统一定义在 `theme.css`，组件只挂类名：`zke-overlay-motion`（遮罩）、`zke-dialog-motion`（对话框本体）、
-`zke-pop-motion`（菜单、Select、Popover、Tooltip，按 Radix `data-side` 展开）、`zke-window-motion`、`zke-rise`、
-`zke-interacting`。新的瞬态浮层必须挂对应类名，退场动画依赖 Radix 的 `data-state="closed"`，删掉动画等于删掉
+**动效**统一定义在 `@kalandramo/desktop-kit-tokens` 的 `theme.css`，组件只挂类名：`dk-overlay-motion`（遮罩）、`dk-dialog-motion`（对话框本体）、
+`dk-pop-motion`（菜单、Select、Popover、Tooltip，按 Radix `data-side` 展开）、`dk-window-motion`、`dk-rise`、
+`dk-interacting`。新的瞬态浮层必须挂对应类名，退场动画依赖 Radix 的 `data-state="closed"`，删掉动画等于删掉
 退场。曲线只有两条：入场 `--ease-lift`，大位移 `--ease-reveal`；离场一律 `linear`。本项目**刻意不实现**
-`prefers-reduced-motion`，原因写在 `theme.css` 末尾，要改这个决定先读那段注释。
+`prefers-reduced-motion`，原因写在 tokens 包 `theme.css` 末尾，要改这个决定先读那段注释。
 
 ## 尺寸与输入方式
 
@@ -90,8 +97,8 @@ Console 是一个桌面外壳，但它跑在浏览器里，所以同一份代码
 - `desktop/Window.tsx` 的内容层是 `@container`——不走 `AppShell` 的应用（AIOps）问的就是它；
 - `apps/AppShell.tsx` 的根与工作区各是一个 `@container`——应用里写的 `@md:` 问的是工作区的实际宽度，也就是窗口
   减去导航与内边距之后剩下的那点；
-- `components/ui/dialog.tsx` 的 `DialogContent` 是 `@container`——对话框被 portal 到 body，没有祖先容器，容器查询
-  会永远不成立，所以它自己声明一个。
+- `@kalandramo/desktop-kit/ui` 的 `DialogContent` 是 `@container`——对话框被 portal 到 body，没有祖先容器，
+  容器查询会永远不成立，所以它自己声明一个。
 
 栅格换列的阈值按「一列还能放下一个可用字段」定：两列 `@md`(448)、三列 `@2xl`(672)、四列与五列 `@3xl`(768)。
 `col-span` 必须跟随它所在栅格的阈值，不要照抄前缀。
@@ -114,12 +121,14 @@ Console 是一个桌面外壳，但它跑在浏览器里，所以同一份代码
   这个覆盖（置回 `null`）而不是新设一个，这样窗口变宽还能把列还回来；
 - 布局归 CSS 容器查询，`useNarrowSurface()` 只用来驱动「选中后收起」这类行为，两者读同一个数。
 
-**问指针粗细，不问是不是手机。** `theme.css` 定义了两个变体：`coarse:`（`pointer: coarse`，手指按不准）与
+**问指针粗细，不问是不是手机。** tokens 包定义了两个变体：`coarse:`（`pointer: coarse`，手指按不准）与
 `hoverless:`（`hover: none`，没有「悬停」这个中间态）。触摸笔记本是 coarse 且能悬停，带触控板的平板是 fine 且能
 悬停——只有问输入方式才有确定答案。
 
-- 点击目标：`components/ui` 的控件都带 `zke-control`（方形的再带 `zke-control-square`），粗指针下最小 40px，细指针
-  下完全不生效。行内的文字型点击点用 `zke-touch-pad`，它不改变绘制尺寸，只在背后挂一块 44px 的响应区；
+- 点击目标：kit 基础件里可按压的部位自带 `dk-control`——`Button`、`Input`/`Textarea`/`NumericInput`、
+  `SelectTrigger`、`SelectItem`、`DropdownMenuItem`（方形的再带 `dk-control-square`），粗指针下最小 40px，
+  细指针下完全不生效；`Checkbox` 与 `Switch` 是记号不是按钮，走 `dk-touch-pad`：绘制尺寸不变，只在背后挂一块
+  44px 的响应区。自己写的可点击控件必须照挂其中之一，行内的文字型点击点同理；
 - 悬停才出现的东西，在 `hover: none` 上等于不存在。任何 `group-hover:opacity-100` 都要补 `hoverless:opacity-100`，
   或者说明为什么这个入口在触摸设备上可以没有。
 
@@ -148,9 +157,9 @@ Console 是一个桌面外壳，但它跑在浏览器里，所以同一份代码
 
 | 需求              | 用这个                                                                                                                                                      |
 | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 按钮              | `ui/button` 的 `Button`，不要裸 `<button>`（纯文字链接式点击除外，且必须挂 `zke-focus`）                                                                    |
-| 勾选框 / 开关     | `Checkbox`、`Switch`，**绝不用原生 `<input type="checkbox">`**——它是页面上唯一不跟随主题的元素                                                              |
-| 输入 / 下拉       | `Input`、`Textarea`、`NumericInput`；`Select` 系列，不要原生 `<select>`                                                                                     |
+| 按钮              | `@kalandramo/desktop-kit/ui` 的 `Button`，不要裸 `<button>`（纯文字链接式点击除外，且必须挂 `dk-focus`）                                                    |
+| 勾选框 / 开关     | `Checkbox`、`Switch`（`@kalandramo/desktop-kit/ui`），**绝不用原生 `<input type="checkbox">`**——它是页面上唯一不跟随主题的元素                              |
+| 输入 / 下拉       | `Input`、`Textarea`、`NumericInput`；`Select` 系列（`@kalandramo/desktop-kit/ui`），不要原生 `<select>`                                                     |
 | 表格              | `common/data-table` 的 `DataTable`，自带加载骨架、错误态、空态和两种分页                                                                                    |
 | 加载 / 空 / 错误  | `common/state` 的 `LoadingState`、`EmptyState`、`ErrorState`                                                                                                |
 | 失败提示          | `common/notify` 的 `notifyFailure(动作, error)`，它带上服务端原因和请求 ID；不要裸 `toast.error()`                                                          |
@@ -201,7 +210,7 @@ Console 是一个桌面外壳，但它跑在浏览器里，所以同一份代码
 pnpm typecheck && pnpm lint && pnpm format:check && pnpm build
 ```
 
-改了视觉的还要自查：深浅两套主题都看过；没有引入 `theme.css` 之外的颜色、圆角、字号、阴影；新浮层挂了动效类名；
+改了视觉的还要自查：深浅两套主题都看过；没有引入设计令牌之外的颜色、圆角、字号、阴影；新浮层挂了动效类名；
 Tab 顺序合理、焦点可见、回车能提交表单；加载态不让内容跳动；敏感操作走 `SensitiveActionDialog` 且写清作用域与
 影响。无法验证的项要在最终回复里如实说明，不能写成「已通过」。
 

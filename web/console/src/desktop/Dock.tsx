@@ -69,14 +69,14 @@ export const Dock = memo(function Dock({
         aria-expanded={visible}
         aria-label={visible ? "隐藏任务栏" : "显示任务栏"}
         className={cn(
-          // No `border-*` utility: `.zke-dock` owns the rim colour, because on
+          // No `border-*` utility: `.dk-dock` owns the rim colour, because on
           // glass the rim is part of the material rather than a boundary drawn
           // around it — `--border` is tuned to separate two opaque surfaces and
           // reads as a drawn line here.
           // Taller under a finger: 24px of handle is a comfortable mouse target
           // and a miss on touch, and this is the only way back once the Dock is
           // put away.
-          "zke-focus zke-dock text-subtle-foreground hover:text-foreground zke-pointer-layer coarse:h-9 flex h-6 w-16 items-center justify-center rounded-full border transition-[color,opacity] duration-200",
+          "dk-focus dk-dock text-subtle-foreground hover:text-foreground dk-pointer-layer coarse:h-9 flex h-6 w-16 items-center justify-center rounded-full border transition-[color,opacity] duration-200",
           visible
             ? // A device with no hover has no state between not touching and
               // activating, so a control that appears on hover never appears at
@@ -97,7 +97,7 @@ export const Dock = memo(function Dock({
       {!visible ? null : (
         <nav
           aria-label="运行中的应用"
-          className="zke-dock zke-pointer-layer flex max-w-[calc(100vw-2rem)] items-center gap-1 overflow-x-auto rounded-[18px] border p-2"
+          className="dk-dock dk-pointer-layer flex max-w-[calc(100vw-2rem)] items-center gap-1 overflow-x-auto rounded-[18px] border p-2"
         >
           {items.map((instance) => {
             const manifest = manifests.get(instance.appId);
@@ -123,7 +123,7 @@ export const Dock = memo(function Dock({
                    * face is the shape now, and a plate under it would be a second
                    * shape saying the same thing.
                    */
-                  className="zke-focus group flex size-12 flex-col items-center justify-center gap-1 rounded-[15px]"
+                  className="dk-focus group flex size-12 flex-col items-center justify-center gap-1 rounded-[15px]"
                   onClick={() => {
                     if (minimized) {
                       restoreWindow(instance.id);

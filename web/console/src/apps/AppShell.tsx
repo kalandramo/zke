@@ -312,12 +312,12 @@ export function AppShell({
                   aria-label={railCollapsed ? item.label : undefined}
                   onClick={() => navigate(item.id)}
                   className={cn(
-                    // `zke-control` for the same reason every control in
-                    // `components/ui` carries it: on a coarse pointer this is a
+                    // `dk-control` for the same reason every control in the kit's
+                    // ui layer carries it: on a coarse pointer this is a
                     // primary target, and 28px of it is a miss. AIOps' own rail is
                     // built from `Button`, so without this the two rails hand a
                     // finger two different sizes of the same thing.
-                    "zke-focus zke-control rounded-control relative flex shrink-0 items-center gap-2 py-1.5 text-left text-[13px] transition-colors",
+                    "dk-focus dk-control rounded-control relative flex shrink-0 items-center gap-2 py-1.5 text-left text-[13px] transition-colors",
                     /*
                      * `w-full`, never a fixed square.
                      *
@@ -388,7 +388,7 @@ export function AppShell({
                 aria-expanded={!railCollapsed}
                 onClick={() => setRailChoice(!railCollapsed)}
                 className={cn(
-                  "zke-focus zke-control rounded-control text-subtle-foreground hover:bg-surface/70 hover:text-foreground flex items-center py-1.5 transition-colors",
+                  "dk-focus dk-control rounded-control text-subtle-foreground hover:bg-surface/70 hover:text-foreground flex items-center py-1.5 transition-colors",
                   railCollapsed ? "w-full justify-center px-0" : "px-2",
                 )}
               >

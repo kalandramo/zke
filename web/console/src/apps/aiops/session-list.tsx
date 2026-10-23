@@ -483,7 +483,7 @@ const SessionRow = memo(function SessionRow({
       <button
         type="button"
         onClick={() => onSelect(session.id)}
-        className="zke-focus rounded-control flex min-w-0 flex-1 items-center gap-2 py-1.5 pr-9 pl-2 text-left"
+        className="dk-focus rounded-control flex min-w-0 flex-1 items-center gap-2 py-1.5 pr-9 pl-2 text-left"
       >
         <span
           className={cn(

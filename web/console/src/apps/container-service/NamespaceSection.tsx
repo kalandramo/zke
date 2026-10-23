@@ -120,7 +120,7 @@ export function NamespaceSection({
         cell: ({ row }) => (
           <div className="flex flex-col gap-0.5">
             <span className="text-foreground font-medium">{row.original.name}</span>
-            <span className="zke-mono text-subtle-foreground text-xs">
+            <span className="text-subtle-foreground font-mono text-xs tabular-nums">
               {row.original.uid || "UID 尚未分配"}
             </span>
           </div>
@@ -490,12 +490,18 @@ function NamespaceDetailView({
             <DetailRow label="名称" value={detail.data.name} />
             <DetailRow
               label="UID"
-              value={<span className="zke-mono text-xs break-all">{detail.data.uid || "—"}</span>}
+              value={
+                <span className="font-mono text-xs break-all tabular-nums">
+                  {detail.data.uid || "—"}
+                </span>
+              }
             />
             <DetailRow
               label="版本"
               value={
-                <span className="zke-mono text-xs">{detail.data.resource_version || "—"}</span>
+                <span className="font-mono text-xs tabular-nums">
+                  {detail.data.resource_version || "—"}
+                </span>
               }
             />
             <DetailRow
@@ -514,7 +520,7 @@ function NamespaceDetailView({
                 detail.data.finalizers.length === 0 ? (
                   "—"
                 ) : (
-                  <span className="zke-mono text-xs break-all">
+                  <span className="font-mono text-xs break-all tabular-nums">
                     {detail.data.finalizers.join(", ")}
                   </span>
                 )

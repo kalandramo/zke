@@ -340,7 +340,7 @@ function renderInline(text: string): ReactNode {
             href={href}
             target="_blank"
             rel="noopener noreferrer nofollow"
-            className="zke-focus text-primary rounded-inline break-all hover:underline"
+            className="dk-focus text-primary rounded-inline break-all hover:underline"
           >
             {label || href}
           </a>

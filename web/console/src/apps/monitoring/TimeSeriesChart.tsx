@@ -216,7 +216,7 @@ function tooltipPlugin(
     const label = document.createElement("span");
     label.className = "text-muted-foreground min-w-0 flex-1 truncate";
     const value = document.createElement("span");
-    value.className = "text-foreground zke-tnum shrink-0 font-medium";
+    value.className = "text-foreground tabular-nums shrink-0 font-medium";
     row.append(key, label, value);
     body?.append(row);
     entry = { row, key, label, value };

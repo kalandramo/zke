@@ -389,7 +389,7 @@ export function AutoscalingExtensionForm({
           <Alert tone="danger" role="alert" aria-live="assertive">
             {errorMessage(mutationError)}
             {errorRequestId(mutationError) ? (
-              <span className="zke-mono mt-1 block text-xs opacity-80">
+              <span className="mt-1 block font-mono text-xs tabular-nums opacity-80">
                 请求 ID：{errorRequestId(mutationError)}
               </span>
             ) : null}

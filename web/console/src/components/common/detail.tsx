@@ -102,7 +102,7 @@ export function DetailKeyValues({ entries }: { entries: Record<string, string> }
   return (
     <div className="grid min-w-0 gap-1 py-1">
       {pairs.map(([key, value]) => (
-        <div key={key} className="zke-mono text-muted-foreground text-xs break-all">
+        <div key={key} className="text-muted-foreground font-mono text-xs break-all tabular-nums">
           <span className="text-foreground">{key}</span>
           {value ? `=${value}` : ""}
         </div>

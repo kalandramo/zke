@@ -257,7 +257,7 @@ function NodeLabelsEditor({
                     placeholder="标签键"
                     autoComplete="off"
                     spellCheck={false}
-                    className="zke-mono text-xs"
+                    className="font-mono text-xs tabular-nums"
                     onChange={(event) => updateRow(index, { key: event.target.value })}
                   />
                   <Input
@@ -266,7 +266,7 @@ function NodeLabelsEditor({
                     placeholder="标签值"
                     autoComplete="off"
                     spellCheck={false}
-                    className="zke-mono text-xs"
+                    className="font-mono text-xs tabular-nums"
                     onChange={(event) => updateRow(index, { value: event.target.value })}
                   />
                 </div>
@@ -296,7 +296,7 @@ function NodeLabelsEditor({
         {reconciled.length > 0 ? (
           <Alert tone="warning" className="max-w-4xl">
             以下标签由 kubelet 或云控制器在每次节点上报时写回，本次改动可能很快被覆盖：
-            <span className="zke-mono"> {reconciled.join("、")}</span>
+            <span className="font-mono tabular-nums"> {reconciled.join("、")}</span>
           </Alert>
         ) : null}
         {update.error ? (
@@ -439,7 +439,7 @@ function LabelChangeRow({
       <Badge tone={tone} className="shrink-0">
         {label}
       </Badge>
-      <span className="zke-mono text-foreground min-w-0 break-all">{text}</span>
+      <span className="text-foreground min-w-0 font-mono break-all tabular-nums">{text}</span>
     </div>
   );
 }

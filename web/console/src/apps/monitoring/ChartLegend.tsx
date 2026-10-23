@@ -68,7 +68,7 @@ export function ChartLegend({
                 onClick={() => onToggle(item.id)}
                 style={{ gridTemplateColumns: columns }}
                 className={cn(
-                  "zke-focus rounded-control hover:bg-surface-muted grid w-full items-center gap-x-3 px-1 py-0.5 text-left text-xs transition-colors",
+                  "dk-focus rounded-control hover:bg-surface-muted grid w-full items-center gap-x-3 px-1 py-0.5 text-left text-xs transition-colors",
                   off && "opacity-45",
                 )}
               >
@@ -83,13 +83,13 @@ export function ChartLegend({
                   />
                   <span className="text-muted-foreground truncate">{item.label}</span>
                 </span>
-                <span className="zke-tnum text-foreground truncate text-right font-medium">
+                <span className="text-foreground truncate text-right font-medium tabular-nums">
                   {item.stats.last === null ? "—" : formatValue(item.stats.last)}
                 </span>
-                <span className="zke-tnum text-muted-foreground truncate text-right">
+                <span className="text-muted-foreground truncate text-right tabular-nums">
                   {item.stats.mean === null ? "—" : formatValue(item.stats.mean)}
                 </span>
-                <span className="zke-tnum text-muted-foreground truncate text-right">
+                <span className="text-muted-foreground truncate text-right tabular-nums">
                   {item.stats.max === null ? "—" : formatValue(item.stats.max)}
                 </span>
               </button>

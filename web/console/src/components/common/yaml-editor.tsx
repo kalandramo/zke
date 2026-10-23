@@ -58,7 +58,7 @@ const TOKEN_CLASS: Record<YamlTokenKind, string | undefined> = {
  * a screenshot and most likely to matter to whoever is reading the file.
  */
 const LAYER =
-  "zke-mono absolute inset-0 h-full w-full py-2 pr-2.5 text-xs leading-relaxed whitespace-pre";
+  "font-mono tabular-nums absolute inset-0 h-full w-full py-2 pr-2.5 text-xs leading-relaxed whitespace-pre";
 
 /** Measured to convert a match's column into a horizontal scroll offset. */
 const WIDTH_PROBE = "0".repeat(20);
@@ -364,14 +364,14 @@ export function YamlEditor({
     <div
       onKeyDown={handleKeyDown}
       className={cn(
-        "zke-focus-within border-border bg-surface rounded-control shadow-e1 hover:border-border-strong relative overflow-hidden border transition-[border-color,box-shadow] duration-150",
+        "dk-focus-within border-border bg-surface rounded-control shadow-e1 hover:border-border-strong relative overflow-hidden border transition-[border-color,box-shadow] duration-150",
         className,
       )}
     >
       <span
         ref={probeRef}
         aria-hidden="true"
-        className="zke-mono invisible absolute top-0 left-0 text-xs leading-relaxed whitespace-pre"
+        className="invisible absolute top-0 left-0 font-mono text-xs leading-relaxed whitespace-pre tabular-nums"
       >
         {WIDTH_PROBE}
       </span>
@@ -379,9 +379,9 @@ export function YamlEditor({
       {lineNumbers ? (
         <pre
           aria-hidden="true"
-          className="border-border bg-surface-muted/90 text-subtle-foreground zke-mono pointer-events-none absolute inset-y-0 left-0 z-10 w-12 overflow-hidden border-r py-2 pr-2 text-right text-xs leading-relaxed whitespace-pre select-none"
+          className="border-border bg-surface-muted/90 text-subtle-foreground pointer-events-none absolute inset-y-0 left-0 z-10 w-12 overflow-hidden border-r py-2 pr-2 text-right font-mono text-xs leading-relaxed whitespace-pre tabular-nums select-none"
         >
-          <span ref={gutterRef} className="zke-tnum block">
+          <span ref={gutterRef} className="block tabular-nums">
             {lineNumbers}
           </span>
         </pre>
@@ -462,7 +462,7 @@ export function YamlEditor({
         wrap="off"
         className={cn(
           LAYER,
-          "zke-code-input caret-foreground resize-none overflow-auto bg-transparent outline-none",
+          "dk-code-input caret-foreground resize-none overflow-auto bg-transparent outline-none",
           lineNumbers ? "pl-14" : "pl-2.5",
           // Transparent text over the painted layer, so the caret, the
           // selection and the text itself all stay exactly where the browser
@@ -578,7 +578,7 @@ function SearchPanel({
       // Capped and wrapping rather than clipped: the frame is
       // `overflow-hidden`, so in a window dragged down to a phone's width a
       // fixed-width toolbar would lose its rightmost buttons silently.
-      className="zke-pop-motion border-border bg-surface-overlay shadow-e3 rounded-panel absolute top-2 right-3 z-20 flex max-w-[calc(100%-1.5rem)] items-start gap-1 border p-1 backdrop-blur-md"
+      className="dk-pop-motion border-border bg-surface-overlay shadow-e3 rounded-panel absolute top-2 right-3 z-20 flex max-w-[calc(100%-1.5rem)] items-start gap-1 border p-1 backdrop-blur-md"
     >
       {readOnly ? null : (
         <Button
@@ -616,11 +616,11 @@ function SearchPanel({
               // Room on the right for the counter, which sits inside the field
               // so the panel does not grow a column that is empty until a query
               // is typed.
-              className="zke-mono h-8 w-36 pr-14 pl-2 text-xs @md:w-52"
+              className="h-8 w-36 pr-14 pl-2 font-mono text-xs tabular-nums @md:w-52"
             />
             <span
               aria-live="polite"
-              className="text-subtle-foreground zke-tnum pointer-events-none absolute inset-y-0 right-1.5 flex items-center text-[11px]"
+              className="text-subtle-foreground pointer-events-none absolute inset-y-0 right-1.5 flex items-center text-[11px] tabular-nums"
             >
               {counter}
             </span>
@@ -673,7 +673,7 @@ function SearchPanel({
               aria-label="替换内容"
               spellCheck={false}
               autoComplete="off"
-              className="zke-mono h-8 w-36 px-2 text-xs @md:w-52"
+              className="h-8 w-36 px-2 font-mono text-xs tabular-nums @md:w-52"
             />
             <PanelButton
               onClick={onReplaceActive}

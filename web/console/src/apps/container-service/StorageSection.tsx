@@ -152,7 +152,7 @@ export function StorageSection({
         cell: ({ row }) => (
           <div className="flex flex-col gap-0.5">
             <span className="text-foreground font-medium break-all">{row.original.name}</span>
-            <span className="zke-mono text-subtle-foreground text-xs">
+            <span className="text-subtle-foreground font-mono text-xs tabular-nums">
               {row.original.uid || "UID 尚未分配"}
             </span>
           </div>
@@ -445,7 +445,7 @@ function typeColumns(
         header: "容量",
         size: 100,
         cell: ({ row }) => (
-          <span className="zke-tnum text-muted-foreground text-xs">
+          <span className="text-muted-foreground text-xs tabular-nums">
             {row.original.persistent_volume?.capacity || "—"}
           </span>
         ),
@@ -497,7 +497,7 @@ function typeColumns(
           const claim = row.original.persistent_volume_claim;
           return (
             <div className="flex flex-col gap-0.5">
-              <span className="zke-tnum text-foreground">{claim?.capacity || "尚未分配"}</span>
+              <span className="text-foreground tabular-nums">{claim?.capacity || "尚未分配"}</span>
               <span className="text-subtle-foreground text-xs">
                 申请 {claim?.requested_capacity || "—"}
               </span>
@@ -528,7 +528,7 @@ function typeColumns(
     {
       header: "Provisioner",
       cell: ({ row }) => (
-        <span className="zke-mono text-muted-foreground text-xs break-all">
+        <span className="text-muted-foreground font-mono text-xs break-all tabular-nums">
           {row.original.storage_class?.provisioner || "—"}
         </span>
       ),
@@ -679,7 +679,7 @@ function StorageDetailCards({ item }: { item: KubernetesStorageResourceDetail })
         <DetailRow
           label="类型"
           value={
-            <span className="zke-mono text-xs">
+            <span className="font-mono text-xs tabular-nums">
               {item.api_version} · {item.kind}
             </span>
           }
@@ -687,11 +687,15 @@ function StorageDetailCards({ item }: { item: KubernetesStorageResourceDetail })
         {item.namespace ? <DetailRow label="命名空间" value={item.namespace} /> : null}
         <DetailRow
           label="UID"
-          value={<span className="zke-mono text-xs break-all">{item.uid || "—"}</span>}
+          value={
+            <span className="font-mono text-xs break-all tabular-nums">{item.uid || "—"}</span>
+          }
         />
         <DetailRow
           label="版本"
-          value={<span className="zke-mono text-xs">{item.resource_version || "—"}</span>}
+          value={
+            <span className="font-mono text-xs tabular-nums">{item.resource_version || "—"}</span>
+          }
         />
         <DetailRow label="创建时间" value={formatAbsolute(item.creation_timestamp)} />
       </DetailCard>
@@ -738,7 +742,7 @@ function StorageDetailCards({ item }: { item: KubernetesStorageResourceDetail })
               <DetailRow
                 label="卷句柄"
                 value={
-                  <span className="zke-mono text-xs break-all">
+                  <span className="font-mono text-xs break-all tabular-nums">
                     {volumeDetail.source.csi.volume_handle}
                   </span>
                 }
@@ -753,7 +757,9 @@ function StorageDetailCards({ item }: { item: KubernetesStorageResourceDetail })
               <DetailRow
                 label="路径"
                 value={
-                  <span className="zke-mono text-xs break-all">{volumeDetail.source.nfs.path}</span>
+                  <span className="font-mono text-xs break-all tabular-nums">
+                    {volumeDetail.source.nfs.path}
+                  </span>
                 }
               />
               <DetailRow label="只读" value={volumeDetail.source.nfs.read_only ? "是" : "否"} />
@@ -764,7 +770,7 @@ function StorageDetailCards({ item }: { item: KubernetesStorageResourceDetail })
               <DetailRow
                 label="路径"
                 value={
-                  <span className="zke-mono text-xs break-all">
+                  <span className="font-mono text-xs break-all tabular-nums">
                     {volumeDetail.source.local.path}
                   </span>
                 }
@@ -797,7 +803,11 @@ function StorageDetailCards({ item }: { item: KubernetesStorageResourceDetail })
         <DetailCard title="StorageClass">
           <DetailRow
             label="Provisioner"
-            value={<span className="zke-mono text-xs break-all">{storageClass.provisioner}</span>}
+            value={
+              <span className="font-mono text-xs break-all tabular-nums">
+                {storageClass.provisioner}
+              </span>
+            }
           />
           <DetailRow label="回收策略" value={storageClass.reclaim_policy || "—"} />
           <DetailRow label="绑定模式" value={storageClass.volume_binding_mode || "—"} />

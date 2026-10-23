@@ -219,7 +219,7 @@ export function ChartCatalogSection({
 function ChartCard({ chart, onOpen }: { chart: HelmChartSummary; onOpen: () => void }) {
   return (
     <Card
-      className="hover:border-border-strong zke-focus flex cursor-pointer items-start gap-3 p-3 text-left transition-[border-color] duration-150"
+      className="hover:border-border-strong dk-focus flex cursor-pointer items-start gap-3 p-3 text-left transition-[border-color] duration-150"
       asChild
     >
       <button type="button" onClick={onOpen} aria-label={`查看 ${chart.name}`}>
@@ -229,7 +229,7 @@ function ChartCard({ chart, onOpen }: { chart: HelmChartSummary; onOpen: () => v
             <span className="text-foreground text-[13px] font-medium break-all">{chart.name}</span>
             {chart.deprecated ? <Badge tone="warning">已弃用</Badge> : null}
           </span>
-          <span className="zke-mono text-subtle-foreground text-xs">
+          <span className="text-subtle-foreground font-mono text-xs tabular-nums">
             {chart.version}
             {chart.app_version ? ` · app ${chart.app_version}` : ""}
           </span>
@@ -273,7 +273,7 @@ function ChartSignatureSummary({
           <Badge tone="success">签名已验证</Badge>
           <span className="break-all">{signature.signed_by?.join("、") || "—"}</span>
         </span>
-        <span className="zke-mono text-subtle-foreground text-[11px] break-all">
+        <span className="text-subtle-foreground font-mono text-[11px] break-all tabular-nums">
           {signature.key_id ? `key ${signature.key_id} · ` : ""}
           {signature.digest}
         </span>
@@ -351,7 +351,7 @@ function ChartDetailView({
                 <span className="text-foreground text-[15px] font-semibold break-all">
                   {detail.data.name}
                 </span>
-                <span className="zke-mono text-subtle-foreground text-xs">
+                <span className="text-subtle-foreground font-mono text-xs tabular-nums">
                   {detail.data.version}
                   {detail.data.app_version ? ` · app ${detail.data.app_version}` : ""}
                 </span>
@@ -426,7 +426,7 @@ function ChartDetailView({
                     key={`${dependency.name}@${dependency.version}`}
                     label={dependency.name}
                     value={
-                      <span className="zke-mono text-xs break-all">
+                      <span className="font-mono text-xs break-all tabular-nums">
                         {dependency.version}
                         {dependency.condition ? ` · 条件 ${dependency.condition}` : ""}
                       </span>
@@ -554,7 +554,7 @@ function ExternalURL({ url }: { url?: string }) {
       href={url}
       target="_blank"
       rel="noopener noreferrer nofollow"
-      className="zke-focus text-primary rounded-inline inline-flex items-center gap-1 break-all hover:underline"
+      className="dk-focus text-primary rounded-inline inline-flex items-center gap-1 break-all hover:underline"
     >
       {url}
       <ExternalLink className="size-3 shrink-0" aria-hidden="true" />

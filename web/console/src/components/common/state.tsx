@@ -73,7 +73,9 @@ export function ErrorState({
       </p>
       <p className="text-muted-foreground max-w-md text-[13px]">{errorMessage(error)}</p>
       {requestId ? (
-        <p className="zke-mono text-subtle-foreground text-xs">请求 ID：{requestId}</p>
+        <p className="text-subtle-foreground font-mono text-xs tabular-nums">
+          请求 ID：{requestId}
+        </p>
       ) : null}
       {onRetry && !forbidden ? (
         <Button size="sm" variant="secondary" onClick={onRetry}>

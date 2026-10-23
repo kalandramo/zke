@@ -8,7 +8,7 @@ import { useThemeStore, type Theme } from "@/theme/theme-store";
  *
  * Canvas cannot resolve `var(--token)`, so every value has to be a literal by
  * the time it reaches uPlot. Reading them from the computed style keeps the
- * single source in `theme.css`: a palette copied into TypeScript would go stale
+ * single source in the design tokens: a palette copied into TypeScript would go stale
  * the first time the theme changed, and it would do so silently, in one theme
  * only.
  */

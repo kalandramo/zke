@@ -4,7 +4,7 @@
 
   Standalone rather than generated from the component: a favicon is fetched
   before any script runs, so it cannot read the theme variables and carries the
-  literal app-blue pair from theme.css instead. The tile brings its own ground,
+  literal app-blue pair from the design tokens instead. The tile brings its own ground,
   which is what lets one file sit on both a light and a dark tab strip.
 
   The corner is squarer than the in-app tile (14 against 19 on the same grid):

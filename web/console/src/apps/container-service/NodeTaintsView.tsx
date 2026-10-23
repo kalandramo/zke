@@ -341,7 +341,7 @@ function NodeTaintsEditor({
                     placeholder="污点键"
                     autoComplete="off"
                     spellCheck={false}
-                    className="zke-mono text-xs"
+                    className="font-mono text-xs tabular-nums"
                     onChange={(event) => updateRow(index, { key: event.target.value })}
                   />
                   <Input
@@ -350,7 +350,7 @@ function NodeTaintsEditor({
                     placeholder="污点值（可为空）"
                     autoComplete="off"
                     spellCheck={false}
-                    className="zke-mono text-xs"
+                    className="font-mono text-xs tabular-nums"
                     onChange={(event) => updateRow(index, { value: event.target.value })}
                   />
                   <Select
@@ -395,7 +395,9 @@ function NodeTaintsEditor({
           <dl className="text-subtle-foreground mt-3 grid gap-1 text-xs">
             {EFFECTS.map((effect) => (
               <div key={effect.value} className="flex gap-2">
-                <dt className="zke-mono text-muted-foreground w-40 shrink-0">{effect.label}</dt>
+                <dt className="text-muted-foreground w-40 shrink-0 font-mono tabular-nums">
+                  {effect.label}
+                </dt>
                 <dd>{effect.description}</dd>
               </div>
             ))}
@@ -410,7 +412,7 @@ function NodeTaintsEditor({
         {reconciled.length > 0 ? (
           <Alert tone="warning" className="max-w-4xl">
             以下污点由 Kubernetes 自己按节点状况写入和清除，本次改动可能很快被覆盖：
-            <span className="zke-mono"> {reconciled.join("、")}</span>
+            <span className="font-mono tabular-nums"> {reconciled.join("、")}</span>
           </Alert>
         ) : null}
         {update.error ? (
@@ -542,7 +544,7 @@ function TaintChangeRow({
       <Badge tone={tone} className="shrink-0">
         {label}
       </Badge>
-      <span className="zke-mono text-foreground min-w-0 break-all">{text}</span>
+      <span className="text-foreground min-w-0 font-mono break-all tabular-nums">{text}</span>
     </div>
   );
 }

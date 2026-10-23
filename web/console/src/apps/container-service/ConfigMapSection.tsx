@@ -102,7 +102,7 @@ export function ConfigMapSection({
         cell: ({ row }) => (
           <div className="flex flex-col gap-0.5">
             <span className="text-foreground font-medium">{row.original.name}</span>
-            <span className="zke-mono text-subtle-foreground text-xs">
+            <span className="text-subtle-foreground font-mono text-xs tabular-nums">
               {row.original.uid || "UID 尚未分配"}
             </span>
           </div>
@@ -116,7 +116,7 @@ export function ConfigMapSection({
         header: "大小",
         size: 120,
         cell: ({ row }) => (
-          <span className="zke-tnum text-muted-foreground text-xs">
+          <span className="text-muted-foreground text-xs tabular-nums">
             {formatBytes(row.original.data_bytes + row.original.binary_data_bytes)}
           </span>
         ),
@@ -335,7 +335,7 @@ function KeysCell({ item }: { item: KubernetesConfigMapSummary }) {
   }
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="zke-mono text-muted-foreground text-xs break-all">
+      <span className="text-muted-foreground font-mono text-xs break-all tabular-nums">
         {keys.slice(0, 4).join(" · ")}
         {keys.length > 4 ? ` +${keys.length - 4}` : ""}
       </span>
@@ -427,17 +427,21 @@ function ConfigMapCards({ item }: { item: KubernetesConfigMapDetail }) {
           <DetailRow label="命名空间" value={item.namespace} />
           <DetailRow
             label="UID"
-            value={<span className="zke-mono text-xs break-all">{item.uid || "—"}</span>}
+            value={
+              <span className="font-mono text-xs break-all tabular-nums">{item.uid || "—"}</span>
+            }
           />
           <DetailRow
             label="版本"
-            value={<span className="zke-mono text-xs">{item.resource_version || "—"}</span>}
+            value={
+              <span className="font-mono text-xs tabular-nums">{item.resource_version || "—"}</span>
+            }
           />
           <DetailRow label="不可变" value={item.immutable ? "是" : "否"} />
           <DetailRow
             label="大小"
             value={
-              <span className="zke-tnum">
+              <span className="tabular-nums">
                 {formatBytes(item.data_bytes + item.binary_data_bytes)}
                 <span className="text-subtle-foreground ml-2 text-xs">
                   文本 {formatBytes(item.data_bytes)} · 二进制 {formatBytes(item.binary_data_bytes)}
@@ -464,14 +468,16 @@ function ConfigMapCards({ item }: { item: KubernetesConfigMapDetail }) {
             {dataEntries.map(([key, value]) => (
               <div key={key} className="grid gap-1">
                 <div className="flex items-baseline justify-between gap-2">
-                  <span className="zke-mono text-foreground text-xs break-all">{key}</span>
-                  <span className="text-subtle-foreground zke-tnum text-xs">
+                  <span className="text-foreground font-mono text-xs break-all tabular-nums">
+                    {key}
+                  </span>
+                  <span className="text-subtle-foreground text-xs tabular-nums">
                     {formatBytes(new Blob([value]).size)}
                   </span>
                 </div>
                 {/* Values are shown as written: a config file is indentation and
                     line breaks, and soft-wrapping it would misrepresent both. */}
-                <pre className="border-border bg-surface-muted rounded-panel zke-mono text-muted-foreground max-h-64 overflow-auto border p-2 text-xs leading-relaxed whitespace-pre">
+                <pre className="border-border bg-surface-muted rounded-panel text-muted-foreground max-h-64 overflow-auto border p-2 font-mono text-xs leading-relaxed whitespace-pre tabular-nums">
                   {value}
                 </pre>
               </div>

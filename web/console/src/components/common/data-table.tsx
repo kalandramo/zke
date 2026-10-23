@@ -103,7 +103,7 @@ export function DataTable<TData>({
            * should say so by scrolling — the box around it already does — rather
            * than crush one column and pretend it fits.
            */
-          <table className="zke-tnum w-full min-w-[36rem] border-collapse text-[13px]">
+          <table className="w-full min-w-[36rem] border-collapse text-[13px] tabular-nums">
             {/* The header floats over scrolled rows, so its fill is fully
                 opaque. It used to be 95% with a blur behind it, which is a
                 compositing layer bought to hide 5% of show-through — cheaper and
@@ -255,12 +255,14 @@ function TableFooter({
 }) {
   return (
     <div className="text-muted-foreground flex items-center justify-between gap-3 px-0.5 text-xs">
-      <span className="zke-tnum">
+      <span className="tabular-nums">
         {state}
         {isFetching ? <span className="text-subtle-foreground ml-2">刷新中…</span> : null}
       </span>
       <div className="flex items-center gap-1.5">
-        {position ? <span className="zke-mono text-subtle-foreground">{position}</span> : null}
+        {position ? (
+          <span className="text-subtle-foreground font-mono tabular-nums">{position}</span>
+        ) : null}
         <Button
           size="icon-sm"
           variant="ghost"

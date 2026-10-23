@@ -130,7 +130,7 @@ export function ReleaseSection({
       {
         header: "修订",
         size: 90,
-        cell: ({ row }) => <span className="zke-tnum">{row.original.revision}</span>,
+        cell: ({ row }) => <span className="tabular-nums">{row.original.revision}</span>,
       },
       {
         header: "更新时间",
@@ -397,7 +397,7 @@ function ReleaseDetailView({
               />
               <DetailRow
                 label="修订"
-                value={<span className="zke-tnum">{detail.data.revision}</span>}
+                value={<span className="tabular-nums">{detail.data.revision}</span>}
               />
               <DetailRow label="说明" value={detail.data.description || "—"} />
               <DetailRow
@@ -415,11 +415,19 @@ function ReleaseDetailView({
               <DetailRow label="名称" value={detail.data.chart_name || "—"} />
               <DetailRow
                 label="版本"
-                value={<span className="zke-mono text-xs">{detail.data.chart_version || "—"}</span>}
+                value={
+                  <span className="font-mono text-xs tabular-nums">
+                    {detail.data.chart_version || "—"}
+                  </span>
+                }
               />
               <DetailRow
                 label="应用版本"
-                value={<span className="zke-mono text-xs">{detail.data.app_version || "—"}</span>}
+                value={
+                  <span className="font-mono text-xs tabular-nums">
+                    {detail.data.app_version || "—"}
+                  </span>
+                }
               />
               <DetailRow label="描述" value={detail.data.chart_description || "—"} />
             </DetailCard>
@@ -454,7 +462,7 @@ function ReleaseDetailView({
                   with the page rather than scrolling inside a box — the page
                   already scrolls, and a second scrollbar inside the first is a
                   choice nobody wants to make while reading. */}
-              <pre className="zke-mono text-muted-foreground border-border bg-surface-muted/60 rounded-control border p-2.5 text-xs leading-relaxed whitespace-pre-wrap">
+              <pre className="text-muted-foreground border-border bg-surface-muted/60 rounded-control border p-2.5 font-mono text-xs leading-relaxed whitespace-pre-wrap tabular-nums">
                 {detail.data.notes}
               </pre>
             </DetailCard>
@@ -489,7 +497,7 @@ function ReleaseDetailView({
                       key={item.revision}
                       className="border-border flex flex-wrap items-center gap-2 border-b py-1.5 last:border-b-0"
                     >
-                      <span className="zke-tnum text-foreground w-12 text-xs">
+                      <span className="text-foreground w-12 text-xs tabular-nums">
                         #{item.revision}
                       </span>
                       <StatusBadge kind="helmRelease" value={item.status || "unknown"} />

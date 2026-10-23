@@ -151,8 +151,8 @@ export const ScopeSelector = memo(function ScopeSelector({
             // No field border: it sits on the top bar's glass, and a box drawn
             // around it would read as a control dropped onto the bar rather than
             // as part of it.
-            "zke-focus rounded-control hover:bg-surface/60 flex max-w-[17rem] min-w-0 items-center gap-2 py-1 pr-1.5 pl-1 text-left transition-colors",
-            highlighted && "zke-attention",
+            "dk-focus rounded-control hover:bg-surface/60 flex max-w-[17rem] min-w-0 items-center gap-2 py-1 pr-1.5 pl-1 text-left transition-colors",
+            highlighted && "dk-attention",
             className,
           )}
         >
@@ -197,7 +197,7 @@ export const ScopeSelector = memo(function ScopeSelector({
                   setDrilled(null);
                   setFilter("");
                 }}
-                className="zke-focus text-subtle-foreground hover:text-foreground rounded-control -ml-1 flex shrink-0 items-center gap-0.5 px-1 py-0.5 text-[11px] transition-colors"
+                className="dk-focus text-subtle-foreground hover:text-foreground rounded-control -ml-1 flex shrink-0 items-center gap-0.5 px-1 py-0.5 text-[11px] transition-colors"
               >
                 <ChevronLeft className="size-3.5" aria-hidden />
                 租户
@@ -338,7 +338,7 @@ function ScopeOption({
         role="option"
         aria-selected={selected}
         onClick={onSelect}
-        className="zke-focus hover:bg-surface-muted rounded-control flex w-full items-center gap-2 px-2 py-1.5 text-left transition-colors"
+        className="dk-focus hover:bg-surface-muted rounded-control flex w-full items-center gap-2 px-2 py-1.5 text-left transition-colors"
       >
         <span className="text-foreground min-w-0 flex-1 truncate text-[13px]">{label}</span>
         {selected ? <Check className="text-primary size-3.5 shrink-0" aria-hidden /> : null}

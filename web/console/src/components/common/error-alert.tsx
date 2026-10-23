@@ -23,7 +23,9 @@ export function ErrorAlert({ error, className }: { error: unknown; className?: s
     <Alert tone="danger" className={className}>
       {errorMessage(error)}
       {requestId ? (
-        <span className="zke-mono mt-1 block text-xs opacity-80">请求 ID：{requestId}</span>
+        <span className="mt-1 block font-mono text-xs tabular-nums opacity-80">
+          请求 ID：{requestId}
+        </span>
       ) : null}
     </Alert>
   );

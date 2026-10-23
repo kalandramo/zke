@@ -11,8 +11,8 @@ import type { AppAccent, AppManifest } from "./types";
  * be disbelieved is worse than no name. An application's identity outlives its
  * colour, so the identity is what the key is.
  *
- * The hex lives in `theme.css`; this file only says which token each application
- * wears.
+ * The hex lives in `styles/app-accents.css`; this file only says which token each
+ * application wears.
  *
  * Tiles in the same pale tint with the same accent glyph do not read as separate
  * applications — they read as one placeholder repeated, which is the language of

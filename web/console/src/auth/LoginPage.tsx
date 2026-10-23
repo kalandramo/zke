@@ -81,9 +81,9 @@ export function LoginPage({ onAuthenticated }: { onAuthenticated: () => void }) 
   return (
     <div className="from-desktop-from to-desktop-to relative h-full overflow-hidden bg-linear-to-br">
       {/* Light, then the drafting field, then grain over both. */}
-      <div aria-hidden className="zke-auth-surface pointer-events-none absolute inset-0" />
-      <div aria-hidden className="zke-auth-dots pointer-events-none absolute inset-0" />
-      <div aria-hidden className="zke-grain pointer-events-none absolute inset-0" />
+      <div aria-hidden className="dk-auth-surface pointer-events-none absolute inset-0" />
+      <div aria-hidden className="dk-auth-dots pointer-events-none absolute inset-0" />
+      <div aria-hidden className="dk-grain pointer-events-none absolute inset-0" />
 
       {/*
        * Sign-in is one screen, not a document: at any ordinary viewport the
@@ -96,7 +96,7 @@ export function LoginPage({ onAuthenticated }: { onAuthenticated: () => void }) 
         <div className="mx-auto grid min-h-full w-full max-w-[1440px] lg:grid-cols-[1.15fr_1fr]">
           {/* Dropped entirely on narrow viewports: on a phone the form is the
               only thing worth the height. */}
-          <section className="zke-rise hidden flex-col px-14 py-14 lg:flex xl:px-20">
+          <section className="dk-rise hidden flex-col px-14 py-14 lg:flex xl:px-20">
             <Brandmark />
 
             {/*
@@ -130,7 +130,7 @@ export function LoginPage({ onAuthenticated }: { onAuthenticated: () => void }) 
             />
 
             <div
-              className="zke-rise mx-auto w-full max-w-[336px]"
+              className="dk-rise mx-auto w-full max-w-[336px]"
               style={{ animationDelay: "80ms" }}
             >
               <div className="lg:hidden">
@@ -203,7 +203,7 @@ export function LoginPage({ onAuthenticated }: { onAuthenticated: () => void }) 
                   <Alert tone="danger" role="presentation">
                     {failure}
                     {errorRequestId(error) ? (
-                      <span className="zke-mono mt-1 block text-xs opacity-80">
+                      <span className="mt-1 block font-mono text-xs tabular-nums opacity-80">
                         请求 ID：{errorRequestId(error)}
                       </span>
                     ) : null}
@@ -314,7 +314,7 @@ function Topology() {
           strokeLinecap="round"
           strokeDasharray="8 92"
           strokeDashoffset={8}
-          className="zke-auth-flow"
+          className="dk-auth-flow"
           style={{ animationDelay: `${index * 1.5}s` }}
         />
       ))}
@@ -421,7 +421,7 @@ function TopologyCompact() {
         strokeLinecap="round"
         strokeDasharray="8 92"
         strokeDashoffset={8}
-        className="zke-auth-flow"
+        className="dk-auth-flow"
       />
 
       <circle

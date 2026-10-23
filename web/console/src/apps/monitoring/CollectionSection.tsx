@@ -131,7 +131,7 @@ export function CollectionSection() {
         cell: ({ row }) => (
           <div className="flex flex-col gap-0.5">
             <span className="text-foreground font-medium">{row.original.name}</span>
-            <span className="text-subtle-foreground zke-mono text-xs">
+            <span className="text-subtle-foreground font-mono text-xs tabular-nums">
               {byCluster.get(row.original.id)?.state?.namespace || "—"}
             </span>
           </div>
@@ -177,7 +177,7 @@ export function CollectionSection() {
             // that Cluster.
             return (
               <div className="flex flex-col gap-0.5">
-                <span className="zke-mono text-muted-foreground text-xs">
+                <span className="text-muted-foreground font-mono text-xs tabular-nums">
                   {state.installed ? state.image : state.desired_image}
                 </span>
                 <span className="text-subtle-foreground text-xs">
@@ -439,7 +439,9 @@ function CollectionDetailView({
         size: 210,
         cell: ({ row }) => (
           <div className="flex flex-col gap-0.5">
-            <span className="zke-mono text-foreground text-xs">{row.original.job_name}</span>
+            <span className="text-foreground font-mono text-xs tabular-nums">
+              {row.original.job_name}
+            </span>
             <span className="text-subtle-foreground text-[11px]">{sourceLabel(row.original)}</span>
           </div>
         ),
@@ -448,7 +450,7 @@ function CollectionDetailView({
         header: "抓取地址",
         size: 250,
         cell: ({ row }) => (
-          <span className="zke-mono text-muted-foreground text-xs break-all">
+          <span className="text-muted-foreground font-mono text-xs break-all tabular-nums">
             {scrapeAddress(row.original)}
           </span>
         ),
@@ -600,7 +602,10 @@ function JobTargets({ job }: { job: MetricsScrapeJob }) {
   return (
     <div className="grid max-h-28 gap-0.5 overflow-auto">
       {job.targets.map((target) => (
-        <span key={target} className="zke-mono text-muted-foreground text-[11px] break-all">
+        <span
+          key={target}
+          className="text-muted-foreground font-mono text-[11px] break-all tabular-nums"
+        >
           {target}
         </span>
       ))}
@@ -648,7 +653,9 @@ function ComponentLine({ component }: { component: MetricsComponentState }) {
         )}
       </div>
       {component.installed && component.image ? (
-        <span className="zke-mono text-subtle-foreground text-[11px]">{component.image}</span>
+        <span className="text-subtle-foreground font-mono text-[11px] tabular-nums">
+          {component.image}
+        </span>
       ) : null}
       {isComponentOutdated(component) ? (
         <span className="text-warning text-[11px]">平台配置已更新为 {component.desired_image}</span>

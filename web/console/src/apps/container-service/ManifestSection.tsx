@@ -495,7 +495,7 @@ function manifestColumns(): ColumnDef<ManifestDocument, unknown>[] {
       id: "index",
       header: "#",
       size: 56,
-      cell: ({ row }) => <span className="zke-tnum">{row.original.index + 1}</span>,
+      cell: ({ row }) => <span className="tabular-nums">{row.original.index + 1}</span>,
     },
     {
       id: "object",
@@ -505,7 +505,7 @@ function manifestColumns(): ColumnDef<ManifestDocument, unknown>[] {
           <span className="font-medium">
             {row.original.kind || "—"} / {row.original.name || "—"}
           </span>
-          <span className="text-subtle-foreground zke-mono text-[11px]">
+          <span className="text-subtle-foreground font-mono text-[11px] tabular-nums">
             {row.original.api_version || "—"}
             {row.original.namespace ? ` · ${row.original.namespace}` : ""}
           </span>
@@ -532,7 +532,7 @@ function manifestColumns(): ColumnDef<ManifestDocument, unknown>[] {
       header: "所需权限",
       size: 200,
       cell: ({ row }) => (
-        <span className="zke-mono text-[11px]">{row.original.permission || "—"}</span>
+        <span className="font-mono text-[11px] tabular-nums">{row.original.permission || "—"}</span>
       ),
     },
     {

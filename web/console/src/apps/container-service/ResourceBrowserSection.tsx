@@ -289,7 +289,7 @@ function ResourceTypeTree({
             <div className="text-muted-foreground flex items-center gap-2 px-1 py-1.5 text-[13px]">
               <LayoutGrid className="size-4" />
               全部资源
-              <span className="text-subtle-foreground zke-tnum text-xs">
+              <span className="text-subtle-foreground text-xs tabular-nums">
                 {tree.reduce(
                   (count, group) =>
                     count +
@@ -317,7 +317,7 @@ function ResourceTypeTree({
                   <button
                     type="button"
                     aria-expanded={groupOpen}
-                    className="zke-focus hover:bg-surface-muted rounded-control flex w-full items-center gap-1.5 px-1 py-1.5 text-left text-[13px]"
+                    className="dk-focus hover:bg-surface-muted rounded-control flex w-full items-center gap-1.5 px-1 py-1.5 text-left text-[13px]"
                     onClick={() => toggle(group.group)}
                   >
                     {groupOpen ? (
@@ -330,7 +330,7 @@ function ResourceTypeTree({
                     {/* While a filter is on, the count is what tells a closed
                         group it holds matches. */}
                     {filtering ? (
-                      <span className="zke-tnum text-subtle-foreground ml-auto shrink-0 text-xs">
+                      <span className="text-subtle-foreground ml-auto shrink-0 text-xs tabular-nums">
                         {groupCount}
                       </span>
                     ) : null}
@@ -344,7 +344,7 @@ function ResourceTypeTree({
                             <button
                               type="button"
                               aria-expanded={versionOpen}
-                              className="zke-focus hover:bg-surface-muted rounded-control text-muted-foreground flex w-full items-center gap-1.5 px-1 py-1 text-left text-xs"
+                              className="dk-focus hover:bg-surface-muted rounded-control text-muted-foreground flex w-full items-center gap-1.5 px-1 py-1 text-left text-xs"
                               onClick={() => toggle(versionKey)}
                             >
                               {versionOpen ? (
@@ -355,7 +355,7 @@ function ResourceTypeTree({
                               <Folder className="text-subtle-foreground size-3.5 shrink-0" />
                               <span className="truncate">{version.version}</span>
                               {filtering ? (
-                                <span className="zke-tnum text-subtle-foreground ml-auto shrink-0">
+                                <span className="text-subtle-foreground ml-auto shrink-0 tabular-nums">
                                   {version.resources.length}
                                 </span>
                               ) : null}
@@ -369,7 +369,7 @@ function ResourceTypeTree({
                                       key={typeKey(type)}
                                       type="button"
                                       className={cn(
-                                        "zke-focus rounded-control flex w-full items-center gap-1.5 px-2 py-1.5 text-left text-[13px]",
+                                        "dk-focus rounded-control flex w-full items-center gap-1.5 px-2 py-1.5 text-left text-[13px]",
                                         isSelected
                                           ? "bg-primary-surface text-primary"
                                           : "text-muted-foreground hover:bg-surface-muted",
@@ -492,7 +492,7 @@ function ResourceObjectPanel({
             <span className="text-foreground font-medium break-all">
               {row.original.metadata?.name ?? "—"}
             </span>
-            <span className="zke-mono text-subtle-foreground text-xs break-all">
+            <span className="text-subtle-foreground font-mono text-xs break-all tabular-nums">
               {row.original.metadata?.uid ?? "UID 尚未分配"}
             </span>
           </div>
@@ -626,9 +626,11 @@ function ResourceObjectPanel({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-baseline gap-1.5 text-[13px]">
           <span className="text-muted-foreground">API:</span>
-          <span className="zke-mono text-muted-foreground">{type.group || "core"}</span>
+          <span className="text-muted-foreground font-mono tabular-nums">
+            {type.group || "core"}
+          </span>
           <span className="text-subtle-foreground">/</span>
-          <span className="zke-mono text-muted-foreground">{type.version}</span>
+          <span className="text-muted-foreground font-mono tabular-nums">{type.version}</span>
           <span className="text-subtle-foreground">/</span>
           <span className="text-foreground font-medium">{type.kind}</span>
           {type.custom_resource ? <Badge tone="info">CRD</Badge> : null}

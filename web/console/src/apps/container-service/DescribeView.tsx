@@ -407,7 +407,7 @@ export function DescribeView({
       {
         header: "次数",
         size: 70,
-        cell: ({ row }) => <span className="zke-tnum">{row.original.count || 1}</span>,
+        cell: ({ row }) => <span className="tabular-nums">{row.original.count || 1}</span>,
       },
       {
         header: "最近发生",
@@ -683,9 +683,13 @@ function ConditionEvidenceSection({
             >
               <div className="flex flex-wrap items-center gap-2 text-xs">
                 <span className="text-foreground font-medium">{condition.type}</span>
-                <span className="zke-mono text-subtle-foreground">{condition.status}</span>
+                <span className="text-subtle-foreground font-mono tabular-nums">
+                  {condition.status}
+                </span>
                 {condition.reason ? (
-                  <span className="zke-mono text-subtle-foreground">{condition.reason}</span>
+                  <span className="text-subtle-foreground font-mono tabular-nums">
+                    {condition.reason}
+                  </span>
                 ) : null}
               </div>
               {condition.message ? (
@@ -841,7 +845,7 @@ function RelatedSection({
           <div className="text-subtle-foreground flex flex-wrap items-center gap-1.5 text-xs">
             <span>就绪 {healthy.length} 个：</span>
             {healthy.map((pod) => (
-              <span key={pod.uid} className="zke-mono break-all">
+              <span key={pod.uid} className="font-mono break-all tabular-nums">
                 {family === "node" && pod.namespace ? `${pod.namespace}/${pod.name}` : pod.name}
               </span>
             ))}
@@ -940,9 +944,13 @@ function PersistentVolumeClaimDiagnosticSummary({ data }: { data: KubernetesDesc
             >
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-foreground font-medium">{condition.type}</span>
-                <span className="zke-mono text-subtle-foreground">{condition.status}</span>
+                <span className="text-subtle-foreground font-mono tabular-nums">
+                  {condition.status}
+                </span>
                 {condition.reason ? (
-                  <span className="zke-mono text-subtle-foreground">{condition.reason}</span>
+                  <span className="text-subtle-foreground font-mono tabular-nums">
+                    {condition.reason}
+                  </span>
                 ) : null}
               </div>
               {condition.message ? (
@@ -1141,7 +1149,7 @@ function GatewayDiagnosticSummary({ data }: { data: KubernetesDescribe }) {
                       {FINDING_LABELS[finding.code]?.title ?? finding.code}
                     </Badge>
                     {finding.reason ? (
-                      <span className="zke-mono text-subtle-foreground text-xs">
+                      <span className="text-subtle-foreground font-mono text-xs tabular-nums">
                         {finding.reason}
                       </span>
                     ) : null}
@@ -1183,7 +1191,7 @@ function GatewayRouteDiagnosticSummary({ data }: { data: KubernetesDescribe }) {
                 {parent.parent.namespace ? `${parent.parent.namespace}/` : ""}
                 {parent.parent.name || "未知父级"}
               </span>
-              <span className="zke-mono text-subtle-foreground text-xs break-all">
+              <span className="text-subtle-foreground font-mono text-xs break-all tabular-nums">
                 {parent.controller_name || "未知 Controller"}
               </span>
             </div>
@@ -1295,7 +1303,9 @@ function AutoscalerDiagnosticSummary({ data }: { data: KubernetesDescribe }) {
               <div className="flex flex-wrap items-center gap-1.5">
                 <Badge tone="warning">{FINDING_LABELS[finding.code]?.title ?? finding.code}</Badge>
                 {finding.reason ? (
-                  <span className="zke-mono text-subtle-foreground text-xs">{finding.reason}</span>
+                  <span className="text-subtle-foreground font-mono text-xs tabular-nums">
+                    {finding.reason}
+                  </span>
                 ) : null}
               </div>
               {finding.message ? (
@@ -1328,11 +1338,11 @@ function PolicyDiagnosticSummary({ data }: { data: KubernetesDescribe }) {
                 key={usage.resource}
                 className="border-border/60 rounded-control flex flex-wrap items-center justify-between gap-2 border p-2.5"
               >
-                <span className="zke-mono text-foreground text-[13px] break-all">
+                <span className="text-foreground font-mono text-[13px] break-all tabular-nums">
                   {usage.resource}
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="zke-mono text-muted-foreground text-xs">
+                  <span className="text-muted-foreground font-mono text-xs tabular-nums">
                     {usage.used} / {usage.hard}
                   </span>
                   <Badge tone={usage.exhausted ? "warning" : "success"}>
@@ -1379,7 +1389,7 @@ function DiagnosticValue({ label, value }: { label: string; value: string }) {
   return (
     <div className="border-border/60 rounded-control min-w-0 border p-2.5">
       <p className="text-subtle-foreground text-xs">{label}</p>
-      <p className="zke-mono text-foreground mt-1 text-[13px] break-all">{value}</p>
+      <p className="text-foreground mt-1 font-mono text-[13px] break-all tabular-nums">{value}</p>
     </div>
   );
 }
@@ -1433,7 +1443,7 @@ function RelatedRow({
               <span className="text-muted-foreground text-xs break-all">容器 {finding.scope}</span>
             ) : null}
             {finding.exit_code !== undefined ? (
-              <span className="zke-tnum text-subtle-foreground text-xs">
+              <span className="text-subtle-foreground text-xs tabular-nums">
                 退出码 {finding.exit_code}
               </span>
             ) : null}
@@ -1475,12 +1485,12 @@ function FindingCard({
           <span className="text-muted-foreground text-xs break-all">容器 {finding.scope}</span>
         ) : null}
         {finding.reason ? (
-          <span className="zke-mono text-subtle-foreground text-xs break-all">
+          <span className="text-subtle-foreground font-mono text-xs break-all tabular-nums">
             {finding.reason}
           </span>
         ) : null}
         {finding.exit_code !== undefined ? (
-          <span className="zke-tnum text-subtle-foreground text-xs">
+          <span className="text-subtle-foreground text-xs tabular-nums">
             退出码 {finding.exit_code}
           </span>
         ) : null}
@@ -1510,11 +1520,11 @@ function FindingCard({
               <button
                 key={`${item.kind}-${item.name}`}
                 type="button"
-                // `zke-focus`, like every other control: this used to draw its
+                // `dk-focus`, like every other control: this used to draw its
                 // own ring off `ring-accent`, which is not a token this theme
                 // defines — so the rule generated nothing and the only thing
                 // left was `outline-none`, i.e. no keyboard focus at all.
-                className="zke-focus border-border/60 hover:bg-surface-muted rounded-full border px-2 py-0.5 transition-colors"
+                className="dk-focus border-border/60 hover:bg-surface-muted rounded-full border px-2 py-0.5 transition-colors"
                 onClick={() => onFocusEvidence(item.kind, item.name)}
               >
                 {evidenceLabel(item.kind)} · {item.name}

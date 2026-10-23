@@ -78,7 +78,7 @@ export function SavedQueryLibrary({
             <BookMarked />
             保存的查询
             {entries.length > 0 ? (
-              <span className="text-subtle-foreground zke-tnum">{entries.length}</span>
+              <span className="text-subtle-foreground tabular-nums">{entries.length}</span>
             ) : null}
           </Button>
         </PopoverTrigger>
@@ -129,7 +129,7 @@ export function SavedQueryLibrary({
                   <div className="hover:bg-surface-muted flex items-start gap-2 px-2 py-2 transition-colors">
                     <button
                       type="button"
-                      className="zke-focus rounded-control min-w-0 flex-1 px-1 py-0.5 text-left"
+                      className="dk-focus rounded-control min-w-0 flex-1 px-1 py-0.5 text-left"
                       onClick={() => {
                         onInsert(entry.expression);
                         setOpen(false);
@@ -151,7 +151,7 @@ export function SavedQueryLibrary({
                           {entry.description}
                         </span>
                       ) : null}
-                      <span className="zke-mono text-subtle-foreground mt-1 block truncate text-[11px]">
+                      <span className="text-subtle-foreground mt-1 block truncate font-mono text-[11px] tabular-nums">
                         {entry.expression}
                       </span>
                       {entry.visibility === "project" ? (

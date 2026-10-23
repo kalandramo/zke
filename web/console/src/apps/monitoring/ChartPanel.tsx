@@ -288,7 +288,7 @@ export function ChartPanel({ panel, top, namespace }: ChartPanelProps) {
                   <span className="text-foreground text-xs font-medium">{item.name}</span>
                   <CopyIconButton value={item.expression} label={`复制${item.name}查询语句`} />
                 </div>
-                <pre className="zke-mono text-foreground overflow-x-auto p-3 text-xs leading-relaxed whitespace-pre-wrap">
+                <pre className="text-foreground overflow-x-auto p-3 font-mono text-xs leading-relaxed whitespace-pre-wrap tabular-nums">
                   {item.expression}
                 </pre>
               </section>

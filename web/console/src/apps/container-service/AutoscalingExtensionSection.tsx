@@ -130,7 +130,7 @@ function ExtensionSection({
         cell: ({ row }) => (
           <div className="flex flex-col gap-0.5">
             <span className="text-foreground font-medium break-all">{row.original.name}</span>
-            <span className="zke-mono text-subtle-foreground text-xs whitespace-nowrap">
+            <span className="text-subtle-foreground font-mono text-xs whitespace-nowrap tabular-nums">
               {row.original.uid || "UID 尚未分配"}
             </span>
           </div>
@@ -153,7 +153,7 @@ function ExtensionSection({
           kind === "vpa" ? (
             (row.original as KubernetesVPASummary).update_mode || "Off"
           ) : (
-            <span className="zke-tnum">
+            <span className="tabular-nums">
               {(row.original as KubernetesKEDASummary).min_replicas}–
               {(row.original as KubernetesKEDASummary).max_replicas}
             </span>
@@ -514,7 +514,7 @@ function ExtensionDetail({
             value={
               <span className="break-all">
                 {vpa.target.kind}/{vpa.target.name}
-                <span className="zke-mono text-subtle-foreground ml-2 text-xs">
+                <span className="text-subtle-foreground ml-2 font-mono text-xs tabular-nums">
                   {vpa.target.api_version}
                 </span>
               </span>
@@ -525,7 +525,7 @@ function ExtensionDetail({
           <DetailRow
             label="Generation"
             value={
-              <span className="zke-tnum">
+              <span className="tabular-nums">
                 {vpa.generation}（已观察 {vpa.observed_generation || "—"}）
               </span>
             }
@@ -607,7 +607,7 @@ function ExtensionDetail({
           value={
             <span className="break-all">
               {keda.target.kind}/{keda.target.name}
-              <span className="zke-mono text-subtle-foreground ml-2 text-xs">
+              <span className="text-subtle-foreground ml-2 font-mono text-xs tabular-nums">
                 {keda.target.api_version}
               </span>
             </span>
@@ -617,7 +617,7 @@ function ExtensionDetail({
         <DetailRow
           label="副本范围"
           value={
-            <span className="zke-tnum">
+            <span className="tabular-nums">
               {keda.min_replicas}–{keda.max_replicas}
             </span>
           }
@@ -625,7 +625,7 @@ function ExtensionDetail({
         <DetailRow
           label="轮询 / 冷却"
           value={
-            <span className="zke-tnum">
+            <span className="tabular-nums">
               {keda.polling_interval}s / {keda.cooldown_period}s
             </span>
           }
@@ -659,7 +659,10 @@ function ExtensionDetail({
             )
           }
         />
-        <DetailRow label="Generation" value={<span className="zke-tnum">{keda.generation}</span>} />
+        <DetailRow
+          label="Generation"
+          value={<span className="tabular-nums">{keda.generation}</span>}
+        />
         <DetailRow label="创建时间" value={formatAbsolute(keda.creation_timestamp)} />
       </DetailCard>
       <DetailCard title="控制器状态">

@@ -112,7 +112,9 @@ export function OperationProgress({
       {operation.status === "failed" && operation.failure ? (
         <Alert tone="danger">
           <span className="font-medium">{operation.failure.message}</span>
-          <span className="text-danger/70 zke-mono ml-1.5 text-xs">{operation.failure.code}</span>
+          <span className="text-danger/70 ml-1.5 font-mono text-xs tabular-nums">
+            {operation.failure.code}
+          </span>
         </Alert>
       ) : null}
     </div>
@@ -160,7 +162,7 @@ function StepRow({
             {step.label}
           </span>
           {elapsed ? (
-            <span className="text-muted-foreground zke-tnum text-xs">{elapsed}</span>
+            <span className="text-muted-foreground text-xs tabular-nums">{elapsed}</span>
           ) : null}
         </div>
         {state === "pending" ? null : (
@@ -273,8 +275,8 @@ function OperationLog({ operation }: { operation: HelmReleaseOperation }) {
  */
 const LogLine = memo(function LogLine({ at, message }: { at: string; message: string }) {
   return (
-    <li className="zke-mono text-muted-foreground flex gap-2 text-xs leading-relaxed">
-      <span className="text-subtle-foreground zke-tnum shrink-0">{clockTime(at)}</span>
+    <li className="text-muted-foreground flex gap-2 font-mono text-xs leading-relaxed tabular-nums">
+      <span className="text-subtle-foreground shrink-0 tabular-nums">{clockTime(at)}</span>
       {/* `break-all` rather than `truncate`: a Kubernetes error names the object
           it is about at the end of the line, which is exactly the half a
           truncation would take. */}

@@ -539,7 +539,10 @@ function MetricsCollectionSection({
       <BudgetHint />
       <FieldHint>
         采集组件的磁盘缓冲区大小仍由 Server 配置文件中的
-        <code className="zke-mono"> observability.metrics.collector_buffer_size </code>
+        <code className="font-mono tabular-nums">
+          {" "}
+          observability.metrics.collector_buffer_size{" "}
+        </code>
         决定。
       </FieldHint>
     </div>
@@ -670,7 +673,7 @@ function ImageField({
       <Label htmlFor={id}>{label}</Label>
       <Input
         id={id}
-        className="zke-mono"
+        className="font-mono tabular-nums"
         autoComplete="off"
         spellCheck={false}
         aria-invalid={invalid || undefined}
@@ -700,7 +703,7 @@ function QuantityField({
       <Label htmlFor={id}>{label}</Label>
       <Input
         id={id}
-        className="zke-mono"
+        className="font-mono tabular-nums"
         placeholder={placeholder}
         autoComplete="off"
         spellCheck={false}
@@ -906,7 +909,7 @@ function EndpointsSection({
                   </Badge>
                   {profile.id === defaultProfileID ? <Badge tone="info">平台默认</Badge> : null}
                 </div>
-                <p className="text-subtle-foreground zke-mono mt-1 truncate text-xs">
+                <p className="text-subtle-foreground mt-1 truncate font-mono text-xs tabular-nums">
                   {profile.registration_url} · {profile.quic_address}
                 </p>
               </div>
@@ -976,7 +979,7 @@ function EndpointsSection({
                 <Label htmlFor="endpoint-registration-url">注册 URL</Label>
                 <Input
                   id="endpoint-registration-url"
-                  className="zke-mono"
+                  className="font-mono tabular-nums"
                   autoComplete="off"
                   spellCheck={false}
                   placeholder="https://zke.example.com"
@@ -1010,7 +1013,7 @@ function EndpointsSection({
                 <Label htmlFor="endpoint-quic-address">QUIC 地址</Label>
                 <Input
                   id="endpoint-quic-address"
-                  className="zke-mono"
+                  className="font-mono tabular-nums"
                   autoComplete="off"
                   spellCheck={false}
                   placeholder="zke.example.com:8443"
@@ -1036,7 +1039,7 @@ function EndpointsSection({
                   <Textarea
                     id="endpoint-ca"
                     rows={5}
-                    className="zke-mono"
+                    className="font-mono tabular-nums"
                     spellCheck={false}
                     placeholder="-----BEGIN CERTIFICATE-----"
                     aria-invalid={showProblems.registration_ca_certificate_pem ? true : undefined}

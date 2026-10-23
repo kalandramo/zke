@@ -96,7 +96,7 @@ export function Opening({
                 key={starter.title}
                 type="button"
                 onClick={() => onPick(starter.prompt)}
-                className="zke-focus border-border text-muted-foreground hover:border-border-strong hover:bg-surface-muted hover:text-foreground inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] transition-colors duration-150"
+                className="dk-focus border-border text-muted-foreground hover:border-border-strong hover:bg-surface-muted hover:text-foreground inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] transition-colors duration-150"
               >
                 <Icon aria-hidden className="size-3.5 shrink-0 opacity-70" />
                 {starter.title}

@@ -162,10 +162,11 @@ export function SaveQueryDialog({
               value={expression}
               readOnly
               rows={3}
-              className="zke-mono min-h-0 text-xs"
+              className="min-h-0 font-mono text-xs tabular-nums"
             />
             <p className="text-subtle-foreground text-[11px]">
-              表达式按书写内容保存。其中的 <code className="zke-mono">{CLUSTER_SCOPE_LABEL}</code>{" "}
+              表达式按书写内容保存。其中的{" "}
+              <code className="font-mono tabular-nums">{CLUSTER_SCOPE_LABEL}</code>{" "}
               条件会在每次执行时被替换为当前目标集群。
             </p>
           </div>

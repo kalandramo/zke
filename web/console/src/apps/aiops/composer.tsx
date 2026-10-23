@@ -133,7 +133,7 @@ export function Composer({
     <form onSubmit={submit} className="shrink-0 px-6 pt-2 pb-4">
       {/* The halo belongs to the whole box: the textarea has no chrome of its
           own here, so focus has to land on the container the operator sees. */}
-      <div className="zke-focus-within border-border bg-surface rounded-panel shadow-e1 mx-auto max-w-3xl border transition-[border-color,box-shadow] duration-150">
+      <div className="dk-focus-within border-border bg-surface rounded-panel shadow-e1 mx-auto max-w-3xl border transition-[border-color,box-shadow] duration-150">
         {files.length > 0 ? (
           <div className="border-border flex flex-wrap gap-1.5 border-b px-3 py-2">
             {files.map((attachment) => (
@@ -159,7 +159,7 @@ export function Composer({
           </div>
         ) : null}
         {/* A bare textarea rather than the shared `Textarea`, which carries
-            `zke-focus` — the halo is `box-shadow` set by a utility class, so a
+            `dk-focus` — the halo is `box-shadow` set by a utility class, so a
             `focus-visible:shadow-none` override does not remove it, and the
             focused field drew a 3px ring inside the panel that read as a rule
             across the middle of the box. The chrome belongs to the container
@@ -406,7 +406,7 @@ function ApprovalModePicker({
                 setOpen(false);
               }}
               className={cn(
-                "zke-focus rounded-control hover:bg-surface-muted flex w-full items-start gap-2.5 px-2 py-2 text-left transition-colors duration-150",
+                "dk-focus rounded-control hover:bg-surface-muted flex w-full items-start gap-2.5 px-2 py-2 text-left transition-colors duration-150",
                 item.value === "full" && "text-warning",
               )}
             >

@@ -132,11 +132,11 @@ function OverviewContent({
             sectionHasData(nodeIssue) ? (
               <>
                 <StatusBadge kind="node" value="ready" />
-                <span className="zke-tnum">{nodes.status_counts.ready ?? 0}</span>
+                <span className="tabular-nums">{nodes.status_counts.ready ?? 0}</span>
                 {nodes.unschedulable > 0 ? (
                   <>
                     <StatusBadge kind="scheduling" value="unschedulable" />
-                    <span className="zke-tnum">{nodes.unschedulable}</span>
+                    <span className="tabular-nums">{nodes.unschedulable}</span>
                   </>
                 ) : null}
               </>
@@ -156,11 +156,11 @@ function OverviewContent({
             sectionHasData(namespaceIssue) ? (
               <>
                 <Badge tone="success">活跃</Badge>
-                <span className="zke-tnum">{namespaces.status_counts.active ?? 0}</span>
+                <span className="tabular-nums">{namespaces.status_counts.active ?? 0}</span>
                 {(namespaces.status_counts.terminating ?? 0) > 0 ? (
                   <>
                     <Badge tone="warning">终止中</Badge>
-                    <span className="zke-tnum">{namespaces.status_counts.terminating}</span>
+                    <span className="tabular-nums">{namespaces.status_counts.terminating}</span>
                   </>
                 ) : null}
               </>
@@ -181,17 +181,17 @@ function OverviewContent({
             sectionHasData(podIssue) ? (
               <>
                 <Badge tone="success">就绪</Badge>
-                <span className="zke-tnum">{pods.ready}</span>
+                <span className="tabular-nums">{pods.ready}</span>
                 {pods.not_ready > 0 ? (
                   <>
                     <Badge tone="warning">未就绪</Badge>
-                    <span className="zke-tnum">{pods.not_ready}</span>
+                    <span className="tabular-nums">{pods.not_ready}</span>
                   </>
                 ) : null}
                 {pods.terminating > 0 ? (
                   <>
                     <Badge tone="neutral">终止中</Badge>
-                    <span className="zke-tnum">{pods.terminating}</span>
+                    <span className="tabular-nums">{pods.terminating}</span>
                   </>
                 ) : null}
               </>
@@ -417,7 +417,7 @@ function openTitle(link: OverviewLink): string {
 
 /** Hover, focus and cursor treatment shared by everything on this page that opens a list. */
 const OPENS_LIST =
-  "zke-focus hover:border-primary/40 hover:bg-surface-muted/50 cursor-pointer text-left transition-colors";
+  "dk-focus hover:border-primary/40 hover:bg-surface-muted/50 cursor-pointer text-left transition-colors";
 
 /**
  * A count, and what it is made of.
@@ -447,7 +447,7 @@ function StatTile({
         {label}
         {open ? <ArrowUpRight className="size-3 shrink-0" aria-hidden /> : null}
       </span>
-      <span className="zke-tnum text-foreground mt-1 block text-[22px] font-semibold tracking-tight">
+      <span className="text-foreground mt-1 block text-[22px] font-semibold tracking-tight tabular-nums">
         {value}
       </span>
       {detail ? (
@@ -487,7 +487,7 @@ function CountRow({
   const row = (
     <>
       <span className="text-muted-foreground min-w-0 break-words">{label}</span>
-      <span className="zke-tnum text-foreground font-medium">{value}</span>
+      <span className="text-foreground font-medium tabular-nums">{value}</span>
       <span className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
         {children}
         {note ? <span className="text-subtle-foreground text-xs">{note}</span> : null}
@@ -562,7 +562,7 @@ function Meter({
     <div className="grid gap-1.5">
       <div className="flex flex-wrap items-baseline justify-between gap-2 text-[13px]">
         <span className="text-muted-foreground">{label}</span>
-        <span className="zke-tnum text-foreground">
+        <span className="text-foreground tabular-nums">
           {sectionValue(used, usedIssue, format)} / {sectionValue(total, totalIssue, format)}
           <span className="text-subtle-foreground ml-2">
             {ratioKnown ? `${percent}%` : "比例不可用"}
@@ -607,7 +607,7 @@ function StatusCounts({
       {entries.map(([status, value]) => (
         <span key={status} className="flex items-center gap-1.5">
           <StatusBadge kind={kind ?? "workload"} value={statusBadgeValue(kind, status)} />
-          <span className="zke-tnum text-muted-foreground">{value}</span>
+          <span className="text-muted-foreground tabular-nums">{value}</span>
         </span>
       ))}
     </span>
@@ -642,8 +642,10 @@ function VersionCounts({
       <div className="grid gap-1.5">
         {entries.map(([version, count]) => (
           <div key={version} className="flex items-baseline justify-between gap-3 text-[13px]">
-            <span className="zke-mono text-foreground min-w-0 break-all">{version}</span>
-            <span className="zke-tnum text-muted-foreground shrink-0">{count} 个节点</span>
+            <span className="text-foreground min-w-0 font-mono break-all tabular-nums">
+              {version}
+            </span>
+            <span className="text-muted-foreground shrink-0 tabular-nums">{count} 个节点</span>
           </div>
         ))}
       </div>

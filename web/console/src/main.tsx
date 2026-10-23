@@ -12,6 +12,13 @@ import { AppToaster } from "@/components/common/toaster";
 // 它自身还带着 @source "./dist"，Tailwind 才能扫到 node_modules 里的组件类名。
 import "@kalandramo/desktop-kit/styles.css";
 
+// 应用瓦片的配色三件套。desktop-kit 0.5.0 起不再内置任何产品的应用清单，只发布中性
+// 色相档，所以这一层必须由宿主补上；缺任何一档的三件套，那个瓦片就会静默渲染成无色
+// （`var()` 无兜底值时整条 background-image 在计算值阶段失效，构建工具一概不吭声）。
+// 排在 kit 之后是为了让读代码的人一眼看出依赖方向，而不是因为自定义属性需要按顺序
+// 解析——它们在计算值阶段解析，与声明先后无关。
+import "@/styles/app-accents.css";
+
 // Caps a `Retry-After` the Server may state in minutes: a query that waits that
 // long is a window stuck on a spinner with nothing to show for it.
 const MAX_RETRY_DELAY_MS = 30_000;

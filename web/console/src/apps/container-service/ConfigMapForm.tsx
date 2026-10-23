@@ -321,7 +321,7 @@ function ConfigMapEditor({
         {mutation.error ? <Alert tone="danger">{errorMessage(mutation.error)}</Alert> : null}
 
         <div className="flex flex-wrap items-center justify-end gap-3 pb-2">
-          <span className="text-subtle-foreground zke-tnum text-xs">
+          <span className="text-subtle-foreground text-xs tabular-nums">
             合计 {(totalBytes / 1024).toFixed(1)} KiB / 1024 KiB
           </span>
           {existing ? (
@@ -464,7 +464,7 @@ function EntryList({
                 placeholder={valuePlaceholder}
                 spellCheck={false}
                 autoComplete="off"
-                className="zke-mono min-h-24 text-xs leading-relaxed"
+                className="min-h-24 font-mono text-xs leading-relaxed tabular-nums"
                 onChange={(event) => update(index, { value: event.target.value })}
               />
             ) : (
@@ -474,7 +474,7 @@ function EntryList({
                 placeholder={valuePlaceholder}
                 autoComplete="off"
                 spellCheck={false}
-                className="zke-mono text-xs"
+                className="font-mono text-xs tabular-nums"
                 onChange={(event) => update(index, { value: event.target.value })}
               />
             )}

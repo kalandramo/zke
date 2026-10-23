@@ -310,7 +310,7 @@ function PodLogReader({
             {stream.status === "error" ? "没有读取到日志。" : "该容器在当前范围内没有日志输出。"}
           </p>
         ) : (
-          <pre className="zke-mono text-foreground text-xs leading-relaxed break-words whitespace-pre-wrap">
+          <pre className="text-foreground font-mono text-xs leading-relaxed break-words whitespace-pre-wrap tabular-nums">
             {/*
              * One block per page rather than one text node for the whole
              * buffer: a text node's content cannot change without the browser
@@ -350,7 +350,7 @@ function PodLogReader({
           following={follow && !previous}
           termination={stream.termination}
         />
-        <span className="zke-tnum">已接收 {formatBytes(stream.bytes)}</span>
+        <span className="tabular-nums">已接收 {formatBytes(stream.bytes)}</span>
         {stream.truncated ? <span>已丢弃较早的日志以限制浏览器内存占用</span> : null}
         {stickToBottom ? null : <span>已暂停自动滚动——滚动到底部可恢复</span>}
       </div>

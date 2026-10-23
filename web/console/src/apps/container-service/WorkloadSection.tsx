@@ -127,7 +127,7 @@ export function WorkloadSection({
         cell: ({ row }) => (
           <div className="flex flex-col gap-0.5">
             <span className="text-foreground font-medium">{row.original.name}</span>
-            <span className="zke-mono text-subtle-foreground text-xs">
+            <span className="text-subtle-foreground font-mono text-xs tabular-nums">
               {row.original.uid || "UID 尚未分配"}
             </span>
           </div>
@@ -382,7 +382,7 @@ function ReplicaCell({ replicas }: { replicas: ReplicaStatus | undefined }) {
   }
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="zke-tnum text-foreground">
+      <span className="text-foreground tabular-nums">
         {replicas.ready} / {replicas.desired}
       </span>
       <span className="text-subtle-foreground text-xs">
@@ -401,7 +401,7 @@ function JobCell({ job }: { job: JobStatus | undefined }) {
       {/* An unset `completions` means the Job finishes as soon as one Pod
           succeeds, so there is no denominator to show rather than a 1 to
           invent. */}
-      <span className="zke-tnum text-foreground">
+      <span className="text-foreground tabular-nums">
         {job.completions === undefined ? job.succeeded : `${job.succeeded} / ${job.completions}`}
       </span>
       <span className="text-subtle-foreground text-xs">
@@ -417,7 +417,7 @@ function CronJobCell({ cronJob }: { cronJob: CronJobStatus | undefined }) {
   }
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="zke-mono text-foreground text-xs">{cronJob.schedule}</span>
+      <span className="text-foreground font-mono text-xs tabular-nums">{cronJob.schedule}</span>
       <span className="text-subtle-foreground text-xs">
         活跃 {cronJob.active} · 上次调度 {formatAbsolute(cronJob.last_schedule_time)}
       </span>
@@ -444,7 +444,10 @@ function ImageCell({ images }: { images: string[] }) {
     // text instead puts them on one line, and on the first line when the image
     // wraps.
     <div className="flex items-baseline gap-1.5">
-      <span className="zke-mono text-muted-foreground text-xs break-all" title={images.join("\n")}>
+      <span
+        className="text-muted-foreground font-mono text-xs break-all tabular-nums"
+        title={images.join("\n")}
+      >
         {images[0]}
       </span>
       {images.length > 1 ? <Badge tone="neutral">+{images.length - 1}</Badge> : null}
@@ -595,7 +598,7 @@ function WorkloadDetailCards({ workload }: { workload: KubernetesWorkloadDetail 
         <DetailRow
           label="类型"
           value={
-            <span className="zke-mono text-xs">
+            <span className="font-mono text-xs tabular-nums">
               {workload.api_version} · {workload.kind}
             </span>
           }
@@ -603,11 +606,17 @@ function WorkloadDetailCards({ workload }: { workload: KubernetesWorkloadDetail 
         <DetailRow label="命名空间" value={workload.namespace} />
         <DetailRow
           label="UID"
-          value={<span className="zke-mono text-xs break-all">{workload.uid || "—"}</span>}
+          value={
+            <span className="font-mono text-xs break-all tabular-nums">{workload.uid || "—"}</span>
+          }
         />
         <DetailRow
           label="版本"
-          value={<span className="zke-mono text-xs">{workload.resource_version || "—"}</span>}
+          value={
+            <span className="font-mono text-xs tabular-nums">
+              {workload.resource_version || "—"}
+            </span>
+          }
         />
         <DetailRow label="状态" value={<StatusBadge kind="workload" value={workload.status} />} />
         {/* Job and CronJob v1 Status carry no observedGeneration, so the Server
@@ -669,7 +678,9 @@ function WorkloadDetailCards({ workload }: { workload: KubernetesWorkloadDetail 
         <DetailCard title="CronJob 状态">
           <DetailRow
             label="调度"
-            value={<span className="zke-mono text-xs">{workload.cron_job.schedule}</span>}
+            value={
+              <span className="font-mono text-xs tabular-nums">{workload.cron_job.schedule}</span>
+            }
           />
           <DetailRow label="暂停" value={workload.cron_job.suspend ? "是" : "否"} />
           <DetailRow label="活跃 Job" value={<Count value={workload.cron_job.active} />} />
@@ -730,7 +741,7 @@ function WorkloadDetailCards({ workload }: { workload: KubernetesWorkloadDetail 
                 key={`${expression.key}/${expression.operator}`}
                 label={expression.operator}
                 value={
-                  <span className="zke-mono text-xs break-all">
+                  <span className="font-mono text-xs break-all tabular-nums">
                     {expression.key}
                     {expression.values.length > 0 ? ` ∈ ${expression.values.join(", ")}` : ""}
                   </span>
@@ -785,13 +796,13 @@ function configurationRows(workload: KubernetesWorkloadDetail): { label: string;
 }
 
 function Count({ value }: { value: number }) {
-  return <span className="zke-tnum">{value}</span>;
+  return <span className="tabular-nums">{value}</span>;
 }
 
 function ContainerImage({ image, policy }: { image: string; policy: string | undefined }) {
   return (
     <div className="grid gap-0.5">
-      <span className="zke-mono text-xs break-all">{image || "—"}</span>
+      <span className="font-mono text-xs break-all tabular-nums">{image || "—"}</span>
       {policy ? <span className="text-subtle-foreground text-xs">{policy}</span> : null}
     </div>
   );

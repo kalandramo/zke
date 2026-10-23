@@ -63,7 +63,7 @@ export function AbsoluteTime({
     return <span className={cn("text-subtle-foreground", className)}>—</span>;
   }
   return (
-    <time dateTime={value} className={cn("zke-mono text-xs", className)}>
+    <time dateTime={value} className={cn("font-mono text-xs tabular-nums", className)}>
       {formatAbsolute(value)}
     </time>
   );
@@ -127,10 +127,10 @@ export function CopyableValue({
         // against the card it usually sits on is a couple of steps of grey, too
         // little to be read as "this responds to a click" on a page that is
         // otherwise full of plain text.
-        // `zke-touch-pad`, not a taller control: this is an identifier sitting
+        // `dk-touch-pad`, not a taller control: this is an identifier sitting
         // inside a line of text, and growing it to 40px would push every row it
         // appears in apart. Under a finger the pad it hangs behind it is 44px.
-        "zke-focus zke-touch-pad group/copy hover:bg-surface-muted hover:border-border -mx-1 inline-flex w-fit cursor-pointer items-center rounded border border-transparent px-1 whitespace-nowrap transition-colors",
+        "dk-focus dk-touch-pad group/copy hover:bg-surface-muted hover:border-border -mx-1 inline-flex w-fit cursor-pointer items-center rounded border border-transparent px-1 whitespace-nowrap transition-colors",
         className,
       )}
     >
@@ -194,10 +194,15 @@ export function AddressValues({
 }) {
   const shown = values.filter(Boolean);
   if (shown.length === 0) {
-    return <span className={cn("zke-mono text-xs", className)}>{empty}</span>;
+    return <span className={cn("font-mono text-xs tabular-nums", className)}>{empty}</span>;
   }
   return (
-    <span className={cn("zke-mono inline-flex flex-wrap items-center gap-x-1 text-xs", className)}>
+    <span
+      className={cn(
+        "inline-flex flex-wrap items-center gap-x-1 font-mono text-xs tabular-nums",
+        className,
+      )}
+    >
       {shown.map((value, index) =>
         value === "None" ? (
           <span key={`${value}/${index}`}>None</span>
@@ -205,7 +210,7 @@ export function AddressValues({
           <CopyableValue
             key={`${value}/${index}`}
             value={value}
-            className={cn("zke-mono text-xs break-all whitespace-normal", className)}
+            className={cn("font-mono text-xs break-all whitespace-normal tabular-nums", className)}
           >
             {value}
           </CopyableValue>
@@ -227,7 +232,10 @@ export function IdentifierLabel({ value, className }: { value: string; className
     <CopyableValue
       value={value}
       label={`复制标识 ${value}`}
-      className={cn("zke-mono text-muted-foreground hover:text-foreground text-xs", className)}
+      className={cn(
+        "text-muted-foreground hover:text-foreground font-mono text-xs tabular-nums",
+        className,
+      )}
     >
       {value.length > 12 ? `${value.slice(0, 8)}…${value.slice(-4)}` : value}
     </CopyableValue>

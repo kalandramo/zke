@@ -194,10 +194,10 @@ export const Window = memo(function Window({
         data-focused={focused}
         aria-hidden={parked || undefined}
         className={cn(
-          "bg-surface zke-pointer-layer absolute flex flex-col overflow-hidden border",
+          "bg-surface dk-pointer-layer absolute flex flex-col overflow-hidden border",
           fullscreen ? "rounded-none" : "rounded-window",
           focused ? "border-border-strong shadow-window-focused" : "border-border shadow-window",
-          !interaction.isInteracting && "zke-window-motion",
+          !interaction.isInteracting && "dk-window-motion",
           // Do not apply a CSS filter to the whole unfocused window. Both xterm
           // views render through canvas, and moving that canvas in and out of a
           // filtered compositing layer can leave it black after refocusing.
@@ -213,7 +213,7 @@ export const Window = memo(function Window({
           zIndex,
           display: parked ? "none" : undefined,
           // Two properties, because only one of them is transitioned — see
-          // `.zke-window-motion`. Both are composited, and they cannot collide:
+          // `.dk-window-motion`. Both are composited, and they cannot collide:
           // a revealed window takes no pointer, so nothing can be dragged while
           // the desk is cleared.
           translate: reveal ? `${reveal.x}px ${reveal.y}px` : undefined,

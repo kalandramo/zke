@@ -105,7 +105,7 @@ export function SecretSection({
         cell: ({ row }) => (
           <div className="flex flex-col gap-0.5">
             <span className="text-foreground font-medium">{row.original.name}</span>
-            <span className="zke-mono text-subtle-foreground text-xs">
+            <span className="text-subtle-foreground font-mono text-xs tabular-nums">
               {row.original.uid || "UID 尚未分配"}
             </span>
           </div>
@@ -119,7 +119,7 @@ export function SecretSection({
         header: "类型",
         size: 200,
         cell: ({ row }) => (
-          <span className="zke-mono text-muted-foreground text-xs break-all">
+          <span className="text-muted-foreground font-mono text-xs break-all tabular-nums">
             {row.original.type || "Opaque"}
           </span>
         ),
@@ -128,7 +128,7 @@ export function SecretSection({
         header: "大小",
         size: 120,
         cell: ({ row }) => (
-          <span className="zke-tnum text-muted-foreground text-xs">
+          <span className="text-muted-foreground text-xs tabular-nums">
             {formatBytes(row.original.data_bytes)}
           </span>
         ),
@@ -362,7 +362,7 @@ function KeysCell({ item }: { item: KubernetesSecretSummary }) {
   }
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="zke-mono text-muted-foreground text-xs break-all">
+      <span className="text-muted-foreground font-mono text-xs break-all tabular-nums">
         {keys.slice(0, 4).join(" · ")}
         {keys.length > 4 ? ` +${keys.length - 4}` : ""}
       </span>
@@ -451,16 +451,20 @@ function SecretCards({ item }: { item: KubernetesSecretDetail }) {
           <DetailRow label="类型" value={item.type || "Opaque"} />
           <DetailRow
             label="UID"
-            value={<span className="zke-mono text-xs break-all">{item.uid || "—"}</span>}
+            value={
+              <span className="font-mono text-xs break-all tabular-nums">{item.uid || "—"}</span>
+            }
           />
           <DetailRow
             label="版本"
-            value={<span className="zke-mono text-xs">{item.resource_version || "—"}</span>}
+            value={
+              <span className="font-mono text-xs tabular-nums">{item.resource_version || "—"}</span>
+            }
           />
           <DetailRow label="不可变" value={item.immutable ? "是" : "否"} />
           <DetailRow
             label="大小"
-            value={<span className="zke-tnum">{formatBytes(item.data_bytes)}</span>}
+            value={<span className="tabular-nums">{formatBytes(item.data_bytes)}</span>}
           />
           <DetailRow label="创建时间" value={formatAbsolute(item.creation_timestamp)} />
         </DetailCard>
@@ -508,9 +512,9 @@ function SecretValue({ name, value }: { name: string; value: string }) {
   return (
     <div className="grid gap-1">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <span className="zke-mono text-foreground text-xs break-all">{name}</span>
+        <span className="text-foreground font-mono text-xs break-all tabular-nums">{name}</span>
         <div className="flex items-center gap-2">
-          <span className="text-subtle-foreground zke-tnum text-xs">
+          <span className="text-subtle-foreground text-xs tabular-nums">
             {formatBytes(base64Bytes(value))}
           </span>
           {text === null ? null : (
@@ -534,7 +538,7 @@ function SecretValue({ name, value }: { name: string; value: string }) {
       ) : (
         <pre
           className={cn(
-            "border-border bg-surface-muted rounded-panel zke-mono text-muted-foreground max-h-64 overflow-auto border p-2 text-xs leading-relaxed whitespace-pre",
+            "border-border bg-surface-muted rounded-panel text-muted-foreground max-h-64 overflow-auto border p-2 font-mono text-xs leading-relaxed whitespace-pre tabular-nums",
             !revealed &&
               "text-transparent select-none [text-shadow:0_0_8px_var(--muted-foreground)]",
           )}

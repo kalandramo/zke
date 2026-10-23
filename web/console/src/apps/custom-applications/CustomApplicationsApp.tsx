@@ -135,7 +135,7 @@ export function CustomApplicationsApp({ openApp }: AppComponentProps) {
                         className={cn(
                           "grid size-12 shrink-0 place-items-center rounded-[15px]",
                           appFaceClass(appManifest),
-                          "zke-tile",
+                          "dk-tile",
                         )}
                       >
                         <AppGlyph manifest={appManifest} className="size-8" />
@@ -368,7 +368,7 @@ function ApplicationEditor({
               className={cn(
                 "grid size-20 place-items-center rounded-[25px]",
                 appFaceClass(createCustomApplicationManifest(preview)),
-                "zke-tile",
+                "dk-tile",
               )}
             >
               <AppGlyph manifest={createCustomApplicationManifest(preview)} className="size-12" />

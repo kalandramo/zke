@@ -143,7 +143,7 @@ export function NodeSection({ clusterId, clusterName, tenantId, projectId }: Clu
         header: "版本",
         size: 130,
         cell: ({ row }) => (
-          <span className="zke-mono text-muted-foreground text-xs">
+          <span className="text-muted-foreground font-mono text-xs tabular-nums">
             {row.original.kubernetes_version || "—"}
           </span>
         ),
@@ -613,7 +613,7 @@ function DrainPreview({ result }: { result: KubernetesNodeDrainResult }) {
           <div className="grid max-h-36 gap-1 overflow-y-auto">
             {blocked.map((pod) => (
               <div key={pod.uid} className="text-xs break-words">
-                <span className="zke-mono text-foreground">
+                <span className="text-foreground font-mono tabular-nums">
                   {pod.namespace}/{pod.name}
                 </span>{" "}
                 · {drainReasonLabel(pod.reason)}
@@ -683,7 +683,9 @@ function NodeDetailCards({ node }: { node: KubernetesNodeDetail }) {
         <DetailRow label="名称" value={node.name} />
         <DetailRow
           label="UID"
-          value={<span className="zke-mono text-xs break-all">{node.uid || "—"}</span>}
+          value={
+            <span className="font-mono text-xs break-all tabular-nums">{node.uid || "—"}</span>
+          }
         />
         <DetailRow label="状态" value={<StatusBadge kind="node" value={node.status} />} />
         <DetailRow
@@ -714,26 +716,38 @@ function NodeDetailCards({ node }: { node: KubernetesNodeDetail }) {
         <DetailRow label="创建时间" value={formatAbsolute(node.creation_timestamp)} />
         <DetailRow
           label="Provider"
-          value={<span className="zke-mono text-xs break-all">{node.provider_id || "—"}</span>}
+          value={
+            <span className="font-mono text-xs break-all tabular-nums">
+              {node.provider_id || "—"}
+            </span>
+          }
         />
       </DetailCard>
 
       <DetailCard title="运行环境">
         <DetailRow
           label="Kubernetes"
-          value={<span className="zke-mono text-xs">{node.kubernetes_version || "—"}</span>}
+          value={
+            <span className="font-mono text-xs tabular-nums">{node.kubernetes_version || "—"}</span>
+          }
         />
         <DetailRow
           label="容器运行时"
           value={
-            <span className="zke-mono text-xs break-all">{node.container_runtime || "—"}</span>
+            <span className="font-mono text-xs break-all tabular-nums">
+              {node.container_runtime || "—"}
+            </span>
           }
         />
         <DetailRow label="操作系统" value={node.operating_system || "—"} />
         <DetailRow label="系统镜像" value={node.os_image || "—"} />
         <DetailRow
           label="内核"
-          value={<span className="zke-mono text-xs break-all">{node.kernel_version || "—"}</span>}
+          value={
+            <span className="font-mono text-xs break-all tabular-nums">
+              {node.kernel_version || "—"}
+            </span>
+          }
         />
         <DetailRow label="架构" value={node.architecture || "—"} />
       </DetailCard>
@@ -767,7 +781,7 @@ function NodeDetailCards({ node }: { node: KubernetesNodeDetail }) {
         <DetailRow
           label="Pod CIDR"
           value={
-            <span className="zke-mono text-xs break-all">
+            <span className="font-mono text-xs break-all tabular-nums">
               {node.pod_cidrs.length > 0 ? node.pod_cidrs.join(", ") : node.pod_cidr || "—"}
             </span>
           }
@@ -787,7 +801,7 @@ function NodeDetailCards({ node }: { node: KubernetesNodeDetail }) {
               key={`${taint.key}/${taint.effect}`}
               label={taint.effect}
               value={
-                <span className="zke-mono text-xs break-all">
+                <span className="font-mono text-xs break-all tabular-nums">
                   {taint.key}
                   {taint.value ? `=${taint.value}` : ""}
                 </span>

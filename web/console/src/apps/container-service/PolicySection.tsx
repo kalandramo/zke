@@ -146,7 +146,7 @@ export function PolicySection({
         cell: ({ row }) => (
           <div className="flex flex-col gap-0.5">
             <span className="text-foreground font-medium break-all">{row.original.name}</span>
-            <span className="zke-mono text-subtle-foreground text-xs">
+            <span className="text-subtle-foreground font-mono text-xs tabular-nums">
               {row.original.uid || "UID 尚未分配"}
             </span>
           </div>
@@ -456,8 +456,8 @@ function typeColumns(
             <div className="flex flex-col gap-0.5">
               {keys.slice(0, 3).map((key) => (
                 <span key={key} className="text-muted-foreground text-xs break-all">
-                  <span className="zke-mono">{key}</span> {quota?.used?.[key] ?? "0"} /{" "}
-                  {quota?.hard?.[key]}
+                  <span className="font-mono tabular-nums">{key}</span> {quota?.used?.[key] ?? "0"}{" "}
+                  / {quota?.hard?.[key]}
                 </span>
               ))}
               {keys.length > 3 ? (
@@ -494,7 +494,7 @@ function typeColumns(
         header: "限制项",
         size: 100,
         cell: ({ row }) => (
-          <span className="zke-tnum text-muted-foreground text-xs">
+          <span className="text-muted-foreground text-xs tabular-nums">
             {row.original.limit_range?.item_count ?? 0}
           </span>
         ),
@@ -528,7 +528,7 @@ function typeColumns(
         header: "规则数",
         size: 120,
         cell: ({ row }) => (
-          <span className="zke-tnum text-muted-foreground text-xs">
+          <span className="text-muted-foreground text-xs tabular-nums">
             入 {row.original.network_policy?.ingress_rules ?? 0} · 出{" "}
             {row.original.network_policy?.egress_rules ?? 0}
           </span>
@@ -568,7 +568,7 @@ function typeColumns(
         cell: ({ row }) => {
           const budget = row.original.disruption_budget;
           return (
-            <span className="zke-tnum text-muted-foreground text-xs">
+            <span className="text-muted-foreground text-xs tabular-nums">
               {budget?.current_healthy ?? 0} / {budget?.desired_healthy ?? 0}
             </span>
           );
@@ -589,7 +589,7 @@ function typeColumns(
       header: "优先级",
       size: 130,
       cell: ({ row }) => (
-        <span className="zke-tnum text-foreground text-xs">
+        <span className="text-foreground text-xs tabular-nums">
           {row.original.priority_class?.value ?? 0}
         </span>
       ),
@@ -750,7 +750,7 @@ function PolicyDetailCards({ item }: { item: KubernetesPolicyResourceDetail }) {
         <DetailRow
           label="类型"
           value={
-            <span className="zke-mono text-xs">
+            <span className="font-mono text-xs tabular-nums">
               {item.api_version} · {item.kind}
             </span>
           }
@@ -758,11 +758,15 @@ function PolicyDetailCards({ item }: { item: KubernetesPolicyResourceDetail }) {
         {item.namespace ? <DetailRow label="命名空间" value={item.namespace} /> : null}
         <DetailRow
           label="UID"
-          value={<span className="zke-mono text-xs break-all">{item.uid || "—"}</span>}
+          value={
+            <span className="font-mono text-xs break-all tabular-nums">{item.uid || "—"}</span>
+          }
         />
         <DetailRow
           label="版本"
-          value={<span className="zke-mono text-xs">{item.resource_version || "—"}</span>}
+          value={
+            <span className="font-mono text-xs tabular-nums">{item.resource_version || "—"}</span>
+          }
         />
         <DetailRow label="创建时间" value={formatAbsolute(item.creation_timestamp)} />
       </DetailCard>
@@ -779,7 +783,7 @@ function PolicyDetailCards({ item }: { item: KubernetesPolicyResourceDetail }) {
                   key={key}
                   label={key}
                   value={
-                    <span className="zke-tnum">
+                    <span className="tabular-nums">
                       {quota.used?.[key] ?? "0"} / {quota.hard[key]}
                     </span>
                   }

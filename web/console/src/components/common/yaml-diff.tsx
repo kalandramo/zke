@@ -227,7 +227,7 @@ export function YamlDiff({ before, after }: { before: string; after: string }) {
         </div>
       ) : (
         <div className="border-border rounded-panel bg-surface-muted max-h-[min(28vh,320px)] overflow-auto border">
-          <table className="zke-mono w-full border-collapse text-xs leading-5">
+          <table className="w-full border-collapse font-mono text-xs leading-5 tabular-nums">
             <tbody>
               {diff.rows.map((row, index) => (
                 <tr

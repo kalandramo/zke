@@ -50,7 +50,8 @@ export function ScrapeAnnotationHelp() {
               <thead className="bg-surface-muted/50 text-subtle-foreground">
                 <tr>
                   <th className="px-2 py-1 text-left font-medium">
-                    注解（前缀 <span className="zke-mono">{SCRAPE_ANNOTATION_PREFIX}</span>）
+                    注解（前缀{" "}
+                    <span className="font-mono tabular-nums">{SCRAPE_ANNOTATION_PREFIX}</span>）
                   </th>
                   <th className="px-2 py-1 text-left font-medium">取值</th>
                 </tr>
@@ -59,7 +60,7 @@ export function ScrapeAnnotationHelp() {
                 {SCRAPE_ANNOTATION_GUIDE.map((entry) => (
                   <tr key={entry.key} className="border-border/60 border-t align-top">
                     <td className="px-2 py-1">
-                      <div className="zke-mono text-foreground break-all">
+                      <div className="text-foreground font-mono break-all tabular-nums">
                         {scrapeAnnotationName(entry.key)}
                       </div>
                       <div className="text-subtle-foreground">{entry.purpose}</div>
@@ -83,10 +84,10 @@ export function ScrapeAnnotationHelp() {
             </li>
             <li>
               写错的值会直接丢弃这个目标，而不是回退到默认值：路径必须以{" "}
-              <span className="zke-mono">/</span> 开头，端口必须在 1-65535 之间。
+              <span className="font-mono tabular-nums">/</span> 开头，端口必须在 1-65535 之间。
             </li>
             <li>
-              <span className="zke-mono">auth=service-account</span> 只允许配合
+              <span className="font-mono tabular-nums">auth=service-account</span> 只允许配合
               https，携带的是采集组件自己的 Token；注解不支持引用 Secret。
             </li>
             <li>

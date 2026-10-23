@@ -609,7 +609,7 @@ const Timeline = memo(function Timeline({
           // Not `overflow-hidden`: the hover readout hangs below the strip, over
           // the ledger. Only the drawing layer inside clips, which is what a
           // zoomed viewport needs.
-          "zke-focus relative min-w-0 flex-1 cursor-crosshair",
+          "dk-focus relative min-w-0 flex-1 cursor-crosshair",
           panning && "cursor-grabbing",
         )}
         onPointerDown={onPointerDown}
@@ -844,7 +844,7 @@ function TurnSection({
         type="button"
         onClick={onToggleTurn}
         aria-expanded={!folded}
-        className="zke-focus border-border bg-surface-muted/70 text-subtle-foreground sticky top-0 z-2 flex w-full items-center gap-1.5 border-b px-3 py-1 text-left text-[11px] backdrop-blur-sm"
+        className="dk-focus border-border bg-surface-muted/70 text-subtle-foreground sticky top-0 z-2 flex w-full items-center gap-1.5 border-b px-3 py-1 text-left text-[11px] backdrop-blur-sm"
       >
         <ChevronDown
           aria-hidden
@@ -944,7 +944,7 @@ const EntryRow = memo(function EntryRow({
           aria-label={fold.folded ? "展开该步骤的工具调用" : "折叠该步骤的工具调用"}
           aria-expanded={!fold.folded}
           onClick={fold.onToggle}
-          className="zke-focus text-subtle-foreground hover:text-foreground ml-1 flex size-5 shrink-0 items-center justify-center rounded-full"
+          className="dk-focus text-subtle-foreground hover:text-foreground ml-1 flex size-5 shrink-0 items-center justify-center rounded-full"
         >
           <ChevronRight
             aria-hidden
@@ -961,7 +961,7 @@ const EntryRow = memo(function EntryRow({
         type="button"
         onClick={() => onSelect(entry.sequence)}
         className={cn(
-          "zke-focus flex min-w-0 flex-1 items-center gap-2 py-1.5 pr-3 text-left",
+          "dk-focus flex min-w-0 flex-1 items-center gap-2 py-1.5 pr-3 text-left",
           nested ? "pl-6" : "pl-1",
         )}
       >
@@ -986,11 +986,11 @@ const EntryRow = memo(function EntryRow({
           <span className="text-subtle-foreground shrink-0 text-[11px]">+{fold.count} 次调用</span>
         ) : null}
         {entry.duration_ms > 0 ? (
-          <span className="text-subtle-foreground zke-tnum shrink-0 text-[11px]">
+          <span className="text-subtle-foreground shrink-0 text-[11px] tabular-nums">
             {formatDuration(entry.duration_ms)}
           </span>
         ) : null}
-        <span className="text-subtle-foreground/70 zke-tnum w-10 shrink-0 text-right text-[11px]">
+        <span className="text-subtle-foreground/70 w-10 shrink-0 text-right text-[11px] tabular-nums">
           #{entry.sequence}
         </span>
       </button>

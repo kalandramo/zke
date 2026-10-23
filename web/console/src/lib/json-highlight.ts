@@ -2,8 +2,9 @@
  * The token classes a JSON document is painted in.
  *
  * The same vocabulary the YAML highlighter uses, so both surfaces resolve to
- * the one set of `--code-*` variables in `theme.css` and a document does not
- * change colour depending on which viewer it is open in.
+ * the one set of `--code-*` variables in the design tokens
+ * (`@kalandramo/desktop-kit-tokens`), and a document does not change colour depending on
+ * which viewer it is open in.
  */
 export type JsonTokenKind = "plain" | "key" | "string" | "literal" | "punctuation";
 

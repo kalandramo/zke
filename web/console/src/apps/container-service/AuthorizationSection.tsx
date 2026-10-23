@@ -124,7 +124,7 @@ export function AuthorizationSection({
         cell: ({ row }) => (
           <div className="flex flex-col gap-0.5">
             <span className="text-foreground font-medium break-all">{row.original.name}</span>
-            <span className="zke-mono text-subtle-foreground text-xs">
+            <span className="text-subtle-foreground font-mono text-xs tabular-nums">
               {row.original.uid || "UID 尚未分配"}
             </span>
           </div>
@@ -473,7 +473,7 @@ function typeColumns(
       {
         header: "规则数",
         size: 100,
-        cell: ({ row }) => <span className="zke-tnum">{row.original.rule_count}</span>,
+        cell: ({ row }) => <span className="tabular-nums">{row.original.rule_count}</span>,
       },
     ];
   }
@@ -491,7 +491,7 @@ function typeColumns(
     {
       header: "主体数",
       size: 100,
-      cell: ({ row }) => <span className="zke-tnum">{row.original.subject_count}</span>,
+      cell: ({ row }) => <span className="tabular-nums">{row.original.subject_count}</span>,
     },
   ];
 }
@@ -582,7 +582,7 @@ function AuthorizationDetailCards({
           <DetailRow
             label="类型"
             value={
-              <span className="zke-mono text-xs">
+              <span className="font-mono text-xs tabular-nums">
                 {item.api_version} · {item.kind}
               </span>
             }
@@ -590,11 +590,15 @@ function AuthorizationDetailCards({
           {item.namespace ? <DetailRow label="命名空间" value={item.namespace} /> : null}
           <DetailRow
             label="UID"
-            value={<span className="zke-mono text-xs break-all">{item.uid || "—"}</span>}
+            value={
+              <span className="font-mono text-xs break-all tabular-nums">{item.uid || "—"}</span>
+            }
           />
           <DetailRow
             label="版本"
-            value={<span className="zke-mono text-xs">{item.resource_version || "—"}</span>}
+            value={
+              <span className="font-mono text-xs tabular-nums">{item.resource_version || "—"}</span>
+            }
           />
           {item.role_ref ? (
             <DetailRow
@@ -654,7 +658,7 @@ function AuthorizationDetailCards({
                   key={index}
                   className="border-border/50 grid gap-0.5 border-b pb-2 text-[13px] last:border-b-0 last:pb-0"
                 >
-                  <span className="zke-mono text-foreground text-xs break-all">
+                  <span className="text-foreground font-mono text-xs break-all tabular-nums">
                     {rule.verbs.join(", ") || "—"}
                   </span>
                   <span className="text-muted-foreground text-xs break-all">

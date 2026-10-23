@@ -58,7 +58,7 @@ export function SegmentedTabs<T extends { id: string; label: string }>({
             aria-pressed={active}
             onClick={() => onSelect(item.id)}
             className={cn(
-              "zke-focus rounded-control border border-transparent px-3 py-1 text-[13px] font-medium transition-colors",
+              "dk-focus rounded-control border border-transparent px-3 py-1 text-[13px] font-medium transition-colors",
               active
                 ? "border-border bg-surface text-foreground shadow-e1"
                 : "text-muted-foreground hover:text-foreground",

@@ -78,7 +78,7 @@ export function useWindowInteraction({
       state.element.releasePointerCapture(state.pointerId);
     }
     pointerState.current = null;
-    document.body.classList.remove("zke-interacting");
+    document.body.classList.remove("dk-interacting");
     setPreviewRect(null);
     setDragging(false);
     setSnapZone(null);
@@ -125,7 +125,7 @@ export function useWindowInteraction({
       };
       latestRect.current = rect;
       latestSnap.current = null;
-      document.body.classList.add("zke-interacting");
+      document.body.classList.add("dk-interacting");
       setPreviewRect(rect);
       setDragging(kind.type === "drag");
     },

@@ -181,7 +181,7 @@ function StatTile({
       {loading ? (
         <Skeleton className="my-1 h-6 w-16" />
       ) : (
-        <span className={cn("zke-tnum text-[22px] leading-tight font-semibold", TONES[tone])}>
+        <span className={cn("text-[22px] leading-tight font-semibold tabular-nums", TONES[tone])}>
           {Math.round(value).toLocaleString("zh-CN")}
         </span>
       )}

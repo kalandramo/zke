@@ -24,7 +24,7 @@ export function CustomApplicationFrame({ manifest }: AppComponentProps) {
           aria-label={`正在加载 ${application.name}`}
           aria-valuetext="加载中"
         >
-          <span className="zke-iframe-loading-bar bg-primary absolute inset-y-0 left-0 w-1/3" />
+          <span className="dk-iframe-loading-bar bg-primary absolute inset-y-0 left-0 w-1/3" />
         </div>
       ) : null}
 

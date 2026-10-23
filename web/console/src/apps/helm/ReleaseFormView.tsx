@@ -729,7 +729,7 @@ function ApplyStep({
  */
 function ReleaseNotes({ notes }: { notes: string }) {
   return (
-    <pre className="zke-mono text-muted-foreground border-border bg-surface-muted/60 rounded-control border p-2.5 text-xs leading-relaxed whitespace-pre-wrap">
+    <pre className="text-muted-foreground border-border bg-surface-muted/60 rounded-control border p-2.5 font-mono text-xs leading-relaxed whitespace-pre-wrap tabular-nums">
       {notes}
     </pre>
   );

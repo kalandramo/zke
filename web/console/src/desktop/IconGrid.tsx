@@ -85,14 +85,14 @@ function AppIcon({ manifest, onOpen }: { manifest: AppManifest; onOpen: () => vo
       type="button"
       onClick={onOpen}
       title={manifest.description}
-      className="zke-focus group rounded-panel flex w-full flex-col items-center gap-2 px-1.5 py-2.5 text-center"
+      className="dk-focus group rounded-panel flex w-full flex-col items-center gap-2 px-1.5 py-2.5 text-center"
     >
       <span
         className={cn(
           "grid size-16 place-items-center rounded-[20px]",
           appFaceClass(manifest),
           appHoverClass(manifest),
-          !planned && "zke-tile",
+          !planned && "dk-tile",
         )}
       >
         <AppGlyph

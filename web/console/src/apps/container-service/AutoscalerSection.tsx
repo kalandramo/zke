@@ -138,7 +138,7 @@ function HorizontalPodAutoscalerSection({
         cell: ({ row }) => (
           <div className="flex flex-col gap-0.5">
             <span className="text-foreground font-medium break-all">{row.original.name}</span>
-            <span className="zke-mono text-subtle-foreground text-xs whitespace-nowrap">
+            <span className="text-subtle-foreground font-mono text-xs whitespace-nowrap tabular-nums">
               {row.original.uid || "UID 尚未分配"}
             </span>
           </div>
@@ -159,10 +159,10 @@ function HorizontalPodAutoscalerSection({
         size: 130,
         cell: ({ row }) => (
           <div className="flex flex-col gap-0.5">
-            <span className="zke-tnum text-foreground">
+            <span className="text-foreground tabular-nums">
               {row.original.current_replicas} → {row.original.desired_replicas}
             </span>
-            <span className="text-subtle-foreground zke-tnum text-xs">
+            <span className="text-subtle-foreground text-xs tabular-nums">
               区间 {row.original.min_replicas}–{row.original.max_replicas}
             </span>
           </div>
@@ -171,7 +171,7 @@ function HorizontalPodAutoscalerSection({
       {
         header: "指标",
         size: 80,
-        cell: ({ row }) => <span className="zke-tnum">{row.original.metric_count}</span>,
+        cell: ({ row }) => <span className="tabular-nums">{row.original.metric_count}</span>,
       },
       {
         header: "状态",
@@ -549,7 +549,7 @@ function AutoscalerDetailCards({
           value={
             <span className="break-all">
               {item.target.kind}/{item.target.name}
-              <span className="zke-mono text-subtle-foreground ml-2 text-xs">
+              <span className="text-subtle-foreground ml-2 font-mono text-xs tabular-nums">
                 {item.target.api_version}
               </span>
             </span>
@@ -558,7 +558,7 @@ function AutoscalerDetailCards({
         <DetailRow
           label="副本区间"
           value={
-            <span className="zke-tnum">
+            <span className="tabular-nums">
               {item.min_replicas} – {item.max_replicas}
             </span>
           }
@@ -566,7 +566,7 @@ function AutoscalerDetailCards({
         <DetailRow
           label="当前 / 期望"
           value={
-            <span className="zke-tnum">
+            <span className="tabular-nums">
               {item.current_replicas} → {item.desired_replicas}
             </span>
           }
@@ -575,7 +575,7 @@ function AutoscalerDetailCards({
         <DetailRow
           label="Generation"
           value={
-            <span className="zke-tnum">
+            <span className="tabular-nums">
               {item.generation}（已观察 {item.observed_generation ?? "—"}）
             </span>
           }
@@ -708,7 +708,7 @@ function AutoscalerTrendCard({
                     .map((point) => (
                       <tr key={point.timestamp} className="border-border/60 border-b">
                         <td className="py-1 pr-3">{formatAbsolute(point.timestamp)}</td>
-                        <td className="zke-tnum py-1 pr-3">
+                        <td className="py-1 pr-3 tabular-nums">
                           {point.current_replicas} → {point.desired_replicas}
                         </td>
                         <td className="py-1">
@@ -739,7 +739,7 @@ function BehaviorCard({ behavior }: { behavior: KubernetesHPABehavior }) {
         {rules.select_policy ?? "默认"}
       </span>
       {rules.policies.map((policy, index) => (
-        <span key={index} className="zke-mono text-muted-foreground text-xs">
+        <span key={index} className="text-muted-foreground font-mono text-xs tabular-nums">
           {policy.type} {policy.value} / {policy.period_seconds}s
         </span>
       ))}

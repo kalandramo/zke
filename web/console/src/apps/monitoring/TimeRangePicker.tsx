@@ -87,7 +87,7 @@ export function TimeRangePicker({
                   setOpen(false);
                 }}
                 className={cn(
-                  "zke-focus rounded-control flex items-center justify-between gap-2 px-2 py-1.5 text-left text-[13px] transition-colors",
+                  "dk-focus rounded-control flex items-center justify-between gap-2 px-2 py-1.5 text-left text-[13px] transition-colors",
                   active
                     ? "text-foreground font-medium"
                     : "text-muted-foreground hover:bg-surface-muted hover:text-foreground",
