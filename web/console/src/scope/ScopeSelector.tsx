@@ -106,6 +106,23 @@ export const ScopeSelector = memo(function ScopeSelector({
   const tenantLabel = scope.tenantName ?? linkedTenant.data?.name ?? null;
   const projectLabel = scope.projectName ?? linkedProject.data?.name ?? null;
 
+  /*
+   * The accessible name carries the scope, not only the affordance.
+   *
+   * A constant "选择项目" reads the same whether or not a Project is chosen, which
+   * hides the most consequential piece of context the Console has: a non-visual
+   * operator never learns where they are working, and the two-line Tenant/Project
+   * lockup — the thing everyone else reads to answer "which Project is this?" — is
+   * exactly the part they cannot get. So the name states the location first and the
+   * action second. With nothing selected there is no location to report, and the
+   * affordance alone is the truth.
+   */
+  const triggerLabel = projectLabel
+    ? tenantLabel
+      ? `当前项目：${tenantLabel} / ${projectLabel}，点击切换项目`
+      : `当前项目：${projectLabel}，点击切换项目`
+    : NONE_LABEL;
+
   const visibleTenants = useMemo(
     () => (tenants.data?.tenants ?? []).filter((tenant: Tenant) => matches(tenant.name, filter)),
     [filter, tenants.data],
@@ -146,7 +163,7 @@ export const ScopeSelector = memo(function ScopeSelector({
       <PopoverTrigger asChild>
         <button
           type="button"
-          aria-label="选择项目"
+          aria-label={triggerLabel}
           className={cn(
             // No field border: it sits on the top bar's glass, and a box drawn
             // around it would read as a control dropped onto the bar rather than
