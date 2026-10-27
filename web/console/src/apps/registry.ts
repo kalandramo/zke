@@ -219,9 +219,9 @@ export const APP_MANIFESTS: AppManifest[] = [
     requiredPermissions: ["cluster.metrics.read"],
     availability: { state: "available" },
     // The largest default in the catalogue, and deliberately larger than any
-    // screen it is likely to open on: `cascadeRect` clamps a window to the
-    // desktop, so asking for this much means "as much as there is" everywhere
-    // below it and stays a fixed size above.
+    // screen it is likely to open on: kit's `cascadeRect` (its core `geometry.ts`)
+    // clamps a window to the desktop, so asking for this much means "as much as
+    // there is" everywhere below it and stays a fixed size above.
     //
     // Every chart section lays its panels out two per row and stacks several
     // sections down the page, so this application is the one where a default

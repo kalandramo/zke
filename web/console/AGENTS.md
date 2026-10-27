@@ -94,7 +94,7 @@ Console 是一个桌面外壳，但它跑在浏览器里，所以同一份代码
 （`sm:`、`md:`、`lg:`）。桌面隐喻下这两个数字只是偶尔相等：宽屏上被拖窄到 420px 的窗口，用视口断点会按 2560px
 来排版。容器由外壳声明，应用直接用即可：
 
-- `desktop/Window.tsx` 的内容层是 `@container`——不走 `AppShell` 的应用（AIOps）问的就是它；
+- kit 的 `WindowFrame`（`@kalandramo/desktop-kit` 的 `react/window-frame.tsx`）在内容层声明 `@container`——不走 `AppShell` 的应用（AIOps）问的就是它；
 - `apps/AppShell.tsx` 的根与工作区各是一个 `@container`——应用里写的 `@md:` 问的是工作区的实际宽度，也就是窗口
   减去导航与内边距之后剩下的那点；
 - `@kalandramo/desktop-kit/ui` 的 `DialogContent` 是 `@container`——对话框被 portal 到 body，没有祖先容器，
@@ -132,9 +132,10 @@ Console 是一个桌面外壳，但它跑在浏览器里，所以同一份代码
 - 悬停才出现的东西，在 `hover: none` 上等于不存在。任何 `group-hover:opacity-100` 都要补 `hoverless:opacity-100`，
   或者说明为什么这个入口在触摸设备上可以没有。
 
-**窄视口下的桌面。** 视口宽度小于 `STACKED_BREAKPOINT`（1024，定义在 `desktop/geometry.ts`）时窗口不再可拖拽、
-不可缩放、一次只呈现最上面一个，并且满幅铺开——`computeDesktopBounds` 在这一档把边距归零，最小窗口尺寸也被屏幕
-自身封顶（`MINIMUM_WINDOW_WIDTH` 是 380，但 375pt 的手机上窗口就是 375）。改动窗口几何时不要重新引入「比屏幕还
+**窄视口下的桌面。** 视口宽度小于 `STACKED_BREAKPOINT`（1024，定义在 desktop-kit 的 core `geometry.ts`；宿主经
+`Desktop` 的 `narrowViewportLayout="stacked"` 显式开启，见 `src/desktop/Desktop.tsx`）时窗口不再可拖拽、
+不可缩放、一次只呈现最上面一个，并且满幅铺开——core 的 `computeDesktopBounds` 在这一档把边距归零，最小窗口尺寸也被屏幕
+自身封顶（宿主在 `Desktop.tsx` 的 `layout.minWindowSize` 里传 380×260，但 375pt 的手机上窗口就是 375）。改动窗口几何时不要重新引入「比屏幕还
 宽的下限」，桌面外层是 `overflow-hidden`，超出的部分不会滚动，会被直接裁掉。
 
 ## 弹窗还是页面
