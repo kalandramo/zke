@@ -63,6 +63,8 @@ export default defineConfig({
         "kit-lab": fileURLToPath(new URL("./kit-lab.html", import.meta.url)),
         // 真实桌面试跑入口：11 个 ZKE 应用挂到 kit 外壳上，夹具身份，见 src/desktop-trial。
         "desktop-trial": fileURLToPath(new URL("./desktop-trial.html", import.meta.url)),
+        // 生产桌面的夹具入口：挂的是真的 src/desktop/Desktop.tsx，见 src/desktop-prod。
+        "desktop-prod": fileURLToPath(new URL("./desktop-prod.html", import.meta.url)),
       },
     },
   },
