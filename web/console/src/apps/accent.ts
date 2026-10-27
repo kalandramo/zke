@@ -71,10 +71,12 @@ export function appFaceClass(manifest: AppManifest): string {
     // The face is white in both themes — it exists to carry somebody else's logo — but
     // `--foreground` flips: near-white in dark. Without named ink, the moment a logo 404s
     // the fallback glyph is near-white on white: measured 1.16:1, an icon that is not there.
-    // `subtle-foreground` is the darkest published text token (2.85:1 on this face in dark,
-    // 3.90:1 in light). The 3:1 bar for a non-text graphic needs a logo-face ink token of
-    // its own, which belongs in the tokens package and is recorded as debt.
-    return "border-app-logo-border bg-app-logo-surface border text-subtle-foreground";
+    // `--logo-ink` is that ink: measured against the white it is drawn on rather than
+    // inherited from the text ramp — 14.58:1 in light, 8.27:1 in dark, both pinned at ≥3.0 by
+    // the tokens package's own WCAG 2.1 test, which is the bar a non-text graphic has to
+    // clear. No text token reaches it (`subtle-foreground`, the darkest published one,
+    // measures 2.85:1 here in dark), which is exactly why the ink is its own token.
+    return "border-app-logo-border bg-app-logo-surface border text-logo-ink";
   }
   return cn("text-white", ACCENT_FILL[manifest.accent ?? "cluster-access"]);
 }
