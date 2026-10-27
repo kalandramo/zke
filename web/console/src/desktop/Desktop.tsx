@@ -433,13 +433,22 @@ export function Desktop() {
    * steps forward, Shift steps back. Kit's own chord is the reverse, and a shell
    * default is not worth an operator relearning a reflex, so the host binds it and
    * kit's stays off.
+   *
+   * The chord is matched on `event.code` — the physical key — not on `event.key`,
+   * the character that key types. Shift changes the character: Ctrl+Shift+` arrives
+   * as `key: "~"` (measured in Chromium, and pinned by `desktop-prod.spec.ts`), so
+   * testing the glyph made the Shift branch unreachable and the reverse cycle a
+   * shortcut that does nothing at all. A key position is also what an operator
+   * reaches for, which is why the layout-independent `code` is the right subject to
+   * bind: it fixes the Shift case, and every layout where that key types no grave
+   * accent, and costs nothing the glyph test was buying.
    */
   useEffect(() => {
     if (!shell) {
       return;
     }
     const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key === "`") {
+      if ((event.metaKey || event.ctrlKey) && event.code === "Backquote") {
         event.preventDefault();
         shell.cycleFocus(event.shiftKey ? -1 : 1);
       }
