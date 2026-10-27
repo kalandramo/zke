@@ -86,9 +86,20 @@ tasks:
       - echo {{.VERSION}}
 
   run-server:
-    desc: 本地启动 zke-server（前提：本地 PostgreSQL 匹配 configs/zke-server.yaml 的默认 DSN）
+    desc: 本地启动 zke-server = 构建 + 运行两步（前提：本地 PostgreSQL 匹配 configs/zke-server.yaml 的默认 DSN）
     cmds:
-      - go run ./cmd/zke-server --config configs/zke-server-local.yaml
+      - task: run-server:build
+      - task: run-server:run
+
+  run-server:build:
+    desc: 构建 zke-server 开发二进制 bin/zke-server-dev（编译错误在这一步暴露，不带发布形裁剪）
+    cmds:
+      - go build -o bin/zke-server-dev{{exeExt}} ./cmd/zke-server
+
+  run-server:run:
+    desc: 直接运行已构建的 bin/zke-server-dev，不重新编译；改完代码先跑 run-server:build
+    cmds:
+      - ./bin/zke-server-dev{{exeExt}} --config configs/zke-server-local.yaml
 
   run-agent:
     desc: 本地启动 zke-agent
