@@ -1,5 +1,5 @@
 import type { AIViewIntent } from "@/api/types";
-import { useWindowStore } from "@/desktop/window-store";
+import { openWindow } from "@/desktop/shell";
 import { useScopeStore } from "@/scope/scope-store";
 
 /**
@@ -140,7 +140,7 @@ export function openEvidence(target: EvidenceTarget, options: { run?: boolean } 
       run: options.run,
     });
   }
-  useWindowStore.getState().openWindow(appId, { restart: true });
+  openWindow(appId, undefined, { restart: true });
 }
 
 /**
