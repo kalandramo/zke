@@ -136,27 +136,16 @@ export function makeCustomAppTitleBar(zke: ZkeAppManifest): ReactNode {
  * `planned` needs no branch here: custom applications are always `available` (the registry builds
  * them that way), and kit would ignore `faceClass` for a planned app anyway.
  *
- * The ink a fallback glyph wears on the logo face, and why it has to be named here.
- *
- * `faceClass` takes kit's whole default face apart, `text-white` included — the icon then
- * inherits its colour from the face element. `--app-logo-surface` does not flip with the
- * theme (it is white in both, because it exists to carry somebody else's logo), while
- * `--foreground` does: near-white in dark. So the moment a logo 404s and `Globe2` takes its
- * place, the glyph is near-white on white — 1.16:1, an icon that is not there.
- *
- * `subtle-foreground` is the darkest *text* token the published set has, and it is the one
- * already used for ink that has to sit on a lighter ground (the menu's own avatar glyph).
- * It reads 2.85:1 on white in dark and 3.90:1 in light. Three-to-one — the bar for a
- * non-text graphic — is out of reach without a token of the logo face's own, which belongs
- * in the framework's tokens package, not in a host-side class string.
+ * The ink lives in `appFaceClass` itself now, not here: the management page draws the same
+ * face with none of kit's `faceClass` machinery in the picture, so naming it at the source
+ * is the only way the launcher, the Dock and that page stop being three chances to forget
+ * it. What is left here is the gate — pass the face only when there is a logo to carry it.
  */
-const LOGO_FACE_INK = "text-subtle-foreground";
-
 function customAppFaceClass(zke: ZkeAppManifest): string | undefined {
   if (!zke.customApplication?.logo_url) {
     return undefined;
   }
-  return `${appFaceClass(zke)} ${LOGO_FACE_INK}`;
+  return appFaceClass(zke);
 }
 
 /**

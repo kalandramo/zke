@@ -68,7 +68,13 @@ export function appFaceClass(manifest: AppManifest): string {
     return "border-border bg-surface-muted/60 text-subtle-foreground border";
   }
   if (manifest.customApplication?.logo_url) {
-    return "border-app-logo-border bg-app-logo-surface border";
+    // The face is white in both themes — it exists to carry somebody else's logo — but
+    // `--foreground` flips: near-white in dark. Without named ink, the moment a logo 404s
+    // the fallback glyph is near-white on white: measured 1.16:1, an icon that is not there.
+    // `subtle-foreground` is the darkest published text token (2.85:1 on this face in dark,
+    // 3.90:1 in light). The 3:1 bar for a non-text graphic needs a logo-face ink token of
+    // its own, which belongs in the tokens package and is recorded as debt.
+    return "border-app-logo-border bg-app-logo-surface border text-subtle-foreground";
   }
   return cn("text-white", ACCENT_FILL[manifest.accent ?? "cluster-access"]);
 }
