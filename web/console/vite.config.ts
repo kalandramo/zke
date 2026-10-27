@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { fileURLToPath, URL } from "node:url";
 
 import tailwindcss from "@tailwindcss/vite";
@@ -12,7 +13,23 @@ const serverTarget = process.env.ZKE_SERVER_URL ?? "http://127.0.0.1:8080";
 
 const proxiedPrefixes = ["/api", "/healthz", "/readyz", "/agent-install"];
 
+/**
+ * kit-lab 顶栏要显示真实版本号。该包 exports 白名单里没有 ./package.json，客户端
+ * 直接 import 它会在构建期解析失败，所以只能在 Node 侧读文件、用 define 注入常量。
+ * 读的是安装事实而非 package.json 里的 pin：pin 写 0.5.0 而 lockfile 解析到别的版本时，
+ * 页面上显示的是真正跑起来的那一个。
+ */
+const desktopKitVersion: string = JSON.parse(
+  readFileSync(
+    fileURLToPath(new URL("./node_modules/@kalandramo/desktop-kit/package.json", import.meta.url)),
+    "utf8",
+  ),
+).version;
+
 export default defineConfig({
+  define: {
+    __DESKTOP_KIT_VERSION__: JSON.stringify(desktopKitVersion),
+  },
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
@@ -44,6 +61,8 @@ export default defineConfig({
       input: {
         main: fileURLToPath(new URL("./index.html", import.meta.url)),
         "kit-lab": fileURLToPath(new URL("./kit-lab.html", import.meta.url)),
+        // 真实桌面试跑入口：11 个 ZKE 应用挂到 kit 外壳上，夹具身份，见 src/desktop-trial。
+        "desktop-trial": fileURLToPath(new URL("./desktop-trial.html", import.meta.url)),
       },
     },
   },
